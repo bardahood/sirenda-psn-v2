@@ -27,6 +27,10 @@ jobs:
           extensions: pdo_mysql, mbstring, intl
           coverage: none
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
@@ -34,6 +38,9 @@ jobs:
         run: |
           cp .env.example .env
           php artisan key:generate
+
+      - name: Build assets
+        run: npm ci && npm run build
 
       - name: Code style
         run: ./vendor/bin/pint --test

@@ -1,3 +1,29 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    body { @apply bg-kanvas font-sans text-isi text-slate-800 antialiased; }
+    .angka { font-variant-numeric: tabular-nums; }
+    [x-cloak] { display: none !important; }
+}
+
+@layer components {
+    .kartu { @apply rounded-kartu border border-slate-200 bg-white p-5; }
+    .judul-panel { @apply text-panel text-slate-900; }
+    .label { @apply text-label text-slate-600; }
+    .tombol { @apply inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-isi font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-aksen; }
+    .tombol-primer { @apply tombol bg-primer text-white hover:bg-primer-700; }
+    .tombol-garis { @apply tombol border border-slate-300 bg-white text-slate-700 hover:bg-slate-50; }
+    .ikon-tombol { @apply inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-aksen; }
+    /* Badge status: label + warna; teks gelap di latar muda agar kontras >= 4,5:1. */
+    .badge { @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2 py-0.5 text-label ring-1 ring-inset; }
+    .badge-ON_TRACK { @apply badge bg-green-50 text-green-800 ring-green-600/40; }
+    .badge-BERISIKO { @apply badge bg-amber-50 text-amber-900 ring-amber-600/40; }
+    .badge-TERLAMBAT { @apply badge bg-red-50 text-red-800 ring-red-600/40; }
+    .badge-TANPA_DATA { @apply badge bg-slate-100 text-slate-700 ring-slate-500/40; }
+    .titik-ON_TRACK { @apply h-2 w-2 rounded-full bg-green-600; }
+    .titik-BERISIKO { @apply h-2 w-2 rounded-full bg-amber-600; }
+    .titik-TERLAMBAT { @apply h-2 w-2 rounded-full bg-red-600; }
+    .titik-TANPA_DATA { @apply h-2 w-2 rounded-full bg-slate-500; }
+}

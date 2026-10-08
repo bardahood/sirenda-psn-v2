@@ -211,8 +211,10 @@ class SnapshotService
         }
 
         // 1) Persentase fisik eksplisit.
+        // Progres fisik dibatasi 0-100%: nilai di atas 100 berasal dari capaian volume
+        // melampaui target atau salah isi, bukan progres fisik.
         if ($pilih->target_persen !== null && $pilih->realisasi_persen !== null) {
-            return [(float) $pilih->target_persen, (float) $pilih->realisasi_persen, $pembaruan];
+            return [min((float) $pilih->target_persen, 100.0), min((float) $pilih->realisasi_persen, 100.0), $pembaruan];
         }
 
         // 2) Capaian volume terhadap target periode.
@@ -222,7 +224,7 @@ class SnapshotService
                 ? $this->bulan / 12 * 100
                 : 100.0;
 
-            return [$rencana, min($realisasi, 999.0), $pembaruan];
+            return [$rencana, min($realisasi, 100.0), $pembaruan];
         }
 
         return [$rencanaSaja, null, $pembaruan];

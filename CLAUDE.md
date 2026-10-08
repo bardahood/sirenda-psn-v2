@@ -25,6 +25,13 @@ Konvensi proyek untuk asisten AI dan pengembang.
 - Pembatasan per sektor/proyek ditegakkan di level query (global scope berbasis `users.unit_kerja_id`), bukan hanya di tampilan.
 - Setiap aksi input/verifikasi/kelola wajib tercatat di `audit_log`.
 
+## Frontend
+- Blade + Alpine + Tailwind; tanpa CDN (font & library dibundel Vite). Jalankan `npm run build` setelah mengubah JS/CSS.
+- Token desain di `tailwind.config.js` (`primer`, `aksen`, `rounded-kartu`, `text-kpi`/`panel`/`isi`/`label`). Komponen panel: `<x-panel kode=... judul=...>` (ⓘ + unduh PNG/CSV).
+- Status selalu badge berlabel (`badge-{KODE}` + `titik-{KODE}`), tidak pernah warna saja.
+- Grafik: satu seri = warna aksen; dua seri memakai palet tervalidasi (#2a78d6, #eb6834); tidak ada grafik dua sumbu Y.
+- Filter global hidup di query string (`Alpine.store('filter')`). Tautan antarhalaman memakai `$store.filter.tautan(path)` agar filter terbawa.
+
 ## ETL
 - `app/Support/Legacy/LegacyImporter.php` hanya membaca koneksi `legacy`. Baris hasil impor menyimpan `legacy_id`/`legacy_ref`.
 - Data yang tidak bisa dipetakan dicatat di laporan ETL, tidak dibuang diam-diam.

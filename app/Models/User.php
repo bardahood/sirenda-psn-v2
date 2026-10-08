@@ -20,6 +20,13 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+    /** Selaras dengan default kolom agar instance baru tidak terbaca nonaktif. */
+    protected $attributes = [
+        'is_active' => true,
+        'wajib_ganti_password' => false,
+        'jumlah_login' => 0,
+    ];
+
     protected $fillable = [
         'username',
         'name',

@@ -23,6 +23,15 @@ cp .env.example .env && php artisan key:generate   # isi DB_* dan LEGACY_DB_*
 php artisan migrate --seed                        # skema + referensi + peran + akun admin (kata sandi dicetak sekali)
 ```
 
+## Menjalankan aplikasi
+
+```bash
+npm install && npm run build
+php artisan serve        # buka http://127.0.0.1:8000, login dengan akun admin dari seeder
+```
+
+Halaman yang sudah tersedia: `/login`, `/dashboard` (Ringkasan Eksekutif), dan `/ganti-password`. Halaman lain menyusul per fase (lihat `docs/rancangan-aplikasi.md` §11).
+
 ## Impor data dari basis data lama
 
 1. Pulihkan dump lama ke server MySQL (contoh: `mysql --force sirendapsn_bappenas < sirendapsn_bappenas_YYYYMMDD.sql`).

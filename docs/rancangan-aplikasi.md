@@ -219,6 +219,17 @@ L = lihat, I = input, V = verifikasi, K = kelola penuh. ¹ = terbatas pada sekto
 
 Parameter filter: `periode=2026-09`, `prov=31,32`, `klaster=3,7`, `dit=12`, `status=terlambat`, `kat=psn|pkpn`, `dana=kpbu`.
 
+### 8.1 Implementasi Fase 2
+
+- Endpoint ada di `routes/web.php` (prefix `/api/v1`, sesi web satu origin, middleware `auth` + `akun.aktif` + `can:ringkasan.lihat`). Tambahan: `GET /api/v1/dashboard/{tahapan,status-data,trisula,timeline-dp,aktivitas}`, `GET /api/v1/filter-opsi`, dan `GET /api/v1/kamus-indikator`.
+- `App\Support\Dashboard\FilterGlobal` mem-parsing dan memvalidasi filter (422 bila tidak valid). Periode yang belum terbit menghasilkan 404.
+- `App\Services\DashboardService` membaca `snapshot_psn` lewat model ber-scope cakupan, lalu memfilter dan mengagregasi di PHP. Kolom JSON multi-nilai (provinsi, unit, sumber dana) diperlakukan seragam di MySQL dan MariaDB. Kunci cache memuat cut-off, filter, dan **cakupan pengguna**, sehingga angka tidak bocor antar-unit.
+- Kinerja pada data riil (380 PSN): seluruh 13 panel dihitung dalam 271 ms tanpa cache dan 10 ms dengan cache.
+- Frontend: Blade + Alpine (`resources/js/filter.js` untuk store filter global yang tersinkron ke URL, `resources/js/dashboard/*`). ECharts dimuat terpisah (code-split, 175 kB gzip) hanya di halaman bergrafik. Font Plus Jakarta Sans di-host sendiri (tanpa CDN).
+- Filter silang: klik batang klaster, provinsi, atau sumber dana, atau chip status, menambah filter global. Klik kartu KPI membuka `/proyek?{filter}` (K4 menambah `kritis=1`). Tombol Reset menghapus semua filter.
+- Peta choropleth P7 sementara digantikan grafik batang 12 provinsi teratas (menunggu GeoJSON, Q-12).
+- Login memakai nama pengguna atau email, dibatasi 5 percobaan per menit per akun+IP, dan dicatat di `login_log`. Sesi habis setelah 30 menit tanpa aktivitas (`SESSION_LIFETIME=30`). Akun nonaktif langsung dikeluarkan. Akun hasil impor wajib mengganti kata sandi (minimal 12 karakter, huruf besar, huruf kecil, dan angka).
+
 ## 9. Hasil impor awal (dump 7 Oktober 2026)
 
 Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan test`): jumlah PSN, lokasi, item profil, regulasi, KP/RO, agregat per provinsi, agregat per klaster, dan total nilai investasi **identik** dengan basis data lama.
@@ -271,7 +282,7 @@ Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan
 | 0 | Eksplorasi dan pemetaan | Selesai |
 | 1a | Basis data baru, referensi, peran, ETL, uji akurasi impor, dokumen ini | **Selesai (repo ini)** |
 | 1b | `StatusResolver` + test, `psn:snapshot` + `SnapshotService`, observer audit, global scope RBAC + `PsnPolicy`, model Eloquent inti, `docs/kamus-indikator.md` lengkap | **Selesai** |
-| 2 | Ringkasan Eksekutif: endpoint dashboard, layout grid, filter global + URL, filter silang, tooltip ⓘ, bar status data | Berikutnya |
-| 3 | Portofolio, Detail Proyek (Profil, KP/RO, Progres), Kualitas Data | |
+| 2 | Ringkasan Eksekutif: endpoint dashboard, layout grid, filter global + URL, filter silang, tooltip ⓘ, bar status data, login & ganti kata sandi | **Selesai** |
+| 3 | Portofolio, Detail Proyek (Profil, KP/RO, Progres), Kualitas Data | Berikutnya |
 | 4 | Perencanaan + `ScoringService`, Policy, ekspor PNG/CSV/PDF, peta provinsi | |
 | 5 | Feature test endpoint, uji akurasi K1–K4/P1–P7 terhadap query acuan, uji hak akses, profil kinerja | |
