@@ -28,6 +28,8 @@ class KualitasDataService
         'psn_lokasi' => 'Lokasi', 'psn_sumber_dana' => 'Sumber dana', 'psn_unit_pengampu' => 'Unit pengampu', 'kegiatan' => 'KP/RO', 'risiko' => 'Risiko',
     ];
 
+    protected ?Collection $direktorat = null;
+
     public function __construct(protected DashboardService $dashboard, protected StatusResolver $status) {}
 
     public function ringkasan(PeriodeCutoff $c, FilterGlobal $f): array
@@ -183,8 +185,7 @@ class KualitasDataService
     /** @return Collection<int,string> */
     protected function direktorat(): Collection
     {
-        static $dir = null;
-
-        return $dir ??= DB::table('ref_unit_kerja')->where('jenis', 'DIREKTORAT')->pluck('nama', 'id');
+        // Memo per instance (bukan static) agar tidak basi antar-permintaan/proses panjang.
+        return $this->direktorat ??= DB::table('ref_unit_kerja')->where('jenis', 'DIREKTORAT')->pluck('nama', 'id');
     }
 }

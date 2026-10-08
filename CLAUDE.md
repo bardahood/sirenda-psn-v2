@@ -39,4 +39,6 @@ Konvensi proyek untuk asisten AI dan pengembang.
 
 ## Alur kerja
 - Kerjakan per fase (`docs/rancangan-aplikasi.md` §11). Di akhir fase: ringkas perubahan, daftar file, cara uji, lalu berhenti untuk review.
-- Sebelum push: `./vendor/bin/pint --test` dan `php artisan test`.
+- Sebelum push: `./vendor/bin/pint --test` dan `php artisan test`. Setelah mengubah logika indikator: `php artisan psn:uji-akurasi` harus 0 selisih.
+- Hindari memo `static` di service (basi antar-permintaan/tes); gunakan properti instance.
+- Distribusi/peringkat wajib berurutan deterministik (jumlah menurun, nama menaik) agar URL mereproduksi tampilan.

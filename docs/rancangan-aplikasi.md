@@ -336,4 +336,4 @@ Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan
 | 2 | Ringkasan Eksekutif: endpoint dashboard, layout grid, filter global + URL, filter silang, tooltip ⓘ, bar status data, login & ganti kata sandi | **Selesai** |
 | 3 | Portofolio, Detail Proyek (Profil, KP/RO, Progres, Dokumen & Riwayat), Kualitas Data | **Selesai** |
 | 4 | Perencanaan + `ScoringService`, Policy, ekspor PNG/CSV/PDF/Excel, peta provinsi | **Selesai** |
-| 5 | Feature test endpoint, uji akurasi K1–K4/P1–P7 terhadap query acuan, uji hak akses, profil kinerja | Berikutnya |
+| 5 | Feature test endpoint, uji akurasi K1–K4/P1–P7 terhadap query acuan, uji hak akses, profil kinerja | **Selesai**; lihat `docs/kriteria-selesai-v1.md` |

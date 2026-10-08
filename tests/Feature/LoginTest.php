@@ -64,4 +64,15 @@ class LoginTest extends TestCase
         $this->assertFalse($this->user->fresh()->wajib_ganti_password);
         $this->get('/dashboard')->assertOk();
     }
+
+    public function test_header_keamanan_dan_batas_sesi(): void
+    {
+        $r = $this->get('/login')->assertOk();
+        $this->assertSame('DENY', $r->headers->get('X-Frame-Options'));
+        $this->assertSame('nosniff', $r->headers->get('X-Content-Type-Options'));
+        $this->assertSame('strict-origin-when-cross-origin', $r->headers->get('Referrer-Policy'));
+
+        $this->actingAs($this->user)->get('/dashboard')->assertHeader('Cache-Control', 'no-store, private');
+        $this->assertSame(30, (int) config('session.lifetime'), 'session timeout 30 menit');
+    }
 }

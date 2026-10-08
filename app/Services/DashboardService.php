@@ -119,33 +119,42 @@ class DashboardService
     protected function perKlaster(Collection $rows): array
     {
         $nama = DB::table('ref_klaster')->pluck('nama', 'id');
-        $hitung = $rows->countBy(fn ($r) => $r->klaster_id ?? 0)->sortDesc();
+        $semua = self::urutDeterministik($rows->countBy(fn ($r) => $r->klaster_id ?? 0)
+            ->map(fn ($n, $id) => ['id' => $id ?: null, 'label' => $nama[$id] ?? 'Tanpa klaster', 'jumlah' => $n]));
         $topN = config('psn_dashboard.p1_top_n');
 
-        $hasil = $hitung->take($topN)->map(fn ($n, $id) => ['id' => $id ?: null, 'label' => $nama[$id] ?? 'Tanpa klaster', 'jumlah' => $n])->values();
-        if ($hitung->count() > $topN) {
-            $hasil->push(['id' => null, 'label' => 'Lainnya', 'jumlah' => $hitung->slice($topN)->sum(), 'gabungan' => $hitung->count() - $topN]);
+        $hasil = $semua->take($topN);
+        if ($semua->count() > $topN) {
+            $hasil->push(['id' => null, 'label' => 'Lainnya', 'jumlah' => $semua->slice($topN)->sum('jumlah'), 'gabungan' => $semua->count() - $topN]);
         }
 
-        return $hasil->all();
+        return $hasil->values()->all();
     }
 
     protected function perDirektorat(Collection $rows): array
     {
         $dir = DB::table('ref_unit_kerja')->where('jenis', 'DIREKTORAT')->pluck('nama', 'id');
 
-        return $rows->flatMap(fn ($r) => array_intersect((array) $r->unit_kerja_id, $dir->keys()->all()))
-            ->countBy()->sortDesc()
-            ->map(fn ($n, $id) => ['id' => $id, 'label' => $dir[$id], 'jumlah' => $n])->values()->all();
+        return self::urutDeterministik($rows->flatMap(fn ($r) => array_intersect((array) $r->unit_kerja_id, $dir->keys()->all()))
+            ->countBy()->map(fn ($n, $id) => ['id' => $id, 'label' => $dir[$id], 'jumlah' => $n]))->all();
     }
 
     protected function perProvinsi(Collection $rows): array
     {
         $prov = DB::table('ref_wilayah')->where('level', '<=', 1)->get()->keyBy('kode');
 
-        return $rows->flatMap(fn ($r) => (array) $r->provinsi_kode)->countBy()->sortDesc()
-            ->map(fn ($n, $kode) => ['kode' => (string) $kode, 'label' => $prov[$kode]->nama ?? $kode, 'hc_key' => $prov[$kode]->hc_key ?? null, 'jumlah' => $n])
-            ->values()->all();
+        return self::urutDeterministik($rows->flatMap(fn ($r) => (array) $r->provinsi_kode)->countBy()
+            ->map(fn ($n, $kode) => ['kode' => (string) $kode, 'label' => $prov[$kode]->nama ?? $kode, 'hc_key' => $prov[$kode]->hc_key ?? null, 'jumlah' => $n]))
+            ->all();
+    }
+
+    /**
+     * Urutan jumlah menurun dengan pemecah seri nama menaik, agar hasil (termasuk
+     * batas "8 teratas + Lainnya") selalu sama untuk filter yang sama.
+     */
+    public static function urutDeterministik(Collection $baris): Collection
+    {
+        return $baris->sort(fn ($a, $b) => [$b['jumlah'], $a['label']] <=> [$a['jumlah'], $b['label']])->values();
     }
 
     protected function perDana(Collection $rows): array

@@ -9,6 +9,10 @@ Skema dirancang ulang dari basis data SIRENDA PSN lama (`sirendapsn_bappenas`), 
 | [docs/rancangan-aplikasi.md](docs/rancangan-aplikasi.md) | Arsitektur, modul, model data, pemetaan lama→baru, aturan bisnis, RBAC, API, hasil impor, keputusan terbuka |
 | [docs/kamus-indikator.md](docs/kamus-indikator.md) | Definisi K1–K4, P1–P8, status otomatis, penilaian usulan |
 | [docs/kamus-data.md](docs/kamus-data.md) | Kamus kolom (dibangkitkan dari skema) |
+| [docs/api.md](docs/api.md) | Daftar endpoint API v1 & parameter filter |
+| [docs/uji-akurasi.md](docs/uji-akurasi.md) | Metode & hasil uji akurasi indikator |
+| [docs/kinerja-keamanan.md](docs/kinerja-keamanan.md) | Profil kinerja & kontrol keamanan |
+| [docs/kriteria-selesai-v1.md](docs/kriteria-selesai-v1.md) | Status kriteria selesai v1 beserta bukti |
 | [docs/skema/sirenda_psn_v2.sql](docs/skema/sirenda_psn_v2.sql) | DDL lengkap untuk telaah DBA |
 
 ## Stack
@@ -67,6 +71,16 @@ Penjadwal (`routes/console.php`) membangun snapshot DRAFT bulan lalu setiap tang
 php artisan test                    # skema, referensi, RBAC (butuh DB MySQL `sirenda_psn_v2_test`)
 LEGACY_TEST=1 php artisan test      # + uji akurasi ETL terhadap basis data lama
 ```
+
+## Verifikasi (Fase 5)
+
+```bash
+php artisan psn:uji-akurasi              # angka dashboard vs query SQL acuan (lihat docs/uji-akurasi.md)
+php artisan psn:profil-kinerja --ulang=20 # P50/P95 & jumlah query tiap endpoint (lihat docs/kinerja-keamanan.md)
+node tests/Browser/ukur-halaman.mjs http://127.0.0.1:8000 <username> <password> 10   # waktu muat halaman (butuh playwright)
+```
+
+Status kriteria selesai v1: [docs/kriteria-selesai-v1.md](docs/kriteria-selesai-v1.md). Daftar endpoint: [docs/api.md](docs/api.md).
 
 ## Perintah lain
 

@@ -6,6 +6,7 @@ use App\Models\Penilaian;
 use App\Policies\UsulanPsnPolicy;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -23,6 +24,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Produksi wajib HTTPS (tautan & redirect dibangkitkan dengan skema https).
+        if ($this->app->isProduction()) {
+            URL::forceScheme('https');
+        }
+
         // Super Admin memiliki seluruh hak (K pada semua modul).
         Gate::before(fn ($user) => $user->hasRole('Super Admin') ? true : null);
         // Aksi atas penilaian diotorisasi oleh policy usulan induknya.

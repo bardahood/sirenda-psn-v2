@@ -7,6 +7,7 @@ use App\Models\SnapshotPsn;
 use App\Support\Dashboard\FilterGlobal;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -28,6 +29,8 @@ class PortofolioService
         'kelengkapan' => 'snapshot_psn.kelengkapan_persen',
         'risiko' => 'snapshot_psn.risiko_skor_maks',
     ];
+
+    protected ?Collection $provinsi = null;
 
     public function __construct(protected DashboardService $dashboard) {}
 
@@ -79,8 +82,7 @@ class PortofolioService
 
     public function baris(object $r): array
     {
-        static $prov = null;
-        $prov ??= DB::table('ref_wilayah')->where('level', '<=', 1)->pluck('nama', 'kode');
+        $prov = $this->provinsi ??= DB::table('ref_wilayah')->where('level', '<=', 1)->pluck('nama', 'kode');
 
         return [
             'id' => $r->psn_id,
