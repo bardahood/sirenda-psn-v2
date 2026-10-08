@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -20,6 +21,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Super Admin memiliki seluruh hak (K pada semua modul).
+        Gate::before(fn ($user) => $user->hasRole('Super Admin') ? true : null);
+
         // Kolom jejak standar untuk tabel data inti: siapa membuat/mengubah/menghapus
         // dan kapan. Nilai lama/baru per perubahan dicatat terpisah di audit_log.
         Blueprint::macro('jejak', function (bool $softDeletes = true) {

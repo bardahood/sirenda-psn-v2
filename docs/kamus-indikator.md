@@ -17,6 +17,20 @@ Level risiko residual: skor = kemungkinan (1–5) × dampak (1–5). Rendah 1–
 
 Status selalu ditampilkan sebagai badge berlabel, tidak pernah warna saja.
 
+## Cara snapshot menghitung progres (`App\Services\SnapshotService`)
+
+1. **Baris acuan per KP/RO** pada tahun cut-off: baris BULANAN/TRIWULAN terakhir yang periodenya ≤ bulan cut-off. Bila tidak ada, dipakai baris TAHUNAN.
+2. **Rencana dan realisasi (%)**:
+   - (a) memakai `target_persen` dan `realisasi_persen` bila keduanya ada;
+   - (b) bila tidak ada, realisasi = `realisasi_1 ÷ target_1 × 100`. Rencana untuk baris TAHUNAN diasumsikan linear (bulan ÷ 12 × 100) bila `snapshot.rencana_linear_jika_kosong = true`, dan 100% untuk baris periodik. *(Asumsi Q-04)*
+3. **Realisasi hanya dihitung bila `dilaporkan_at` terisi.** Data lama menyimpan isian kosong sebagai 0, dan nilai itu tidak dibaca sebagai realisasi 0%.
+4. **Progres PSN** = rata-rata KP/RO, tertimbang pagu bila semua KP/RO berpagu (`snapshot.bobot_progres_kegiatan`). Jika tidak, dipakai rata-rata sederhana.
+5. **RO tercapai** = realisasi ≥ rencana pada baris acuan. *(Asumsi Q-05)*
+6. **Anggaran**: pagu dan realisasi dari baris TAHUNAN. Bila tidak ada, pagu = Σ seluruh periode dan realisasi = Σ periode ≤ cut-off.
+7. **Risiko residual** = level aktual pemantauan terakhir dengan tanggal ≤ cut-off. Bila belum ada pemantauan, dipakai level harapan.
+8. PSN yang dihapus sebelum cut-off tidak masuk snapshot. PSN berstatus "Keluar dari PSN" masuk dengan `is_aktif = false`.
+9. Snapshot membekukan keadaan basis data **pada saat dibangun**. Bangun dan terbitkan snapshot segera setelah batas pengisian.
+
 ## Kartu KPI
 
 | Kode | Nama | Rumus | Sumber | Δ |

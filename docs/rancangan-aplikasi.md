@@ -184,7 +184,7 @@ erDiagram
 | Kelengkapan | field wajib terisi ÷ field wajib × 100, per bagian | `field_wajib.*` |
 | Investasi anomali | di luar Rp1 juta – Rp2.000 T ditandai dan dikecualikan dari K2 | `investasi.*` |
 
-Service yang akan dibangun: `StatusResolver`, `ScoringService`, `SnapshotService`, `KelengkapanService`, dan `DashboardService`. Masing-masing disertai unit test untuk setiap batas ambang.
+Service: `StatusResolver` dan `SnapshotService` (termasuk perhitungan kelengkapan) sudah tersedia. `ScoringService` (Fase 4) dan `DashboardService` (Fase 2) menyusul. Setiap batas ambang diuji di `tests/Unit/StatusResolverTest.php`. Cache dashboard memakai `App\Support\DashboardCache` (versi dinaikkan saat snapshot terbit).
 
 ## 7. Hak akses
 
@@ -199,6 +199,7 @@ Service yang akan dibangun: `StatusResolver`, `ScoringService`, `SnapshotService
 L = lihat, I = input, V = verifikasi, K = kelola penuh. ¹ = terbatas pada sektor/proyek sendiri.
 
 - Izin `modul.aksi` bersifat kumulatif (kelola ⊃ verifikasi ⊃ input ⊃ lihat); lihat `PeranSeeder`.
+- Implementasi: `App\Models\Scopes\CakupanAksesScope` (trait `DalamCakupanPsn`) untuk lihat¹ dan `App\Policies\PsnPolicy` untuk input¹/verifikasi¹. Daftar peran terbatas ada di `psn_dashboard.rbac`. Audit otomatis lewat trait `Auditable` (`App\Observers\AuditObserver`), dan kolom jejak terisi otomatis lewat `HasJejak`.
 - Tanda ¹ ditegakkan oleh **global scope** pada model PSN dan turunannya: `psn_id IN (SELECT psn_id FROM psn_unit_pengampu WHERE unit_kerja_id = users.unit_kerja_id)`. Untuk Operator K/L, kecocokan juga dicari lewat `psn_kelembagaan`.
 - Pemetaan pengguna lama: `administrator` → Super Admin, `monev` → Tim Koordinasi/PMO, `user` (akses = kode direktorat) → Direktorat Sektor, `kementerian` (akses = kode unit K/L) → Operator K/L. `users.akses` lama menjadi `unit_kerja_id`. Peran **Pimpinan** tidak ada di sistem lama sehingga ditetapkan manual.
 
@@ -269,8 +270,8 @@ Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan
 |---|---|---|
 | 0 | Eksplorasi dan pemetaan | Selesai |
 | 1a | Basis data baru, referensi, peran, ETL, uji akurasi impor, dokumen ini | **Selesai (repo ini)** |
-| 1b | `StatusResolver` + test, `psn:snapshot` + `SnapshotService`, observer audit, global scope RBAC, `docs/kamus-indikator.md` lengkap | Berikutnya |
-| 2 | Ringkasan Eksekutif: endpoint dashboard, layout grid, filter global + URL, filter silang, tooltip ⓘ, bar status data | |
+| 1b | `StatusResolver` + test, `psn:snapshot` + `SnapshotService`, observer audit, global scope RBAC + `PsnPolicy`, model Eloquent inti, `docs/kamus-indikator.md` lengkap | **Selesai** |
+| 2 | Ringkasan Eksekutif: endpoint dashboard, layout grid, filter global + URL, filter silang, tooltip ⓘ, bar status data | Berikutnya |
 | 3 | Portofolio, Detail Proyek (Profil, KP/RO, Progres), Kualitas Data | |
 | 4 | Perencanaan + `ScoringService`, Policy, ekspor PNG/CSV/PDF, peta provinsi | |
 | 5 | Feature test endpoint, uji akurasi K1–K4/P1–P7 terhadap query acuan, uji hak akses, profil kinerja | |

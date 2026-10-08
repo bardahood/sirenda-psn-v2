@@ -39,6 +39,19 @@ Ringkasan jumlah baris dan peringatan (kode tidak dikenal, investasi anomali, ba
 
 **Data pribadi:** hash kata sandi lama tidak dibawa. Semua akun hasil impor mendapat kata sandi acak dan wajib reset. Dump lama dan laporan ETL **jangan** di-commit ke repo.
 
+## Snapshot per cut-off
+
+Semua angka dashboard per cut-off dan pembanding "vs cut-off sebelumnya" dibaca dari tabel `snapshot_*`.
+
+```bash
+php artisan psn:snapshot 2026-09              # bangun/bangun ulang snapshot DRAFT (tanggal = akhir bulan)
+php artisan psn:snapshot 2026-09 --terbit     # terbitkan: dipakai dashboard, membatalkan cache, tercatat di audit_log
+php artisan psn:snapshot 2026-09 --paksa      # bangun ulang snapshot yang sudah terbit
+php artisan psn:snapshot 2026-09 --tanggal=2026-09-25   # tanggal cut-off khusus
+```
+
+Penjadwal (`routes/console.php`) membangun snapshot DRAFT bulan lalu setiap tanggal 1 pukul 02.00. Jalankan `php artisan schedule:work`, atau pasang cron `* * * * * php artisan schedule:run`. Penerbitan otomatis dapat diaktifkan lewat `psn_dashboard.snapshot.terbit_otomatis`.
+
 ## Pengujian
 
 ```bash

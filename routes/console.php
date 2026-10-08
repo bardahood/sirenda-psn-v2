@@ -1,8 +1,9 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+// Snapshot bulanan: setiap tanggal 1 pukul 02.00 WIB membangun snapshot bulan lalu.
+// Bawaan berstatus DRAFT (diverifikasi lalu diterbitkan manual dengan --terbit).
+Schedule::command('psn:snapshot'.(config('psn_dashboard.snapshot.terbit_otomatis') ? ' --terbit' : ''))
+    ->monthlyOn(1, '02:00')
+    ->withoutOverlapping();

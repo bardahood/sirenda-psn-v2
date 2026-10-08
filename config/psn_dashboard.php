@@ -98,6 +98,25 @@ return [
         'relasi' => ['psn_lokasi', 'psn_sumber_dana', 'psn_unit_pengampu', 'kegiatan', 'risiko'],
     ],
 
+    // Hak akses. Peran pada daftar ini hanya MELIHAT PSN yang diampu unit kerjanya
+    // (L¹). Peran pada daftar ubah_terbatas hanya boleh input/verifikasi PSN
+    // dalam cakupannya (I¹/V¹). Cakupan = psn_unit_pengampu.unit_kerja_id = users.unit_kerja_id.
+    'rbac' => [
+        'peran_lihat_terbatas' => ['Operator K/L'],
+        'peran_ubah_terbatas' => ['Operator K/L', 'Direktorat Sektor'],
+    ],
+
+    // Snapshot per cut-off.
+    'snapshot' => [
+        // Bila KP/RO hanya punya target volume tahunan (tanpa % rencana), rencana
+        // s.d. bulan cut-off diasumsikan linear: bulan/12 x 100%. (Keputusan Q-04)
+        'rencana_linear_jika_kosong' => true,
+        // Bobot agregasi progres KP/RO ke tingkat PSN: 'pagu' (fallback sederhana) atau 'sederhana'.
+        'bobot_progres_kegiatan' => 'pagu',
+        // Jadwal bulanan membuat snapshot DRAFT bulan lalu; terbitkan manual kecuali true.
+        'terbit_otomatis' => false,
+    ],
+
     // TTL cache dalam detik. Cache per cut-off dibatalkan saat snapshot baru diterbitkan.
     'cache' => [
         'dashboard' => 86400,
