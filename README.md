@@ -38,8 +38,15 @@ Halaman yang sudah tersedia: `/login`, `/dashboard` (Ringkasan Eksekutif), `/pro
 
 ## Impor data dari basis data lama
 
-1. Pulihkan dump lama ke server MySQL (contoh: `mysql --force sirendapsn_bappenas < sirendapsn_bappenas_YYYYMMDD.sql`).
-   `--force` diperlukan karena dump berisi beberapa view dan tabel stub yang rusak; objek tersebut tidak dipakai ETL.
+1. Pulihkan dump lama ke server basis data.
+   - **MariaDB:** `mysql --force sirendapsn_bappenas < sirendapsn_bappenas_YYYYMMDD.sql`
+   - **MySQL 8 (mis. Laragon):** dump berasal dari MariaDB (`DEFAULT uuid()` tanpa kurung → galat 1064 di MySQL). Konversi dulu, lalu impor berkas hasilnya:
+     ```bash
+     php tools/konversi-dump-mysql.php sirendapsn_bappenas_YYYYMMDD.sql      # menghasilkan ..._mysql8.sql
+     mysql -u root --force sirendapsn_bappenas < sirendapsn_bappenas_YYYYMMDD_mysql8.sql
+     ```
+     Diuji di MySQL 8.0.46: 83 tabel & 113.582 baris identik dengan impor MariaDB; ETL, snapshot, uji akurasi (110/110), dan seluruh tes lulus.
+   `--force` diperlukan karena dump berisi beberapa view yang rusak sejak server asal; view tersebut tidak dipakai ETL.
 2. Atur `LEGACY_DB_*` di `.env`.
 3. Jalankan:
 
