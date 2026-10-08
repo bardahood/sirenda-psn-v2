@@ -289,10 +289,11 @@ class SnapshotService
         $fw = $this->cfg['field_wajib'];
         $ids = $psn->keys();
 
+        // Bagian profil: gambaran_umum (kolom psn), item:{TYIT} per item narasi, relasi:{tabel}.
         $item = DB::table('psn_profil_item as i')->join('ref_kode as k', 'k.id', '=', 'i.bagian_id')
             ->whereIn('i.psn_id', $ids)->whereNull('i.deleted_at')->whereNotNull('i.isi')->where('i.isi', '<>', '')
             ->whereIn('k.kode', $fw['item_profil'])->where('k.tipe', 'TYIT')
-            ->groupBy('i.psn_id')->selectRaw('i.psn_id, COUNT(DISTINCT k.kode) AS n')->pluck('n', 'psn_id');
+            ->distinct()->get(['i.psn_id', 'k.kode'])->groupBy('psn_id')->map(fn ($g) => $g->pluck('kode')->flip());
 
         $relasi = collect($fw['relasi'])->mapWithKeys(fn ($t) => [$t => DB::table($t)->whereIn('psn_id', $ids)
             ->when(in_array($t, ['psn_lokasi', 'kegiatan', 'risiko'], true), fn ($q) => $q->whereNull('deleted_at'))
@@ -300,13 +301,16 @@ class SnapshotService
 
         return $psn->map(function ($p) use ($fw, $item, $relasi) {
             $gu = collect($fw['gambaran_umum'])->filter(fn ($f) => $p->{$f} !== null && $p->{$f} !== '')->count();
+            $baris = [['psn_id' => $p->id, 'bagian' => 'gambaran_umum', 'field_wajib' => count($fw['gambaran_umum']), 'field_terisi' => $gu]];
 
-            return [
-                ['psn_id' => $p->id, 'bagian' => 'gambaran_umum', 'field_wajib' => count($fw['gambaran_umum']), 'field_terisi' => $gu],
-                ['psn_id' => $p->id, 'bagian' => 'item_profil', 'field_wajib' => count($fw['item_profil']), 'field_terisi' => (int) ($item[$p->id] ?? 0)],
-                ['psn_id' => $p->id, 'bagian' => 'relasi', 'field_wajib' => count($fw['relasi']),
-                    'field_terisi' => $relasi->filter(fn ($ada) => isset($ada[$p->id]))->count()],
-            ];
+            foreach ($fw['item_profil'] as $kode) {
+                $baris[] = ['psn_id' => $p->id, 'bagian' => "item:{$kode}", 'field_wajib' => 1, 'field_terisi' => (int) isset($item[$p->id][$kode])];
+            }
+            foreach ($fw['relasi'] as $t) {
+                $baris[] = ['psn_id' => $p->id, 'bagian' => "relasi:{$t}", 'field_wajib' => 1, 'field_terisi' => (int) isset($relasi[$t][$p->id])];
+            }
+
+            return $baris;
         });
     }
 

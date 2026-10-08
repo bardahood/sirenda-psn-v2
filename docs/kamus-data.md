@@ -18,7 +18,7 @@
 | `ip_address` | varchar(45) | ya |  |  |
 | `user_agent` | varchar(255) | ya |  |  |
 | `sumber` | varchar(20) |  |  | APLIKASI\|IMPOR_LEGACY |
-| `created_at` | timestamp |  |  |  |
+| `created_at` | timestamp | ya |  | null = riwayat sistem lama tanpa stempel waktu |
 
 ## `indikator`
 

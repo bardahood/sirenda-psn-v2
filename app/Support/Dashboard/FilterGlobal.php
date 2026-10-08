@@ -3,6 +3,8 @@
 namespace App\Support\Dashboard;
 
 use App\Enums\StatusProgres;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -93,6 +95,37 @@ final class FilterGlobal
             && (! $this->status || in_array($row->status_progres, $this->status, true))
             && (! $this->kat || $row->kategori === $this->kat)
             && $irisan($this->dana, array_map(fn ($id) => $skemaPerDanaId[$id] ?? 'LAINNYA', (array) $row->sumber_dana_id));
+    }
+
+    /**
+     * Padanan SQL dari cocok() untuk query bertabel snapshot_psn (paginasi server).
+     * Kolom JSON multi-nilai memakai JSON_CONTAINS (tersedia di MySQL 8 & MariaDB 10.6+).
+     *
+     * @param  array<int,string>  $skemaPerDanaId  ref_sumber_dana.id => skema
+     */
+    public function terapkanSql(Builder|EloquentBuilder $q, array $skemaPerDanaId, string $t = 'snapshot_psn'): void
+    {
+        $jsonSalahSatu = function (string $kolom, array $nilai, bool $teks) use ($q, $t) {
+            if (! $nilai) {
+                return;
+            }
+            $q->where(function ($w) use ($kolom, $nilai, $teks, $t) {
+                foreach ($nilai as $v) {
+                    $w->orWhereRaw("JSON_CONTAINS({$t}.{$kolom}, ?)", [$teks ? json_encode((string) $v) : (string) (int) $v]);
+                }
+            });
+        };
+
+        $jsonSalahSatu('provinsi_kode', $this->prov, true);
+        $jsonSalahSatu('unit_kerja_id', $this->dit, false);
+        $jsonSalahSatu('sumber_dana_id', array_keys(array_filter($skemaPerDanaId, fn ($s) => in_array($s, $this->dana, true))), false);
+        if ($this->dana && ! array_intersect($this->dana, $skemaPerDanaId)) {
+            $q->whereRaw('1 = 0');
+        }
+
+        $this->klaster && $q->whereIn("{$t}.klaster_id", $this->klaster);
+        $this->status && $q->whereIn("{$t}.status_progres", $this->status);
+        $this->kat && $q->where("{$t}.kategori", $this->kat);
     }
 
     /** Bentuk kanonik untuk meta respons dan query string (hanya yang terisi). */

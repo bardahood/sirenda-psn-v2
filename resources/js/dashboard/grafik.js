@@ -2,11 +2,11 @@
 // tren dua seri memakai palet tervalidasi (biru #2a78d6, oranye #eb6834),
 // sudut data 4px, grid/axis samar, tooltip per-batang & crosshair untuk garis.
 import * as echarts from 'echarts/core';
-import { BarChart, LineChart } from 'echarts/charts';
-import { GridComponent, TooltipComponent, LegendComponent, MarkLineComponent } from 'echarts/components';
+import { BarChart, LineChart, HeatmapChart } from 'echarts/charts';
+import { GridComponent, TooltipComponent, LegendComponent, MarkLineComponent, MarkPointComponent, VisualMapComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 
-echarts.use([BarChart, LineChart, GridComponent, TooltipComponent, LegendComponent, MarkLineComponent, CanvasRenderer]);
+echarts.use([BarChart, LineChart, HeatmapChart, GridComponent, TooltipComponent, LegendComponent, MarkLineComponent, MarkPointComponent, VisualMapComponent, CanvasRenderer]);
 
 export const WARNA = {
     aksen: '#1F6FD1',
@@ -56,7 +56,7 @@ export function png(el, nama) {
 }
 
 /** Batang horizontal satu seri; kategori dengan nilai terbesar di atas. */
-export function batangHorizontal(baris, { nilai = 'jumlah', satuan = 'PSN', klik = false, sumbuX = true, lebarLabel = 170 } = {}) {
+export function batangHorizontal(baris, { nilai = 'jumlah', satuan = 'PSN', klik = false, sumbuX = true, lebarLabel = 170, potong = false } = {}) {
     const data = [...baris].reverse();
     return {
         grid: { left: 8, right: 48, top: 8, bottom: 8, containLabel: true },
@@ -68,7 +68,7 @@ export function batangHorizontal(baris, { nilai = 'jumlah', satuan = 'PSN', klik
             axisTick: { show: false },
             axisLine: { lineStyle: { color: WARNA.grid } },
             // Label panjang dibungkus dua baris, bukan dipotong, agar tidak ambigu.
-            axisLabel: { color: WARNA.teks, fontSize: 11, width: lebarLabel, overflow: 'break', lineHeight: 13 },
+            axisLabel: { color: WARNA.teks, fontSize: 11, width: lebarLabel, overflow: potong ? 'truncate' : 'break', lineHeight: 13 },
         },
         series: [{
             type: 'bar',
@@ -118,5 +118,44 @@ export function tren(bulan) {
         xAxis: { type: 'category', data: BULAN, boundaryGap: false, axisTick: { show: false }, axisLine: { lineStyle: { color: WARNA.grid } }, axisLabel: { color: WARNA.teksSamar, fontSize: 11 } },
         yAxis: { type: 'value', min: 0, max: (v) => Math.max(100, Math.ceil(v.max / 10) * 10), axisLabel: { formatter: '{value}%', color: WARNA.teksSamar, fontSize: 11 }, splitLine: { lineStyle: { color: WARNA.grid } } },
         series: [seri('Rencana', 'rencana_persen', WARNA.seri2, true), seri('Realisasi', 'realisasi_persen', WARNA.seri1, false)],
+    };
+}
+
+/** Kurva S proyek: tren rencana vs realisasi; penanda merah pada titik terakhir bila Terlambat. */
+export function kurvaS(bulan, terlambat) {
+    const opsi = tren(bulan);
+    if (terlambat) {
+        const idx = bulan.map((b) => b.realisasi_persen).findLastIndex((v) => v !== null && v !== undefined);
+        if (idx >= 0) {
+            opsi.series[1].markPoint = {
+                symbol: 'pin', symbolSize: 40, itemStyle: { color: '#dc2626' },
+                label: { formatter: '!', color: '#fff', fontWeight: 700 },
+                data: [{ coord: [idx, bulan[idx].realisasi_persen], name: 'Terlambat' }],
+                tooltip: { formatter: 'Status Terlambat pada cut-off ini' },
+            };
+        }
+    }
+    return opsi;
+}
+
+// Ramp sekuensial satu hue (biru, terang -> gelap) untuk besaran 0-100%.
+const RAMP_BIRU = ['#cde2fb', '#9ec5f4', '#6da7ec', '#3987e5', '#256abf', '#184f95', '#0d366b'];
+
+/** Heatmap baris x kolom, nilai persen 0-100; sel kosong (null) abu-abu. */
+export function heatmap(baris, kolom, sel) {
+    return {
+        grid: { left: 8, right: 16, top: 8, bottom: 56, containLabel: true },
+        tooltip: { ...dasar.tooltip, trigger: 'item', formatter: (p) => `${baris[p.value[1]]}<br/>${kolom[p.value[0]]}: <b>${p.value[2] === null ? 'tidak ada data' : angka(p.value[2]) + '%'}</b>` },
+        xAxis: { type: 'category', data: kolom, position: 'top', axisTick: { show: false }, axisLine: { show: false }, axisLabel: { rotate: 60, fontSize: 10, color: WARNA.teks, interval: 0, width: 120, overflow: 'truncate' } },
+        yAxis: { type: 'category', data: baris, inverse: true, axisTick: { show: false }, axisLine: { show: false }, axisLabel: { fontSize: 10, color: WARNA.teks, width: 190, overflow: 'truncate' } },
+        visualMap: { min: 0, max: 100, calculable: false, orient: 'horizontal', left: 'center', bottom: 0, itemHeight: 160, text: ['100%', '0%'], textStyle: { fontSize: 11, color: WARNA.teksSamar }, inRange: { color: RAMP_BIRU } },
+        series: [{
+            type: 'heatmap',
+            // Teks sel putih di atas >= 50% (ramp gelap), gelap di bawahnya, agar tetap terbaca.
+            data: sel.map((v) => ({ value: v, label: { color: v[2] !== null && v[2] >= 50 ? '#fff' : '#0f172a' } })),
+            itemStyle: { borderColor: '#fff', borderWidth: 2 },
+            label: { show: true, fontSize: 9, formatter: (p) => (p.value[2] === null ? '' : Math.round(p.value[2])) },
+            emphasis: { itemStyle: { borderColor: '#0f172a', borderWidth: 1 } },
+        }],
     };
 }

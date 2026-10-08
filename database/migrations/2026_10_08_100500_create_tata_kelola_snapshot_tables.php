@@ -69,7 +69,7 @@ return new class extends Migration
             $table->string('ip_address', 45)->nullable();
             $table->string('user_agent', 255)->nullable();
             $table->string('sumber', 20)->default('APLIKASI')->comment('APLIKASI|IMPOR_LEGACY');
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('created_at')->nullable()->useCurrent()->comment('null = riwayat sistem lama tanpa stempel waktu');
             $table->index(['tabel', 'record_id']);
             $table->index(['psn_id', 'created_at']);
             $table->index('created_at');

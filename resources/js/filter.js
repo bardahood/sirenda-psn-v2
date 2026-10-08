@@ -1,6 +1,6 @@
 // Filter global: disimpan di query string (tautan dapat dibagikan) dan berlaku lintas halaman.
-const MULTI = ['prov', 'klaster', 'dit', 'status', 'dana'];
-const TUNGGAL = ['periode', 'kat'];
+export const MULTI = ['prov', 'klaster', 'dit', 'status', 'dana'];
+export const TUNGGAL = ['periode', 'kat'];
 
 export function bacaUrl(search = window.location.search) {
     const q = new URLSearchParams(search);
@@ -69,7 +69,10 @@ export function filterStore() {
         },
 
         terapkan() {
-            const q = this.qs();
+            // Parameter khusus halaman (q, urut, tab, ...) dipertahankan; halaman tabel kembali ke 1.
+            const lain = new URLSearchParams(window.location.search);
+            [...MULTI, ...TUNGGAL, 'page'].forEach((k) => lain.delete(k));
+            const q = [this.qs(), lain.toString()].filter(Boolean).join('&');
             window.history.replaceState({}, '', q ? `${window.location.pathname}?${q}` : window.location.pathname);
             window.dispatchEvent(new CustomEvent('filter-berubah'));
         },

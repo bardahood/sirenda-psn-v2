@@ -230,6 +230,26 @@ Parameter filter: `periode=2026-09`, `prov=31,32`, `klaster=3,7`, `dit=12`, `sta
 - Peta choropleth P7 sementara digantikan grafik batang 12 provinsi teratas (menunggu GeoJSON, Q-12).
 - Login memakai nama pengguna atau email, dibatasi 5 percobaan per menit per akun+IP, dan dicatat di `login_log`. Sesi habis setelah 30 menit tanpa aktivitas (`SESSION_LIFETIME=30`). Akun nonaktif langsung dikeluarkan. Akun hasil impor wajib mengganti kata sandi (minimal 12 karakter, huruf besar, huruf kecil, dan angka).
 
+### 8.2 Implementasi Fase 3
+
+- **Portofolio** (`/proyek`, `GET /api/v1/proyek`) dibaca dari `snapshot_psn` cut-off yang sama dengan dashboard. Akibatnya, jumlah baris untuk setiap kombinasi filter **identik dengan K1**. Hal ini diuji untuk 10 kombinasi filter. Filter JSON multi-nilai di SQL memakai `JSON_CONTAINS` (`FilterGlobal::terapkanSql`), padanan `FilterGlobal::cocok`.
+  - Opsi tabel di luar filter global: `q` (nama/kode), `urut` (`nama|kode|klaster|investasi|progres|deviasi|status|kelengkapan|risiko`), `arah`, `kritis=1` (drill-down K4), `tahap`, `nonaktif=1`, `per_halaman` (10–100), `page`. `format=csv` mengunduh semua baris terfilter.
+  - Kinerja: 18 ms per halaman tabel.
+- **Detail Proyek** (`/proyek/{id}`, `GET /api/v1/proyek/{id}`) dirender di server dan tidak di-cache (37 ms).
+  - Tab yang tersedia: Profil, KP/RO (hierarki + critical path), Progres & Anggaran (kurva S dari snapshot terbit dengan penanda merah bila Terlambat, ringkasan deviasi, tabel RO + tautan bukti, isu terbuka dengan penanda lewat tenggat, jejak audit), serta Dokumen & Riwayat (riwayat 100 perubahan dengan nilai lama/baru).
+  - Tab Perencanaan, Risiko & Isu, Regulasi, dan Stakeholder masih placeholder.
+  - PSN di luar cakupan Operator K/L menghasilkan 404. Breadcrumb dan tombol Kembali mempertahankan filter serta opsi tabel portofolio.
+- **Kualitas Data** (`/kualitas-data`, `GET /api/v1/kualitas-data`):
+  - KPI dengan pembanding cut-off sebelumnya;
+  - kelengkapan per sektor (klik untuk filter direktorat);
+  - heatmap sektor × 18 bagian profil (Gambaran Umum, 12 item `TYIT`, 5 data relasi);
+  - 50 PSN dengan kelengkapan terendah beserta field kosongnya;
+  - log aktivitas.
+
+  Hasil di-cache harian dan dibatalkan saat snapshot terbit. Waktu hitung 285 ms tanpa cache. Snapshot kelengkapan kini disimpan per bagian (`gambaran_umum`, `item:{TYIT}`, `relasi:{tabel}`).
+- **"Sektor" sementara = direktorat pengampu** (`ref_unit_kerja.jenis = DIREKTORAT`) sampai Q-06 diputuskan.
+- **ETL riwayat**: perubahan (UPDATE) dari tabel `*_log` kini hanya menyimpan kolom yang benar-benar berubah. Simpan-ulang tanpa perubahan tidak dicatat. Stempel waktu tidak lagi dikarang: `audit_log.created_at` boleh null untuk riwayat lama tanpa waktu.
+
 ## 9. Hasil impor awal (dump 7 Oktober 2026)
 
 Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan test`): jumlah PSN, lokasi, item profil, regulasi, KP/RO, agregat per provinsi, agregat per klaster, dan total nilai investasi **identik** dengan basis data lama.
@@ -283,6 +303,6 @@ Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan
 | 1a | Basis data baru, referensi, peran, ETL, uji akurasi impor, dokumen ini | **Selesai (repo ini)** |
 | 1b | `StatusResolver` + test, `psn:snapshot` + `SnapshotService`, observer audit, global scope RBAC + `PsnPolicy`, model Eloquent inti, `docs/kamus-indikator.md` lengkap | **Selesai** |
 | 2 | Ringkasan Eksekutif: endpoint dashboard, layout grid, filter global + URL, filter silang, tooltip ⓘ, bar status data, login & ganti kata sandi | **Selesai** |
-| 3 | Portofolio, Detail Proyek (Profil, KP/RO, Progres), Kualitas Data | Berikutnya |
-| 4 | Perencanaan + `ScoringService`, Policy, ekspor PNG/CSV/PDF, peta provinsi | |
+| 3 | Portofolio, Detail Proyek (Profil, KP/RO, Progres, Dokumen & Riwayat), Kualitas Data | **Selesai** |
+| 4 | Perencanaan + `ScoringService`, Policy, ekspor PNG/CSV/PDF, peta provinsi | Berikutnya |
 | 5 | Feature test endpoint, uji akurasi K1–K4/P1–P7 terhadap query acuan, uji hak akses, profil kinerja | |

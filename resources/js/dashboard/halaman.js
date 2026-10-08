@@ -1,4 +1,6 @@
 // ECharts dimuat terpisah (code-split) hanya di halaman bergrafik.
+import { LABEL_STATUS, teksAktivitas } from '../label';
+
 const grafik = () => import('./grafik');
 
 const angka = (v, digit = 1) => (v === null || v === undefined ? '–' : new Intl.NumberFormat('id-ID', { maximumFractionDigits: digit }).format(v));
@@ -18,15 +20,7 @@ const ENDPOINT = {
     aktivitas: 'aktivitas',
 };
 
-const LABEL_TABEL = {
-    psn: 'profil PSN', psn_lokasi: 'lokasi PSN', psn_stakeholder: 'stakeholder', psn_profil_item: 'item profil', psn_dokumen: 'dokumen',
-    kegiatan: 'KP/RO', kegiatan_target: 'target/realisasi KP/RO', risiko: 'risiko', risiko_pemantauan: 'pemantauan risiko',
-    regulasi: 'regulasi', isu: 'isu', indikator: 'indikator', trisula: 'indikator Trisula', periode_cutoff: 'snapshot cut-off',
-    pengisian_psn: 'pengisian data', risiko_perlakuan: 'perlakuan risiko',
-};
 const BULAN_PENDEK = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-
-const LABEL_AKSI = { CREATE: 'menambah', UPDATE: 'mengubah', DELETE: 'menghapus', RESTORE: 'memulihkan', PUBLISH: 'menerbitkan', SUBMIT: 'mengajukan', VERIFY: 'memverifikasi', RETURN: 'mengembalikan' };
 
 export function halamanDashboard(kamus) {
     return {
@@ -124,15 +118,13 @@ export function halamanDashboard(kamus) {
         },
 
         labelStatus(kode) {
-            return { ON_TRACK: 'On Track', BERISIKO: 'Berisiko', TERLAMBAT: 'Terlambat', TANPA_DATA: 'Tanpa data' }[kode] ?? kode;
+            return LABEL_STATUS[kode] ?? kode;
         },
 
-        teksAktivitas(a) {
-            return `${['console', 'sistem'].includes(a.pengguna) ? 'Sistem' : a.pengguna} ${LABEL_AKSI[a.aksi] ?? a.aksi.toLowerCase()} ${LABEL_TABEL[a.tabel] ?? a.tabel.replaceAll('_', ' ')}`;
-        },
+        teksAktivitas,
 
         waktuRelatif(iso) {
-            if (!iso) return '';
+            if (!iso) return 'waktu tidak tercatat';
             const detik = (Date.now() - new Date(iso).getTime()) / 1000;
             const rtf = new Intl.RelativeTimeFormat('id-ID', { numeric: 'auto' });
             if (detik < 3600) return rtf.format(-Math.round(detik / 60), 'minute');

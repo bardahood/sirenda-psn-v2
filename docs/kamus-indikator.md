@@ -64,6 +64,9 @@ Status selalu ditampilkan sebagai badge berlabel, tidak pernah warna saja.
 - **Kelengkapan** = field wajib terisi ÷ field wajib × 100, per bagian profil (`field_wajib`).
 - **Tepat waktu** = `pengisian_psn.diajukan_at` ≤ `periode_cutoff.tanggal_cutoff`.
 - **Menunggu verifikasi** = `pengisian_psn.status = DIAJUKAN`.
+- **Sektor tepat waktu** = jumlah direktorat pengampu yang **seluruh** PSN-nya diajukan ≤ tanggal cut-off ÷ jumlah direktorat yang mengampu PSN. Sementara, sektor = direktorat pengampu (Q-06).
+- **Proyek belum diperbarui** = PSN aktif tanpa satu pun entri `audit_log` sejak cut-off sebelumnya. Bila belum ada cut-off sebelumnya, dipakai jendela 35 hari sebelum cut-off. Turun berarti membaik.
+- **Bagian profil** (heatmap): Gambaran Umum (7 field `psn`), 12 item narasi `TYIT`, dan 5 data relasi (lokasi, sumber dana, unit pengampu, KP/RO, risiko). Masing-masing diatur di `psn_dashboard.field_wajib`.
 
 ## Penilaian usulan PSN
 

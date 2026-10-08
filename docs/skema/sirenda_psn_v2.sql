@@ -28,7 +28,7 @@ CREATE TABLE `audit_log` (
   `ip_address` varchar(45) DEFAULT NULL,
   `user_agent` varchar(255) DEFAULT NULL,
   `sumber` varchar(20) NOT NULL DEFAULT 'APLIKASI' COMMENT 'APLIKASI|IMPOR_LEGACY',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `created_at` timestamp NULL DEFAULT current_timestamp() COMMENT 'null = riwayat sistem lama tanpa stempel waktu',
   PRIMARY KEY (`id`),
   KEY `audit_log_user_id_foreign` (`user_id`),
   KEY `audit_log_tabel_record_id_index` (`tabel`,`record_id`),

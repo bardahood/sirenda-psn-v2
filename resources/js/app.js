@@ -3,9 +3,15 @@ import './bootstrap';
 import Alpine from 'alpinejs';
 import { filterStore, multiPilih } from './filter';
 import { halamanDashboard } from './dashboard/halaman';
+import { halamanPortofolio } from './portofolio';
+import { halamanKualitas } from './kualitas';
+import { grafikKurvaS } from './proyek';
 
 window.Alpine = Alpine;
 Alpine.store('filter', filterStore());
 Alpine.data('multiPilih', multiPilih);
 Alpine.data('halamanDashboard', halamanDashboard);
+Alpine.data('halamanPortofolio', halamanPortofolio);
+Alpine.data('halamanKualitas', halamanKualitas);
+Alpine.data('grafikKurvaS', grafikKurvaS);
 Alpine.start();

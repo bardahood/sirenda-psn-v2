@@ -1,8 +1,11 @@
 <?php
 
 use App\Http\Controllers\Api\V1\DashboardController;
+use App\Http\Controllers\Api\V1\KualitasDataController;
+use App\Http\Controllers\Api\V1\ProyekController as ProyekApiController;
 use App\Http\Controllers\Api\V1\ReferensiController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\ProyekController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -17,13 +20,18 @@ Route::middleware(['auth', 'akun.aktif'])->group(function () {
 
     Route::redirect('/', '/dashboard');
     Route::view('/dashboard', 'dashboard.index')->middleware('can:ringkasan.lihat')->name('dashboard');
-    // Portofolio (Fase 3): sementara menampilkan filter yang diteruskan dari drill-down.
-    Route::view('/proyek', 'proyek.segera')->middleware('can:portofolio.lihat')->name('proyek.index');
+    Route::get('/proyek', [ProyekController::class, 'index'])->middleware('can:portofolio.lihat')->name('proyek.index');
+    Route::get('/proyek/{psn}', [ProyekController::class, 'show'])->middleware('can:detail.lihat')->whereNumber('psn')->name('proyek.show');
+    Route::view('/kualitas-data', 'kualitas-data.index')->middleware('can:kualitas.lihat')->name('kualitas-data');
 
     // API JSON (sesi web yang sama, satu origin). Semua menerima filter global.
     Route::prefix('api/v1')->name('api.')->group(function () {
         Route::get('/filter-opsi', [ReferensiController::class, 'filterOpsi'])->name('filter-opsi');
         Route::get('/kamus-indikator', [ReferensiController::class, 'kamusIndikator'])->name('kamus-indikator');
+
+        Route::get('/proyek', [ProyekApiController::class, 'index'])->middleware('can:portofolio.lihat')->name('proyek.index');
+        Route::get('/proyek/{psn}', [ProyekApiController::class, 'show'])->middleware('can:detail.lihat')->whereNumber('psn')->name('proyek.show');
+        Route::get('/kualitas-data', [KualitasDataController::class, 'index'])->middleware('can:kualitas.lihat')->name('kualitas-data');
 
         Route::middleware('can:ringkasan.lihat')->prefix('dashboard')->name('dashboard.')->controller(DashboardController::class)->group(function () {
             Route::get('/kpi', 'kpi')->name('kpi');

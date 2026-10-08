@@ -624,7 +624,22 @@ class LegacyImporter
                 $baris = Arr::except((array) $r, ['action']);
                 $legacyId = $r->id ?? null;
                 $kunci = $legacyId ?? md5(json_encode($baris));
-                $waktu = $this->waktu($r->action === 'delete' ? ($r->deleted_at ?? $r->updated_at) : ($r->updated_at ?? $r->created_at)) ?? now();
+                // Stempel waktu tidak dikarang: bila baris lama tidak punya waktu sama sekali, dibiarkan null.
+                $waktu = $this->waktu($r->action === 'delete' ? ($r->deleted_at ?? $r->updated_at ?? $r->created_at) : ($r->updated_at ?? $r->created_at));
+                $lama = $sebelumnya[$kunci] ?? null;
+                $abaikan = ['created_at', 'updated_at', 'created_by', 'updated_by'];
+                if ($r->action === 'update' && $lama !== null) {
+                    $beda = array_keys(array_filter(Arr::except($baris, $abaikan), fn ($v, $k) => ($lama[$k] ?? null) !== $v, ARRAY_FILTER_USE_BOTH));
+                    [$nilaiLama, $nilaiBaru] = [Arr::only($lama, $beda), Arr::only($baris, $beda)];
+                    if (! $beda) {
+                        // Simpan ulang tanpa perubahan isi: bukan perubahan, tidak dicatat.
+                        $sebelumnya[$kunci] = $baris;
+
+                        continue;
+                    }
+                } else {
+                    [$nilaiLama, $nilaiBaru] = [$r->action === 'delete' ? ($lama ?? $baris) : null, $r->action === 'delete' ? null : $baris];
+                }
                 $label = $r->action === 'delete' ? ($r->deleted_by ?? $r->updated_by) : ($r->updated_by ?? $r->created_by);
                 $psnLegacy = $lama === 'psn_log' ? $legacyId : ($r->psn_id ?? null);
                 $batch[] = [
@@ -634,8 +649,8 @@ class LegacyImporter
                     'record_id' => $peta && $legacyId ? ($this->peta[$peta][$legacyId] ?? null) : null,
                     'psn_id' => $psnLegacy ? ($this->peta['psn'][$psnLegacy] ?? null) : null,
                     'aksi' => $aksi[$r->action] ?? Str::upper((string) $r->action),
-                    'nilai_lama' => isset($sebelumnya[$kunci]) ? json_encode($sebelumnya[$kunci], JSON_INVALID_UTF8_SUBSTITUTE) : null,
-                    'nilai_baru' => $r->action === 'delete' ? null : json_encode($baris, JSON_INVALID_UTF8_SUBSTITUTE),
+                    'nilai_lama' => $nilaiLama !== null ? json_encode($nilaiLama, JSON_INVALID_UTF8_SUBSTITUTE) : null,
+                    'nilai_baru' => $nilaiBaru !== null ? json_encode($nilaiBaru, JSON_INVALID_UTF8_SUBSTITUTE) : null,
                     'sumber' => 'IMPOR_LEGACY',
                     'created_at' => $waktu,
                 ];
