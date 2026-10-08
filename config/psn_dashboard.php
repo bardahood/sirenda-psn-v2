@@ -117,6 +117,24 @@ return [
         'terbit_otomatis' => false,
     ],
 
+    // Keamanan HTTP. CSP dapat dimatikan sementara (CSP_AKTIF=false) bila mengganggu integrasi.
+    'keamanan' => [
+        'csp' => (bool) env('CSP_AKTIF', true),
+    ],
+
+    // Pengisian & verifikasi pemutakhiran per PSN per cut-off (Fase 7).
+    'pengisian' => [
+        // Batas pengisian default = tanggal cut-off + N hari bila periode_cutoff.batas_pengisian kosong.
+        'batas_hari_setelah_cutoff' => 10,
+        // Pengajuan ditolak bila ada KP/RO bertarget tahun berjalan tanpa realisasi % periode ini.
+        'wajib_realisasi_semua_ro' => true,
+        // Bukti dukung: disimpan di disk 'public' folder bukti/{psn_id}; ukuran maksimum (KB) & ekstensi.
+        'bukti_maks_kb' => 10240,
+        'bukti_ekstensi' => ['pdf', 'jpg', 'jpeg', 'png'],
+        'status_perlakuan' => ['BELUM' => 'Belum dilaksanakan', 'BERJALAN' => 'Sedang berjalan', 'SELESAI' => 'Selesai'],
+        'status_isu' => ['TERBUKA' => 'Terbuka', 'PROSES' => 'Dalam proses', 'SELESAI' => 'Selesai'],
+    ],
+
     // Peta sebaran. GeoJSON provinsi belum ditetapkan (Q-12): bila berkas berikut ada,
     // halaman /peta menampilkan choropleth (properti kode provinsi = 'kode_prop');
     // jika tidak, simbol lingkaran proporsional di titik tengah provinsi.

@@ -81,12 +81,12 @@ class RisikoService
      * Register risiko, diurutkan dari skor residual tertinggi. Opsi: kategori, jenis (harapan|aktual)
      * + kemungkinan + dampak (klik sel heatmap), level, q.
      */
-    public function register(PeriodeCutoff $c, FilterGlobal $f, array $o, int $perHalaman = 20): LengthAwarePaginator
+    public function registerQuery(PeriodeCutoff $c, FilterGlobal $f, array $o): Builder
     {
         $skorLabel = collect(config('psn_dashboard.risiko.skor_dari_label'))->map(fn ($v, $l) => "WHEN '{$l}' THEN {$v}")->implode(' ');
         $jenis = ($o['jenis'] ?? 'harapan') === 'aktual' ? 'aktual' : 'harapan';
 
-        $q = SnapshotRisiko::query()
+        return SnapshotRisiko::query()
             ->join('risiko as r', 'r.id', '=', 'snapshot_risiko.risiko_id')
             ->join('psn as p', 'p.id', '=', 'snapshot_risiko.psn_id')
             ->leftJoin('ref_kode as k', 'k.id', '=', 'snapshot_risiko.kategori_id')
@@ -101,17 +101,25 @@ class RisikoService
             ->selectRaw("COALESCE(snapshot_risiko.kemungkinan_aktual * snapshot_risiko.dampak_aktual, CASE snapshot_risiko.level_aktual {$skorLabel} END,
                 snapshot_risiko.kemungkinan_harapan * snapshot_risiko.dampak_harapan, CASE snapshot_risiko.level_harapan {$skorLabel} END) AS skor_residual")
             ->orderByRaw('skor_residual IS NULL')->orderByDesc('skor_residual')->orderBy('p.nama');
+    }
 
-        $hasil = $q->paginate($perHalaman);
-        $hasil->setCollection($hasil->getCollection()->map(fn ($r) => [
+    public function register(PeriodeCutoff $c, FilterGlobal $f, array $o, int $perHalaman = 20): LengthAwarePaginator
+    {
+        $hasil = $this->registerQuery($c, $f, $o)->paginate($perHalaman);
+        $hasil->setCollection($hasil->getCollection()->map(fn ($r) => $this->barisRegister($r)));
+
+        return $hasil;
+    }
+
+    public function barisRegister(object $r): array
+    {
+        return [
             'risiko_id' => $r->risiko_id, 'psn_id' => $r->psn_id, 'psn' => $r->psn_nama, 'uraian' => $r->uraian, 'kategori' => $r->kategori_nama,
             'harapan' => ['level' => $r->level_harapan, 'kemungkinan' => $r->kemungkinan_harapan, 'dampak' => $r->dampak_harapan],
             'aktual' => ['level' => $r->level_aktual, 'kemungkinan' => $r->kemungkinan_aktual, 'dampak' => $r->dampak_aktual],
             'skor_residual' => $r->skor_residual !== null ? (int) $r->skor_residual : null,
             'pic' => $r->penanggung_jawab, 'mitigasi' => $r->rencana_perlakuan,
-        ]));
-
-        return $hasil;
+        ];
     }
 
     /** Isu & debottlenecking terbuka: lewat tenggat di atas, lalu tenggat terdekat. */

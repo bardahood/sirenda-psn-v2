@@ -87,6 +87,8 @@ class KontrakEndpointTest extends TestCase
             '/risiko' => [200, 200, 200, 200, 200],
             $api('/risiko/ringkasan') => [200, 200, 200, 200, 200],
             '/kamus-indikator' => [200, 200, 200, 200, 200],
+            '/pengisian' => [200, 403, 403, 200, 200],
+            '/laporan' => [200, 200, 200, 200, 403],
             '/pengaturan/pengguna' => [200, 403, 403, 403, 403],
             '/pengaturan/cutoff' => [200, 403, 403, 403, 403],
             '/pengaturan/master' => [200, 403, 403, 403, 403],

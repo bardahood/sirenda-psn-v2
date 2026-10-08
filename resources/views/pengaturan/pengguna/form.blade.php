@@ -30,7 +30,7 @@
             </div>
         </form>
         @if ($user->exists)
-            <form method="POST" action="{{ route('pengaturan.pengguna.reset', $user) }}" class="mt-4 flex items-center justify-between rounded-kartu border border-slate-200 bg-white p-4" onsubmit="return confirm('Reset kata sandi pengguna ini?')">
+            <form method="POST" action="{{ route('pengaturan.pengguna.reset', $user) }}" class="mt-4 flex items-center justify-between rounded-kartu border border-slate-200 bg-white p-4" x-data @submit="confirm('Reset kata sandi pengguna ini?') || $event.preventDefault()">
                 @csrf
                 <span class="text-isi text-slate-700">Reset kata sandi: membuat kata sandi sementara dan mewajibkan penggantian saat login.</span>
                 <button class="tombol-garis">Reset kata sandi</button>

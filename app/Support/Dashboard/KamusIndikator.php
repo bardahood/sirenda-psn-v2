@@ -15,7 +15,7 @@ final class KamusIndikator
         'K4' => ['nama' => 'Risiko Kritis', 'rumus' => 'Jumlah PSN berstatus Terlambat ATAU memiliki risiko residual ≥ Tinggi. Penurunan berarti membaik.', 'sumber' => 'Snapshot progres & register risiko'],
         'P1' => ['nama' => 'Distribusi Klaster', 'rumus' => 'Jumlah PSN aktif per klaster; 8 teratas, sisanya digabung "Lainnya". Klik batang untuk memfilter.', 'sumber' => 'Snapshot profil PSN'],
         'P2' => ['nama' => 'Progres Fisik vs Target', 'rumus' => 'Realisasi fisik tertimbang investasi dibanding rencana s.d. bulan cut-off.', 'sumber' => 'Snapshot KP/RO'],
-        'P3' => ['nama' => 'Realisasi Anggaran', 'rumus' => 'Σ realisasi anggaran ÷ Σ pagu tahun berjalan.', 'sumber' => 'Snapshot KP/RO (pagu & realisasi)'],
+        'P3' => ['nama' => 'Realisasi Anggaran', 'rumus' => 'Σ realisasi anggaran ÷ Σ pagu tahun berjalan. Realisasi per KP/RO = jumlah realisasi bulanan yang dilaporkan s.d. bulan cut-off; bila belum ada, nilai tahunan data lama.', 'sumber' => 'Snapshot KP/RO (pagu & realisasi)'],
         'P4' => ['nama' => 'RO Tercapai', 'rumus' => 'Jumlah KP/RO dengan realisasi ≥ rencana ÷ jumlah KP/RO bertarget tahun berjalan.', 'sumber' => 'Snapshot KP/RO'],
         'P5' => ['nama' => 'Tren Bulanan', 'rumus' => 'Rencana vs realisasi fisik kumulatif per cut-off terbit, Januari–Desember.', 'sumber' => 'Snapshot bulanan'],
         'P6' => ['nama' => 'Sumber Pendanaan', 'rumus' => 'Σ investasi per skema pendanaan. PSN dengan beberapa sumber tanpa rincian nilai dihitung penuh di tiap skema.', 'sumber' => 'Indikasi sumber pendanaan PSN'],

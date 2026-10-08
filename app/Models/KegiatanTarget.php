@@ -28,6 +28,10 @@ class KegiatanTarget extends Model
     {
         return [
             'dilaporkan_at' => 'datetime',
+            // Cast desimal agar "50" vs "50.00" tidak dianggap perubahan (jejak audit bersih).
+            'target_persen' => 'decimal:2',
+            'realisasi_persen' => 'decimal:2',
+            'realisasi_anggaran_rp' => 'decimal:2',
         ];
     }
 

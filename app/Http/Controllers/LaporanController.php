@@ -3,15 +3,46 @@
 namespace App\Http\Controllers;
 
 use App\Enums\StatusProgres;
+use App\Exports\RegisterRisikoExport;
+use App\Exports\RekapPengisianExport;
+use App\Models\PeriodeCutoff;
 use App\Services\DashboardService;
 use App\Support\Dashboard\FilterGlobal;
 use App\Support\Dashboard\KamusIndikator;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class LaporanController extends Controller
 {
+    /** Arsip laporan per cut-off terbit (nasional, tanpa filter). */
+    public function index()
+    {
+        $periode = PeriodeCutoff::where('status', 'TERBIT')->orderByDesc('tanggal_cutoff')->get();
+        $jumlah = fn (string $t) => DB::table($t)->whereIn('periode_cutoff_id', $periode->pluck('id'))->groupBy('periode_cutoff_id')
+            ->selectRaw('periode_cutoff_id, COUNT(*) AS n')->pluck('n', 'periode_cutoff_id');
+        $pengisian = DB::table('pengisian_psn')->whereIn('periode_cutoff_id', $periode->pluck('id'))->groupBy('periode_cutoff_id', 'status')
+            ->selectRaw('periode_cutoff_id, status, COUNT(*) AS n')->get()->groupBy('periode_cutoff_id');
+
+        return view('laporan.index', ['periode' => $periode, 'psn' => $jumlah('snapshot_psn'), 'risiko' => $jumlah('snapshot_risiko'), 'pengisian' => $pengisian]);
+    }
+
+    public function risikoXlsx(Request $r, DashboardService $d)
+    {
+        $f = FilterGlobal::fromRequest($r);
+        $c = $d->cutoff($f) ?? abort(404, 'Belum ada cut-off yang diterbitkan.');
+
+        return Excel::download(new RegisterRisikoExport($c, $f), "register-risiko-psn_{$c->kode}.xlsx");
+    }
+
+    public function pengisianXlsx(Request $r, DashboardService $d)
+    {
+        $c = $d->cutoff(FilterGlobal::fromRequest($r)) ?? abort(404, 'Belum ada cut-off yang diterbitkan.');
+
+        return Excel::download(new RekapPengisianExport($c), "rekap-pengisian-psn_{$c->kode}.xlsx");
+    }
+
     /** PDF Ringkasan Eksekutif sesuai cut-off & filter global (angka sama dengan dashboard). */
     public function ringkasanPdf(Request $r, DashboardService $d)
     {

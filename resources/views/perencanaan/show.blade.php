@@ -29,7 +29,7 @@
                 <div class="flex flex-col items-end gap-2">
                     @if ($usulan->penilaian->isNotEmpty())
                         <form method="GET" class="flex items-center gap-2"><label class="label" for="pilih-penilaian">Sesi penilaian</label>
-                            <select id="pilih-penilaian" name="penilaian" onchange="this.form.submit()" class="rounded-lg border-slate-300 py-1.5 text-isi">
+                            <select id="pilih-penilaian" name="penilaian" x-data @change="$el.form.submit()" class="rounded-lg border-slate-300 py-1.5 text-isi">
                                 @foreach ($usulan->penilaian as $p)<option value="{{ $p->id }}" @selected($penilaian?->id === $p->id)>{{ $p->forum ?? 'Penilaian' }} · {{ $p->tanggal?->format('d/m/Y') }} · {{ $p->status }}</option>@endforeach
                             </select></form>
                     @endif

@@ -46,7 +46,7 @@ Status selalu ditampilkan sebagai badge berlabel, tidak pernah warna saja.
 |---|---|---|---|
 | P1 | Distribusi Klaster | COUNT PSN per klaster; 8 teratas (`p1_top_n`) + "Lainnya" | `snapshot_psn.klaster_id` |
 | P2 | Progres Fisik vs Target | realisasi tertimbang vs rencana s.d. bulan cut-off | `snapshot_psn` |
-| P3 | Realisasi Anggaran | Σ realisasi ÷ Σ pagu tahun berjalan | `snapshot_psn.pagu_rp`, `realisasi_anggaran_rp` |
+| P3 | Realisasi Anggaran | Σ realisasi ÷ Σ pagu tahun berjalan. Per KP/RO: realisasi bulanan hasil pengisian yang sudah dilaporkan (Σ s.d. bulan cut-off) diutamakan; bila tidak ada, nilai TAHUNAN, lalu TRIWULAN data lama | `snapshot_psn.pagu_rp`, `realisasi_anggaran_rp` |
 | P4 | RO Tercapai | COUNT RO tercapai ÷ COUNT RO tahun berjalan | `snapshot_kegiatan.is_tercapai` |
 | P5 | Tren Bulanan | rencana vs realisasi kumulatif Jan–Des per cut-off terbit | `snapshot_psn` lintas cut-off |
 | P6 | Sumber Pendanaan | Σ investasi per skema (APBN, APBD, KPBU, Lainnya); PSN multi-sumber tanpa rincian nilai dihitung penuh di tiap skema, dan ini dijelaskan di tooltip | `psn_sumber_dana`, `skema_dana` |

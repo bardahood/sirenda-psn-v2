@@ -11,7 +11,7 @@ export default {
         './app/Enums/*.php',
     ],
     // Kelas status dibentuk dinamis ('badge-' + kode) sehingga harus di-safelist.
-    safelist: [{ pattern: /^(badge|titik)-(ON_TRACK|BERISIKO|TERLAMBAT|TANPA_DATA)$/ }],
+    safelist: [{ pattern: /^(badge|titik)-(ON_TRACK|BERISIKO|TERLAMBAT|TANPA_DATA|BELUM|DRAFT|DIAJUKAN|DIVERIFIKASI|DIKEMBALIKAN)$/ }],
     theme: {
         extend: {
             fontFamily: {

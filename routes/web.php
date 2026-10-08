@@ -11,6 +11,7 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\Pengaturan\CutoffController;
 use App\Http\Controllers\Pengaturan\MasterDataController;
 use App\Http\Controllers\Pengaturan\PenggunaController;
+use App\Http\Controllers\PengisianController;
 use App\Http\Controllers\PerencanaanController;
 use App\Http\Controllers\PetaController;
 use App\Http\Controllers\ProyekController;
@@ -33,9 +34,20 @@ Route::middleware(['auth', 'akun.aktif'])->group(function () {
     Route::view('/kualitas-data', 'kualitas-data.index')->middleware('can:kualitas.lihat')->name('kualitas-data');
     Route::view('/risiko', 'risiko.index')->middleware('can:risiko.lihat')->name('risiko');
     Route::get('/peta', [PetaController::class, 'index'])->middleware('can:ringkasan.lihat')->name('peta');
+    Route::get('/laporan', [LaporanController::class, 'index'])->middleware('can:laporan.lihat')->name('laporan.index');
+    Route::get('/laporan/risiko.xlsx', [LaporanController::class, 'risikoXlsx'])->middleware('can:risiko.lihat')->name('laporan.risiko-xlsx');
+    Route::get('/laporan/pengisian.xlsx', [LaporanController::class, 'pengisianXlsx'])->middleware('can:laporan.lihat')->name('laporan.pengisian-xlsx');
     Route::get('/laporan/ringkasan.pdf', [LaporanController::class, 'ringkasanPdf'])->middleware('can:ringkasan.lihat')->name('laporan.ringkasan-pdf');
 
     Route::view('/kamus-indikator', 'kamus.index')->name('kamus');
+
+    // Pengisian & verifikasi pemutakhiran per cut-off; otorisasi rinci di PsnPolicy (update/verifikasi).
+    Route::middleware('can:detail.input')->prefix('pengisian')->name('pengisian.')->controller(PengisianController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{periode}/{psn}', 'show')->where('periode', '\d{4}-\d{2}')->whereNumber('psn')->name('show');
+        Route::post('/{periode}/{psn}', 'simpan')->where('periode', '\d{4}-\d{2}')->whereNumber('psn')->name('simpan');
+        Route::post('/{periode}/{psn}/verifikasi', 'verifikasi')->where('periode', '\d{4}-\d{2}')->whereNumber('psn')->name('verifikasi');
+    });
 
     // Pengaturan (Super Admin): pengguna & peran, cut-off & snapshot, master data.
     Route::middleware('can:pengaturan.kelola')->prefix('pengaturan')->name('pengaturan.')->group(function () {

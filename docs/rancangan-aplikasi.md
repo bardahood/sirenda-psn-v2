@@ -64,7 +64,8 @@ Tujuan v2: **basis data terpadu yang ternormalisasi** sebagai fondasi dashboard 
 | v2 (tersedia Fase 6) | `/risiko` | Risiko, Isu & Regulasi | `risiko`, `risiko_pemantauan`, `snapshot_risiko`, `isu`, `regulasi` |
 | v1 | `/peta` | Peta Sebaran | `psn_lokasi` + `ref_wilayah` |
 | v1 | `/kualitas-data` | Kualitas Data | `pengisian_psn`, `snapshot_kelengkapan` |
-| v2 | `/laporan` | Laporan | Snapshot per cut-off |
+| v2 (tersedia Fase 7) | `/laporan` | Laporan | Snapshot per cut-off |
+| — (Fase 7) | `/pengisian` | Pengisian & Verifikasi | `kegiatan_target` (BULANAN), `risiko_pemantauan`, `isu`, `pengisian_psn(_riwayat)` |
 | — (tersedia Fase 6) | `/pengaturan/*`, `/kamus-indikator` | Master data, pengguna & peran, kamus indikator, cut-off | `ref_*`, `users`, `periode_cutoff` |
 
 Tab Detail Proyek dipetakan ke tabel sebagai berikut:
@@ -297,6 +298,21 @@ Parameter filter: `periode=2026-09`, `prov=31,32`, `klaster=3,7`, `dit=12`, `sta
   - Isu dan regulasi membaca data terkini (tidak di-snapshot) untuk PSN yang lolos filter global; cakupan Operator/Direktorat tetap diterapkan di query.
 - Perbaikan: paginasi master unit kerja (kolom agregat pada `paginate`).
 
+### 8.5 Implementasi Fase 7
+
+- **Pengisian & Verifikasi** (`/pengisian`, izin `detail.input`; `PengisianService`, `PengisianController`):
+  - Periode = cut-off bulanan (`periode_cutoff`, dibuat DRAFT saat pertama dibuka; bulan mendatang ditolak). Batas pengisian = `periode_cutoff.batas_pengisian` atau tanggal cut-off + `pengisian.batas_hari_setelah_cutoff` hari.
+  - Daftar PSN aktif dalam cakupan pengguna, urutan "perlu tindakan" (Dikembalikan, Diajukan, Draf, Belum diisi, Diverifikasi), rekap per status. Peran terbatas default "Hanya PSN unit saya".
+  - Formulir per PSN: (A) progres fisik kumulatif rencana/realisasi (%), realisasi anggaran bulan ini (Rp), permasalahan, dan bukti dukung (PDF/JPG/PNG, disk `public`, folder `bukti/{psn_id}`) per KP/RO bertarget tahun berjalan → baris `kegiatan_target` BULANAN `periode_ke` = bulan; `dilaporkan_at` hanya bergeser bila realisasi berubah. (B) pemantauan risiko aktual (kemungkinan × dampak 1–5, level dihitung `StatusResolver`, status perlakuan, catatan) → `risiko_pemantauan` bertanggal cut-off, sumber PELAPORAN; tambah risiko baru. (C) isu: PIC, tenggat, status, tindak lanjut; tambah isu baru. Bagian B–C memerlukan `risiko.input`.
+  - Alur status: (Belum) → DRAF → DIAJUKAN → DIVERIFIKASI | DIKEMBALIKAN (catatan wajib) → DIAJUKAN … Pengajuan ditolak bila ada KP/RO bertarget tanpa realisasi % periode ini (`pengisian.wajib_realisasi_semua_ro`). Setelah diajukan, isian terkunci; setelah periode diterbitkan, semua terkunci (409).
+  - Hak: isi = `PsnPolicy::update` (`detail.input` + cakupan unit I¹); verifikasi = `PsnPolicy::verifikasi` (`detail.verifikasi` + cakupan V¹). Operator tidak dapat mengakses PSN unit lain (404, scope query).
+  - Jejak: setiap baris data tercatat oleh `AuditObserver` (cast desimal mencegah perubahan semu); transisi status tercatat `SUBMIT`/`VERIFY`/`RETURN` di `audit_log` dan `pengisian_psn_riwayat`.
+  - Snapshot membaca isian: progres memilih baris BULANAN terakhir s.d. cut-off (aturan lama); **realisasi anggaran** kini memakai Σ baris BULANAN yang dilaporkan bila ada, jika tidak nilai TAHUNAN/TRIWULAN lama (kamus P3 diperbarui). Uji akurasi tetap 0 selisih.
+  - Snapshot tetap memakai isian apa pun statusnya (belum hanya yang terverifikasi) — lihat Q-15.
+- **Laporan** (`/laporan`, izin `laporan.lihat`): arsip per cut-off terbit dengan PDF Ringkasan Eksekutif, Excel Portofolio, Excel Register Risiko (`/laporan/risiko.xlsx`, urutan identik register /risiko), dan Excel Rekap Pengisian & Verifikasi (`/laporan/pengisian.xlsx`, termasuk ketepatan waktu terhadap batas pengisian).
+- **Content-Security-Policy** dipasang; atribut `on*` diganti Alpine. Lihat `docs/kinerja-keamanan.md`.
+- Perbaikan: kedipan tata letak sebelum Alpine aktif (lebar sidebar default statis); `PengisianPsn` tidak lagi memakai `HasJejak` (tabel tanpa kolom `created_by`).
+
 ## 9. Hasil impor awal (dump 7 Oktober 2026)
 
 Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan test`): jumlah PSN, lokasi, item profil, regulasi, KP/RO, agregat per provinsi, agregat per klaster, dan total nilai investasi **identik** dengan basis data lama.
@@ -341,6 +357,8 @@ Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan
 | Q-12 | Sumber GeoJSON provinsi | Lingkaran proporsional di titik tengah provinsi; letakkan GeoJSON di `public/geo/provinsi.geojson` untuk choropleth |
 | Q-13 | Penanganan data uji dan 76 risiko yatim | Tidak diimpor; daftar ada di laporan ETL |
 | Q-14 | Status pengguna lama `0` dan `H` | Hanya `A` dianggap aktif |
+| Q-15 | Apakah snapshot cut-off hanya memakai isian berstatus Diverifikasi? | Belum: snapshot memakai isian terakhir apa pun statusnya; status verifikasi dipantau di Kualitas Data dan rekap pengisian |
+| Q-16 | 90 risiko lama hanya berlabel level (tanpa skala 1–5) | Tidak dikonversi otomatis; tidak tampil di matriks 5×5 harapan; matriks aktual terisi setelah dinilai melalui Pengisian |
 
 ## 11. Rencana fase
 
@@ -353,5 +371,6 @@ Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan
 | 3 | Portofolio, Detail Proyek (Profil, KP/RO, Progres, Dokumen & Riwayat), Kualitas Data | **Selesai** |
 | 4 | Perencanaan + `ScoringService`, Policy, ekspor PNG/CSV/PDF/Excel, peta provinsi | **Selesai** |
 | 5 | Feature test endpoint, uji akurasi K1–K4/P1–P7 terhadap query acuan, uji hak akses, profil kinerja | **Selesai**; lihat `docs/kriteria-selesai-v1.md` |
-| 6 | Pengaturan (pengguna & peran, cut-off & snapshot, master data), halaman Kamus Indikator, halaman Risiko, Isu & Regulasi | **Selesai, menunggu review** |
-| 7 (usulan) | `/laporan` per cut-off (arsip PDF/Excel), alur pengisian & verifikasi progres/realisasi oleh Operator → Direktorat, input risiko & pemantauan, Content-Security-Policy | Belum dimulai |
+| 6 | Pengaturan (pengguna & peran, cut-off & snapshot, master data), halaman Kamus Indikator, halaman Risiko, Isu & Regulasi | **Selesai** |
+| 7 | Pengisian & verifikasi (progres/anggaran KP/RO, pemantauan risiko, isu), `/laporan` per cut-off, Content-Security-Policy | **Selesai, menunggu review** |
+| 8 (usulan) | Notifikasi (surel/dalam aplikasi) tenggat pengisian & hasil verifikasi, impor massal realisasi dari Excel, pengisian profil/gambaran umum PSN, opsi snapshot hanya data terverifikasi (Q-15) | Belum dimulai |

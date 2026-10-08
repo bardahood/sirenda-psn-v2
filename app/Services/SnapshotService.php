@@ -230,21 +230,32 @@ class SnapshotService
         return [$rencanaSaja, null, $pembaruan];
     }
 
-    /** @return array{0: ?float, 1: ?float} [pagu tahun, realisasi s.d. cut-off] */
+    /**
+     * Pagu tahun dan realisasi anggaran s.d. cut-off. Realisasi bulanan hasil pengisian
+     * (BULANAN, per bulan, sudah dilaporkan) diutamakan bila ada; jika tidak, nilai TAHUNAN / TRIWULAN lama.
+     *
+     * @return array{0: ?float, 1: ?float}
+     */
     protected function anggaranKegiatan(Collection $baris): array
     {
-        if ($tahunan = $baris->firstWhere('periode', 'TAHUNAN')) {
-            return [$this->angka($tahunan->pagu_rp), $this->angka($tahunan->realisasi_anggaran_rp)];
+        $tahunan = $baris->firstWhere('periode', 'TAHUNAN');
+        $bulanan = $baris->where('periode', 'BULANAN');
+        $triwulan = $baris->where('periode', 'TRIWULAN');
+        $jumlah = fn (Collection $p, int $batas) => $p->whereNotNull('realisasi_anggaran_rp')->isEmpty() ? null
+            : (float) $p->where('periode_ke', '<=', $batas)->sum('realisasi_anggaran_rp');
+
+        $pagu = $tahunan ? $this->angka($tahunan->pagu_rp) : null;
+        if ($pagu === null) {
+            $periodik = $bulanan->whereNotNull('pagu_rp')->isNotEmpty() ? $bulanan : $triwulan;
+            $pagu = $periodik->whereNotNull('pagu_rp')->isEmpty() ? null : (float) $periodik->sum('pagu_rp');
         }
 
-        $jenis = $baris->contains('periode', 'BULANAN') ? 'BULANAN' : 'TRIWULAN';
-        $batas = $jenis === 'BULANAN' ? $this->bulan : intdiv($this->bulan - 1, 3) + 1;
-        $p = $baris->where('periode', $jenis);
+        // Seperti progres: baris bulanan hanya dihitung bila pernah dilaporkan (data lama menyimpan isian kosong sebagai 0).
+        $realisasi = $jumlah($bulanan->whereNotNull('dilaporkan_at'), $this->bulan)
+            ?? ($tahunan ? $this->angka($tahunan->realisasi_anggaran_rp) : null)
+            ?? $jumlah($triwulan, intdiv($this->bulan - 1, 3) + 1);
 
-        return [
-            $p->whereNotNull('pagu_rp')->isEmpty() ? null : (float) $p->sum('pagu_rp'),
-            $p->whereNotNull('realisasi_anggaran_rp')->isEmpty() ? null : (float) $p->where('periode_ke', '<=', $batas)->sum('realisasi_anggaran_rp'),
-        ];
+        return [$pagu, $realisasi];
     }
 
     /** @return Collection<int, array> keyed by risiko_id */

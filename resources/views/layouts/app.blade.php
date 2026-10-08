@@ -11,8 +11,8 @@
       x-init="$watch('ciut', v => localStorage.setItem('sidebar-ciut', v ? '1' : '0'))">
 <div class="flex min-h-screen">
     {{-- Sidebar 240 px, dapat diciutkan ke 72 px --}}
-    <aside :class="ciut ? 'w-18' : 'w-60'"
-           class="fixed inset-y-0 left-0 z-30 hidden flex-col bg-primer text-white transition-[width] duration-200 lg:flex"
+    <aside :class="ciut && '!w-18'"
+           class="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col bg-primer text-white transition-[width] duration-200 lg:flex"
            aria-label="Navigasi utama">
         <div class="flex h-18 items-center gap-3 border-b border-white/10 px-5">
             <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-aksen text-sm font-bold">PSN</span>
@@ -23,9 +23,11 @@
                 ['Ringkasan Eksekutif', '/dashboard', 'ringkasan.lihat', 'M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z'],
                 ['Portofolio PSN', '/proyek', 'portofolio.lihat', 'M4 6h16M4 12h16M4 18h10'],
                 ['Perencanaan', '/perencanaan', 'perencanaan.lihat', 'M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'],
+                ['Pengisian & Verifikasi', '/pengisian', 'detail.input', 'M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z'],
                 ['Risiko, Isu & Regulasi', '/risiko', 'risiko.lihat', 'M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z'],
                 ['Peta Sebaran', '/peta', 'ringkasan.lihat', 'M9 20l-5.4-2.7A1 1 0 0 1 3 16.4V5.6a1 1 0 0 1 1.4-.9L9 7m0 13 6-3m-6 3V7m6 10 4.6 2.3a1 1 0 0 0 1.4-.9V7.6a1 1 0 0 0-.6-.9L15 4m0 13V4m0 0L9 7'],
                 ['Kualitas Data', '/kualitas-data', 'kualitas.lihat', 'M9 17v-6m4 6V7m4 10v-3M5 21h14'],
+                ['Laporan', '/laporan', 'laporan.lihat', 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Zm0 0v6h6M8 13h8M8 17h5'],
                 ['Kamus Indikator', '/kamus-indikator', null, 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15Z'],
                 ['Pengaturan', '/pengaturan', 'pengaturan.kelola', 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm7.4-3a7.4 7.4 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7.6 7.6 0 0 0-2-1.2L14.5 3h-5l-.4 2.6a7.6 7.6 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6a7.4 7.4 0 0 0 0 2.4l-2 1.6 2 3.4 2.4-1a7.6 7.6 0 0 0 2 1.2l.4 2.6h5l.4-2.6a7.6 7.6 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2Z'],
             ];
@@ -61,7 +63,8 @@
         </div>
     </aside>
 
-    <div :class="ciut ? 'lg:pl-18' : 'lg:pl-60'" class="flex min-w-0 flex-1 flex-col transition-[padding] duration-200">
+    {{-- Lebar default statis agar tidak berkedip sebelum Alpine aktif; mode ciut menimpa dengan !important. --}}
+    <div :class="ciut && 'lg:!pl-18'" class="flex min-w-0 flex-1 flex-col transition-[padding] duration-200 lg:pl-60">
         {{-- Header sticky 72 px berisi filter global --}}
         <header class="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
             <div class="flex min-h-18 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 md:px-8">

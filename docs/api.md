@@ -50,6 +50,12 @@ Cache dashboard dibatalkan otomatis saat snapshot cut-off diterbitkan (`Dashboar
 | Rute | Keterangan |
 |---|---|
 | `GET /laporan/ringkasan.pdf?{filter}` | PDF Ringkasan Eksekutif (angka identik dengan dashboard) |
+| `GET /laporan` | Arsip laporan per cut-off terbit (`laporan.lihat`) |
+| `GET /laporan/risiko.xlsx?{filter}` | Excel register risiko per cut-off (`risiko.lihat`) |
+| `GET /laporan/pengisian.xlsx?periode=` | Excel rekap status pengisian & verifikasi per cut-off (`laporan.lihat`) |
+| `GET /pengisian[?periode=&status=&q=&milik=]`, `GET /pengisian/{periode}/{psn}` | Daftar & formulir pengisian (`detail.input`; PSN dibatasi cakupan) |
+| `POST /pengisian/{periode}/{psn}` (+ `ajukan=1`) | Simpan draf / ajukan (`PsnPolicy::update`; risiko & isu butuh `risiko.input`) |
+| `POST /pengisian/{periode}/{psn}/verifikasi` (`keputusan=setuju\|kembalikan`, `catatan`) | Verifikasi (`PsnPolicy::verifikasi`); tercatat VERIFY/RETURN |
 | `GET /dashboard`, `/proyek`, `/proyek/{id}?tab=`, `/perencanaan`, `/perencanaan/{id}`, `/peta`, `/kualitas-data`, `/risiko`, `/kamus-indikator` | Halaman aplikasi |
 | `GET /pengaturan/{pengguna,cutoff,master}`, `POST /pengaturan/pengguna`, `PUT /pengaturan/pengguna/{id}`, `POST /pengaturan/pengguna/{id}/reset-sandi`, `POST /pengaturan/cutoff`, `PUT /pengaturan/master/{klaster,sub-klaster,unit}/{id}` | Pengaturan (izin `pengaturan.kelola`, tercatat di jejak audit) |
 | `POST /perencanaan`, `POST /perencanaan/{id}/penilaian`, `PUT /perencanaan/penilaian/{id}/skor`, `POST /perencanaan/penilaian/{id}/final`, `POST /perencanaan/penilaian/{id}/buka` | Aksi penilaian usulan (diotorisasi `UsulanPsnPolicy`, tercatat di jejak audit) |

@@ -26,4 +26,15 @@
     .titik-BERISIKO { @apply h-2 w-2 rounded-full bg-amber-600; }
     .titik-TERLAMBAT { @apply h-2 w-2 rounded-full bg-red-600; }
     .titik-TANPA_DATA { @apply h-2 w-2 rounded-full bg-slate-500; }
+    /* Status pengisian & verifikasi. */
+    .badge-BELUM { @apply badge bg-slate-100 text-slate-700 ring-slate-500/40; }
+    .badge-DRAFT { @apply badge bg-sky-50 text-sky-900 ring-sky-600/40; }
+    .badge-DIAJUKAN { @apply badge bg-amber-50 text-amber-900 ring-amber-600/40; }
+    .badge-DIVERIFIKASI { @apply badge bg-green-50 text-green-800 ring-green-600/40; }
+    .badge-DIKEMBALIKAN { @apply badge bg-red-50 text-red-800 ring-red-600/40; }
+    .titik-BELUM { @apply h-2 w-2 rounded-full bg-slate-500; }
+    .titik-DRAFT { @apply h-2 w-2 rounded-full bg-sky-600; }
+    .titik-DIAJUKAN { @apply h-2 w-2 rounded-full bg-amber-600; }
+    .titik-DIVERIFIKASI { @apply h-2 w-2 rounded-full bg-green-600; }
+    .titik-DIKEMBALIKAN { @apply h-2 w-2 rounded-full bg-red-600; }
 }

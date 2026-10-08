@@ -50,4 +50,15 @@ Data riil: 380 PSN, 760 baris snapshot. Lingkungan: MariaDB 10.11, PHP 8.3, kont
 | Header | `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`, `Cache-Control: no-store` untuk halaman berlogin |
 | Akun | Akun hasil impor wajib ganti kata sandi (min. 12 karakter, huruf besar/kecil, angka); akun nonaktif langsung dikeluarkan |
 
-**Belum dipasang: Content-Security-Policy.** Build standar Alpine.js memerlukan `unsafe-eval`. Untuk CSP ketat, ganti dengan build CSP Alpine (`@alpinejs/csp`) dan pindahkan ekspresi inline ke komponen terdaftar. Ini dicatat sebagai pekerjaan lanjutan.
+**Content-Security-Policy (Fase 7)** dipasang oleh `HeaderKeamanan` (dapat dimatikan sementara dengan `CSP_AKTIF=false`; tidak dikirim saat server pengembangan Vite aktif):
+
+```
+default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline';
+img-src 'self' data: blob: <host tile peta>; font-src 'self'; connect-src 'self';
+object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+```
+
+- Semua skrip, gaya, dan font berasal dari origin sendiri (dibundel Vite). Tidak ada skrip inline maupun atribut `on*`; konfirmasi dan submit otomatis memakai Alpine (`@submit`, `@change`).
+- Sisa kelonggaran: `'unsafe-eval'` diperlukan build standar Alpine.js; `'unsafe-inline'` pada `style-src` untuk atribut `style` dinamis (Alpine `:style`, ECharts, Leaflet). Untuk menghapus `'unsafe-eval'`, ganti dengan build `@alpinejs/csp` dan pindahkan ekspresi inline ke komponen terdaftar (pekerjaan lanjutan).
+- Host tile peta (`PETA_TILE_URL`) otomatis ditambahkan ke `img-src`; kosongkan untuk intranet.
+- Diuji di `tests/Feature/LaporanTest.php::test_header_csp` dan dengan Playwright (tidak ada pelanggaran CSP di konsol pada seluruh halaman).

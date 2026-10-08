@@ -4,13 +4,14 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\DalamCakupanPsn;
-use App\Models\Concerns\HasJejak;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PengisianPsn extends Model
 {
-    use Auditable, DalamCakupanPsn, HasJejak;
+    use Auditable, DalamCakupanPsn;
+
+    // Tabel tanpa kolom created_by/updated_by: transisi status dicatat eksplisit (SUBMIT/VERIFY/RETURN) oleh PengisianService.
 
     protected $table = 'pengisian_psn';
 
