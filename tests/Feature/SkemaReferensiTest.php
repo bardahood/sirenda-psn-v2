@@ -36,10 +36,11 @@ class SkemaReferensiTest extends TestCase
         $this->assertSame('OPERASI', DB::table('ref_status_psn')->where('kode', '1')->value('tahap'));
     }
 
-    public function test_kriteria_penilaian_3_utama_6_pendukung_5_kesiapan(): void
+    public function test_kriteria_penilaian_3_utama_6_pendukung_5_kesiapan_dan_butir_sementara(): void
     {
         $per = DB::table('ref_kriteria')->groupBy('kelompok')->pluck(DB::raw('count(*)'), 'kelompok');
-        $this->assertEquals(['UTAMA' => 3, 'PENDUKUNG' => 6, 'KESIAPAN' => 5], $per->map(fn ($n) => (int) $n)->all());
+        // LOKASI & TRISULA: satu butir sementara masing-masing sampai sub-kriteria resmi ditetapkan (Q-10).
+        $this->assertEquals(['UTAMA' => 3, 'PENDUKUNG' => 6, 'KESIAPAN' => 5, 'LOKASI' => 1, 'TRISULA' => 1], $per->map(fn ($n) => (int) $n)->all());
         $this->assertSame('YA_TIDAK', DB::table('ref_kriteria')->where('kode', 'KU1')->value('tipe_nilai'));
         $this->assertSame('PENGUSUL_PEMDA', DB::table('ref_kriteria')->where('kode', 'KP5')->value('kondisional'));
     }

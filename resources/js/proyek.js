@@ -13,3 +13,14 @@ export function grafikKurvaS(bulan, terlambat) {
         },
     };
 }
+
+/** Grafik perbandingan antar-usulan pada halaman penilaian. */
+export function grafikPerbandingan(baris) {
+    return {
+        async init() {
+            if (!baris.length) return;
+            const { render, batangSorot } = await grafik();
+            render(this.$refs.kanvas, batangSorot(baris));
+        },
+    };
+}

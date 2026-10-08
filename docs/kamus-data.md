@@ -1080,6 +1080,7 @@
 | `tahun_rkp` | smallint(5) unsigned |  |  |  |
 | `nama` | text |  |  |  |
 | `klaster_id` | bigint(20) unsigned | ya | → `ref_klaster.id` |  |
+| `unit_kerja_id` | bigint(20) unsigned | ya | → `ref_unit_kerja.id` |  |
 | `pengusul_instansi_id` | bigint(20) unsigned | ya | → `ref_instansi.id` |  |
 | `pengusul_teks` | varchar(255) | ya |  |  |
 | `jenis_pengusul` | varchar(20) | ya |  | KL\|PEMDA\|BUMN_SWASTA |

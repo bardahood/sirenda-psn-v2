@@ -73,4 +73,7 @@ Status selalu ditampilkan sebagai badge berlabel, tidak pernah warna saja.
 - **Gate** KU1–KU3 (Ya/Tidak): satu "Tidak" → rekomendasi **DITOLAK** berapa pun nilainya.
 - **Skor komponen** = Σ skor ÷ (3 × jumlah sub-kriteria yang berlaku) × 100.
 - **Nilai akhir** = 0,35·Pendukung + 0,35·Kesiapan + 0,15·Lokasi + 0,15·Trisula.
-- Ambang Direkomendasikan/Dipertimbangkan: **belum ditetapkan** (`penilaian.ambang`).
+- Ambang Direkomendasikan/Dipertimbangkan: **belum ditetapkan** (`penilaian.ambang`). Selama ambang belum diisi, rekomendasi untuk usulan yang lolos gate adalah "Ambang rekomendasi belum ditetapkan".
+- n = jumlah sub-kriteria yang **berlaku**: KP4/KP5/KP6 hanya untuk pengusul K/L, Pemda, atau BUMN/swasta; KK3/KK4 hanya untuk usulan infrastruktur. Skor komponen dan nilai akhir baru dihitung bila semua sub-kriteria yang berlaku sudah dinilai. Bobot komponen yang kosong tidak dialihkan ke komponen lain.
+- Sub-kriteria Lokasi (KL1) dan Trisula (KT1) masih berupa butir sementara (Q-10).
+- Penilaian yang gugur di gate boleh ditetapkan FINAL walau sub-kriteria lain belum diisi. Penilaian lain harus lengkap dulu.

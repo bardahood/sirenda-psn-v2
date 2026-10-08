@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Exports\PortofolioExport;
 use App\Http\Controllers\Controller;
 use App\Models\Psn;
 use App\Services\DashboardService;
@@ -13,6 +14,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ProyekController extends Controller
@@ -20,7 +23,7 @@ class ProyekController extends Controller
     public function __construct(protected DashboardService $dashboard, protected PortofolioService $portofolio, protected ProyekService $proyek) {}
 
     /** GET /api/v1/proyek -- portofolio, paginasi server; ?format=csv untuk unduh semua baris terfilter. */
-    public function index(Request $r): JsonResponse|StreamedResponse
+    public function index(Request $r): JsonResponse|StreamedResponse|BinaryFileResponse
     {
         $opsi = self::opsi($r);
         $f = FilterGlobal::fromRequest($r);
@@ -32,6 +35,9 @@ class ProyekController extends Controller
 
         if ($r->query('format') === 'csv') {
             return $this->csv($c, $f, $opsi);
+        }
+        if ($r->query('format') === 'xlsx') {
+            return Excel::download(new PortofolioExport($c, $f, $opsi), "portofolio-psn_{$c->kode}.xlsx");
         }
 
         $perHalaman = (int) $r->query('per_halaman', 25);

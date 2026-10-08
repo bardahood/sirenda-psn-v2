@@ -117,6 +117,16 @@ return [
         'terbit_otomatis' => false,
     ],
 
+    // Peta sebaran. GeoJSON provinsi belum ditetapkan (Q-12): bila berkas berikut ada,
+    // halaman /peta menampilkan choropleth (properti kode provinsi = 'kode_prop');
+    // jika tidak, simbol lingkaran proporsional di titik tengah provinsi.
+    'peta' => [
+        'geojson' => 'geo/provinsi.geojson',
+        'kode_prop' => 'kode',
+        'tile_url' => env('PETA_TILE_URL', 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'),
+        'tile_atribusi' => env('PETA_TILE_ATRIBUSI', '&copy; kontributor OpenStreetMap'),
+    ],
+
     // TTL cache dalam detik. Cache per cut-off dibatalkan saat snapshot baru diterbitkan.
     'cache' => [
         'dashboard' => 86400,

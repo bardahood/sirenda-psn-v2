@@ -29,6 +29,19 @@ class CakupanAksesScope implements Scope
             return;
         }
 
+        // Usulan PSN dibatasi langsung lewat direktorat pengampunya (usulan_psn.unit_kerja_id).
+        if (method_exists($model, 'kolomCakupanUnit')) {
+            $builder->where($model->qualifyColumn($model->kolomCakupanUnit()), $user->unit_kerja_id);
+
+            return;
+        }
+        if (method_exists($model, 'cakupanUnitMelalui')) {
+            [$tabelInduk, $fk] = $model->cakupanUnitMelalui();
+            $builder->whereIn($model->qualifyColumn($fk), fn ($q) => $q->select('id')->from($tabelInduk)->where('unit_kerja_id', $user->unit_kerja_id));
+
+            return;
+        }
+
         $psnDalamCakupan = fn ($q) => $q->select('psn_id')->from('psn_unit_pengampu')->where('unit_kerja_id', $user->unit_kerja_id);
 
         // Tabel tanpa psn_id (mis. kegiatan_target) dibatasi melalui tabel induknya.

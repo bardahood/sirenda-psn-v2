@@ -159,3 +159,19 @@ export function heatmap(baris, kolom, sel) {
         }],
     };
 }
+
+/** Perbandingan nilai akhir antar-usulan: usulan yang sedang dilihat disorot (aksen), lainnya abu-abu. */
+export function batangSorot(baris) {
+    const data = [...baris].reverse();
+    return {
+        grid: { left: 8, right: 48, top: 8, bottom: 8, containLabel: true },
+        tooltip: { ...dasar.tooltip, trigger: 'item', formatter: (p) => `${p.name}<br/>Nilai akhir <b>${angka(p.value, 2)}</b>${data[p.dataIndex].ditolak ? '<br/>Ditolak (gate)' : ''}` },
+        xAxis: { type: 'value', min: 0, max: 100, splitLine: { lineStyle: { color: WARNA.grid } }, axisLabel: { color: WARNA.teksSamar, fontSize: 11 } },
+        yAxis: { type: 'category', data: data.map((d) => d.label), axisTick: { show: false }, axisLine: { lineStyle: { color: WARNA.grid } }, axisLabel: { color: WARNA.teks, fontSize: 11, width: 200, overflow: 'truncate' } },
+        series: [{
+            type: 'bar', barMaxWidth: 16,
+            data: data.map((d) => ({ value: d.nilai, itemStyle: { color: d.ini ? WARNA.aksen : '#94a3b8', borderRadius: [0, 4, 4, 0] } })),
+            label: { show: true, position: 'right', fontSize: 11, color: WARNA.teks, formatter: (p) => `${angka(p.value, 1)}${data[p.dataIndex].ditolak ? ' · ditolak' : ''}` },
+        }],
+    };
+}

@@ -72,10 +72,10 @@ export function halamanPortofolio() {
             const qs = this.qsLengkap();
             return `/proyek/${id}${qs ? '?' + qs : ''}`;
         },
-        tautanCsv() {
+        tautanUnduh(format) {
             const p = new URLSearchParams(this.qsLengkap());
             p.delete('page');
-            p.set('format', 'csv');
+            p.set('format', format);
             return `/api/v1/proyek?${p.toString()}`;
         },
         labelStatus(k) {

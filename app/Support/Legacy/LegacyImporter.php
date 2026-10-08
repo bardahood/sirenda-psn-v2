@@ -106,6 +106,7 @@ class LegacyImporter
         // Kriteria penilaian tetap dari berkas seeder (sudah dikodekan KU/KP/KK).
         $json = json_decode(file_get_contents(database_path('seeders/data/referensi.json')), true);
         $data['KRITERIA'] = $json['KRITERIA'] ?? [];
+        $data['KOORDINAT_PROVINSI'] = $json['KOORDINAT_PROVINSI'] ?? [];
 
         foreach ($this->referensi->import($data) as $tabel => $n) {
             $this->hitung($tabel, $n);

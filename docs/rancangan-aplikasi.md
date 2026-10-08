@@ -250,6 +250,37 @@ Parameter filter: `periode=2026-09`, `prov=31,32`, `klaster=3,7`, `dit=12`, `sta
 - **"Sektor" sementara = direktorat pengampu** (`ref_unit_kerja.jenis = DIREKTORAT`) sampai Q-06 diputuskan.
 - **ETL riwayat**: perubahan (UPDATE) dari tabel `*_log` kini hanya menyimpan kolom yang benar-benar berubah. Simpan-ulang tanpa perubahan tidak dicatat. Stempel waktu tidak lagi dikarang: `audit_log.created_at` boleh null untuk riwayat lama tanpa waktu.
 
+### 8.3 Implementasi Fase 4
+
+- **`App\Services\ScoringService`** (10 uji unit, termasuk gate override):
+  - Gate KU1–KU3 bersifat mutlak: satu "Tidak" langsung menjadi DITOLAK, bahkan bila sub-kriteria lain belum diisi atau nilai akhirnya 100.
+  - Skor komponen = Σ skor ÷ (3 × n) × 100, dengan n = sub-kriteria yang **berlaku**. KP4–KP6 bergantung pada jenis pengusul; KK3–KK4 hanya berlaku untuk usulan infrastruktur. Skor komponen hanya dihitung bila semua sub-kriteria yang berlaku sudah dinilai. Tidak ada redistribusi bobot.
+  - Nilai akhir = 0,35·P + 0,35·K + 0,15·L + 0,15·T.
+  - Rekomendasi: `DIREKOMENDASIKAN | DIPERTIMBANGKAN | TIDAK_DIREKOMENDASIKAN | DITOLAK | BELUM_LENGKAP | AMBANG_BELUM_DITETAPKAN`. Ambang masih `null` (Q-11).
+  - Hasil disimpan sebagai cache di tabel `penilaian`; sumber kebenaran tetap `penilaian_skor`.
+- **Halaman `/perencanaan`**:
+  - daftar usulan dengan filter K/L, klaster, tahun, status, dan rekomendasi, diurutkan berdasarkan nilai akhir;
+  - formulir usulan baru;
+  - layar penilaian sesuai wireframe: gate (banner merah DITOLAK), 4 kartu komponen, gauge nilai akhir dan rekomendasi, formulir sub-kriteria (skor dan temuan), peta usulan vs PSN eksisting, serta perbandingan antar-usulan.
+  - Alur status: DRAFT → FINAL (verifikasi), dan FINAL → DRAFT (kelola). Setiap perubahan tercatat di audit (`VERIFY`, `RETURN`, dan perubahan skor).
+  - `GET /api/v1/usulan/{id}/skor`.
+- **Hak akses Perencanaan** (`UsulanPsnPolicy`):
+  - Pimpinan: lihat.
+  - PMO: kelola.
+  - Direktorat Sektor: verifikasi¹.
+  - Operator K/L: input¹ (usulan baru otomatis diberi unit pengguna).
+  - Tanda ¹ = `usulan_psn.unit_kerja_id` (kolom baru, aditif) sama dengan unit pengguna. Pembatasan lihat bagi Operator diterapkan di level query.
+- **Butir sementara Lokasi (KL1) dan Trisula (KT1)**: satu butir per komponen sampai sub-kriteria resmi ditetapkan (Q-10). Butir ini dapat diganti lewat `ref_kriteria`.
+- **Ekspor**:
+  - PDF Ringkasan Eksekutif (`/laporan/ringkasan.pdf?{filter}`, dompdf; angka sama dengan dashboard);
+  - Excel portofolio (`/api/v1/proyek?format=xlsx`, Laravel Excel);
+  - CSV portofolio;
+  - PNG/CSV per panel.
+- **Peta** (`/peta`, `GET /api/v1/peta`): Leaflet dibundel dan dimuat terpisah. Sementara memakai lingkaran proporsional di titik tengah 38 provinsi (`ref_wilayah.lat/lng`). Klik provinsi menambah filter global.
+  - Bila berkas `public/geo/provinsi.geojson` (properti `kode` = kode provinsi) tersedia, peta **otomatis menjadi choropleth** (Q-12).
+  - Tile peta diatur lewat `PETA_TILE_URL`. Kosongkan untuk jaringan intranet tanpa akses internet, atau isi dengan server tile internal.
+- **Halaman `/risiko`**: placeholder rilis v2.
+
 ## 9. Hasil impor awal (dump 7 Oktober 2026)
 
 Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan test`): jumlah PSN, lokasi, item profil, regulasi, KP/RO, agregat per provinsi, agregat per klaster, dan total nilai investasi **identik** dengan basis data lama.
@@ -289,9 +320,9 @@ Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan
 | Q-07 | Kategori PKPN | `klaster_pkpn_id` terisi → PKPN (118 PSN) |
 | Q-08 | Arti `psn_stakeholder.jenis` A/B dan pemetaan ke level 1–4 | jenis A = pemetaan stakeholder, B = kerangka kelembagaan; `level` diisi ulang manual |
 | Q-09 | `monev_header.jenis` 1/2 | 1 = Pengendalian, 2 = Perencanaan |
-| Q-10 | Sub-kriteria Lokasi dan Trisula pada penilaian usulan | Belum ada di `pertanyaan`; perlu daftar resmi |
+| Q-10 | Sub-kriteria Lokasi dan Trisula pada penilaian usulan | Butir sementara KL1 dan KT1 (skor 0–3); ganti dengan daftar resmi di `ref_kriteria` |
 | Q-11 | Ambang rekomendasi penilaian (Direkomendasikan/Dipertimbangkan) | `null` (TODO di config) |
-| Q-12 | Sumber GeoJSON provinsi | Placeholder; `hc_key` tersedia |
+| Q-12 | Sumber GeoJSON provinsi | Lingkaran proporsional di titik tengah provinsi; letakkan GeoJSON di `public/geo/provinsi.geojson` untuk choropleth |
 | Q-13 | Penanganan data uji dan 76 risiko yatim | Tidak diimpor; daftar ada di laporan ETL |
 | Q-14 | Status pengguna lama `0` dan `H` | Hanya `A` dianggap aktif |
 
@@ -304,5 +335,5 @@ Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan
 | 1b | `StatusResolver` + test, `psn:snapshot` + `SnapshotService`, observer audit, global scope RBAC + `PsnPolicy`, model Eloquent inti, `docs/kamus-indikator.md` lengkap | **Selesai** |
 | 2 | Ringkasan Eksekutif: endpoint dashboard, layout grid, filter global + URL, filter silang, tooltip ⓘ, bar status data, login & ganti kata sandi | **Selesai** |
 | 3 | Portofolio, Detail Proyek (Profil, KP/RO, Progres, Dokumen & Riwayat), Kualitas Data | **Selesai** |
-| 4 | Perencanaan + `ScoringService`, Policy, ekspor PNG/CSV/PDF, peta provinsi | Berikutnya |
-| 5 | Feature test endpoint, uji akurasi K1–K4/P1–P7 terhadap query acuan, uji hak akses, profil kinerja | |
+| 4 | Perencanaan + `ScoringService`, Policy, ekspor PNG/CSV/PDF/Excel, peta provinsi | **Selesai** |
+| 5 | Feature test endpoint, uji akurasi K1–K4/P1–P7 terhadap query acuan, uji hak akses, profil kinerja | Berikutnya |

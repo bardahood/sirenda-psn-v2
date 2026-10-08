@@ -5,7 +5,8 @@ import { filterStore, multiPilih } from './filter';
 import { halamanDashboard } from './dashboard/halaman';
 import { halamanPortofolio } from './portofolio';
 import { halamanKualitas } from './kualitas';
-import { grafikKurvaS } from './proyek';
+import { grafikKurvaS, grafikPerbandingan } from './proyek';
+import { petaSebaran } from './peta';
 
 window.Alpine = Alpine;
 Alpine.store('filter', filterStore());
@@ -14,4 +15,6 @@ Alpine.data('halamanDashboard', halamanDashboard);
 Alpine.data('halamanPortofolio', halamanPortofolio);
 Alpine.data('halamanKualitas', halamanKualitas);
 Alpine.data('grafikKurvaS', grafikKurvaS);
+Alpine.data('grafikPerbandingan', grafikPerbandingan);
+Alpine.data('petaSebaran', petaSebaran);
 Alpine.start();

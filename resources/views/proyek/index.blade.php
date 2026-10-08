@@ -41,10 +41,11 @@
                     <input type="checkbox" class="rounded border-slate-300 text-aksen focus:ring-aksen" :checked="o.nonaktif" @change="ubah('nonaktif', $event.target.checked)">
                     Sertakan PSN keluar
                 </label>
-                <a :href="tautanCsv()" class="tombol-garis py-1.5">
+                <a :href="tautanUnduh('xlsx')" class="tombol-garis py-1.5">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 19h16"/></svg>
-                    Unduh CSV
+                    Excel
                 </a>
+                <a :href="tautanUnduh('csv')" class="tombol-garis py-1.5">CSV</a>
             </div>
 
             <div x-show="galat" x-cloak role="alert" class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-red-800" x-text="galat"></div>

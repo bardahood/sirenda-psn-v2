@@ -79,6 +79,7 @@ class ReferensiImporter
     protected function wilayah(array $data): int
     {
         $hcKey = collect($data['PETA'] ?? [])->pluck('hc_key', 'kode');
+        $koordinat = $data['KOORDINAT_PROVINSI'] ?? [];
         $jumlah = 0;
 
         foreach (['PROV' => 1, 'KABP' => 2, 'KCMT' => 3, 'KLRH' => 4] as $tipe => $level) {
@@ -92,10 +93,12 @@ class ReferensiImporter
                     'level' => $isNasional ? 0 : $level,
                     'induk_kode' => $level > 1 ? Str::beforeLast($kode, '.') : null,
                     'hc_key' => $tipe === 'PROV' ? ($hcKey[$kode] ?? null) : null,
+                    'lat' => $koordinat[$kode]['lat'] ?? null,
+                    'lng' => $koordinat[$kode]['lng'] ?? null,
                 ];
             }
             foreach (array_chunk($rows, 1000) as $chunk) {
-                DB::table('ref_wilayah')->upsert($chunk, ['kode'], ['nama', 'level', 'induk_kode', 'hc_key']);
+                DB::table('ref_wilayah')->upsert($chunk, ['kode'], ['nama', 'level', 'induk_kode', 'hc_key', 'lat', 'lng']);
             }
             $jumlah += count($rows);
         }

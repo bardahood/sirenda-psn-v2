@@ -25,6 +25,10 @@
                         </button>
                     </template>
                 </div>
+                <a :href="'{{ route('laporan.ringkasan-pdf') }}' + ($store.filter.qs() ? '?' + $store.filter.qs() : '')" class="tombol-garis py-1 text-label">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 19h16"/></svg>
+                    Unduh PDF
+                </a>
                 <div class="relative" x-data="{ buka: false }" @click.outside="buka = false">
                     <button type="button" class="ikon-tombol" @click="buka = !buka" aria-label="Informasi status data">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>

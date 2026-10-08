@@ -18,7 +18,7 @@ Konvensi proyek untuk asisten AI dan pengembang.
 ## Aturan bisnis
 - Semua ambang, bobot, pemetaan kode, dan TTL cache ada di `config/psn_dashboard.php`. Jangan di-hardcode.
 - Definisi indikator: `docs/kamus-indikator.md`. Angka per cut-off selalu dibaca dari `snapshot_*`.
-- Gate penilaian usulan (KU1–KU3) bersifat mutlak: satu "Tidak" → DITOLAK.
+- Gate penilaian usulan (KU1–KU3) bersifat mutlak: satu "Tidak" → DITOLAK. Logika skor hanya di `App\Services\ScoringService`; tabel `penilaian` hanya menyimpan cache hasilnya.
 
 ## Hak akses
 - Peran dan izin didefinisikan di `database/seeders/PeranSeeder.php` (`modul.aksi`, kumulatif lihat < input < verifikasi < kelola).

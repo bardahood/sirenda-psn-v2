@@ -5389,6 +5389,178 @@
    "tipe_nilai": "SKOR_0_3",
    "kondisional": null,
    "urutan": 14
+  },
+  {
+   "legacy_id": null,
+   "kelompok": "LOKASI",
+   "kode": "KL1",
+   "uraian": "Kesesuaian dan kesiapan lokasi usulan (butir sementara; sub-kriteria rinci menunggu ketetapan Tim Koordinasi)",
+   "tipe_nilai": "SKOR_0_3",
+   "kondisional": null,
+   "urutan": 101
+  },
+  {
+   "legacy_id": null,
+   "kelompok": "TRISULA",
+   "kode": "KT1",
+   "uraian": "Kontribusi terhadap Trisula Pembangunan (butir sementara; sub-kriteria rinci menunggu ketetapan metodologi)",
+   "tipe_nilai": "SKOR_0_3",
+   "kondisional": null,
+   "urutan": 111
   }
- ]
+ ],
+ "KOORDINAT_PROVINSI": {
+  "11": {
+   "lat": 4.695,
+   "lng": 96.749
+  },
+  "12": {
+   "lat": 2.115,
+   "lng": 99.545
+  },
+  "13": {
+   "lat": -0.74,
+   "lng": 100.8
+  },
+  "14": {
+   "lat": 0.293,
+   "lng": 101.706
+  },
+  "15": {
+   "lat": -1.61,
+   "lng": 103.613
+  },
+  "16": {
+   "lat": -3.319,
+   "lng": 103.914
+  },
+  "17": {
+   "lat": -3.792,
+   "lng": 102.26
+  },
+  "18": {
+   "lat": -4.558,
+   "lng": 105.407
+  },
+  "19": {
+   "lat": -2.741,
+   "lng": 106.44
+  },
+  "21": {
+   "lat": 3.945,
+   "lng": 108.142
+  },
+  "31": {
+   "lat": -6.208,
+   "lng": 106.845
+  },
+  "32": {
+   "lat": -6.914,
+   "lng": 107.609
+  },
+  "33": {
+   "lat": -7.15,
+   "lng": 110.14
+  },
+  "34": {
+   "lat": -7.797,
+   "lng": 110.37
+  },
+  "35": {
+   "lat": -7.536,
+   "lng": 112.238
+  },
+  "36": {
+   "lat": -6.405,
+   "lng": 106.064
+  },
+  "51": {
+   "lat": -8.409,
+   "lng": 115.189
+  },
+  "52": {
+   "lat": -8.653,
+   "lng": 117.361
+  },
+  "53": {
+   "lat": -8.657,
+   "lng": 121.079
+  },
+  "61": {
+   "lat": -0.278,
+   "lng": 111.475
+  },
+  "62": {
+   "lat": -1.681,
+   "lng": 113.382
+  },
+  "63": {
+   "lat": -3.092,
+   "lng": 115.283
+  },
+  "64": {
+   "lat": 0.538,
+   "lng": 116.419
+  },
+  "65": {
+   "lat": 3.073,
+   "lng": 116.041
+  },
+  "71": {
+   "lat": 0.624,
+   "lng": 123.975
+  },
+  "72": {
+   "lat": -1.43,
+   "lng": 121.445
+  },
+  "73": {
+   "lat": -3.668,
+   "lng": 119.974
+  },
+  "74": {
+   "lat": -4.145,
+   "lng": 122.174
+  },
+  "75": {
+   "lat": 0.699,
+   "lng": 122.446
+  },
+  "76": {
+   "lat": -2.844,
+   "lng": 119.232
+  },
+  "81": {
+   "lat": -3.238,
+   "lng": 130.145
+  },
+  "82": {
+   "lat": 1.571,
+   "lng": 127.809
+  },
+  "91": {
+   "lat": -4.269,
+   "lng": 138.08
+  },
+  "92": {
+   "lat": -1.336,
+   "lng": 133.174
+  },
+  "93": {
+   "lat": -7.062,
+   "lng": 139.475
+  },
+  "94": {
+   "lat": -3.673,
+   "lng": 136.653
+  },
+  "95": {
+   "lat": -4.081,
+   "lng": 138.94
+  },
+  "96": {
+   "lat": -0.86,
+   "lng": 131.256
+  }
+ }
 }

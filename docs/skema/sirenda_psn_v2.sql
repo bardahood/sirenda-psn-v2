@@ -1677,6 +1677,7 @@ CREATE TABLE `usulan_psn` (
   `tahun_rkp` smallint(5) unsigned NOT NULL,
   `nama` text NOT NULL,
   `klaster_id` bigint(20) unsigned DEFAULT NULL,
+  `unit_kerja_id` bigint(20) unsigned DEFAULT NULL,
   `pengusul_instansi_id` bigint(20) unsigned DEFAULT NULL,
   `pengusul_teks` varchar(255) DEFAULT NULL,
   `jenis_pengusul` varchar(20) DEFAULT NULL COMMENT 'KL|PEMDA|BUMN_SWASTA',
@@ -1698,11 +1699,13 @@ CREATE TABLE `usulan_psn` (
   KEY `usulan_psn_created_by_foreign` (`created_by`),
   KEY `usulan_psn_updated_by_foreign` (`updated_by`),
   KEY `usulan_psn_deleted_by_foreign` (`deleted_by`),
+  KEY `usulan_psn_unit_kerja_id_foreign` (`unit_kerja_id`),
   CONSTRAINT `usulan_psn_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `usulan_psn_deleted_by_foreign` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `usulan_psn_klaster_id_foreign` FOREIGN KEY (`klaster_id`) REFERENCES `ref_klaster` (`id`) ON DELETE SET NULL,
   CONSTRAINT `usulan_psn_pengusul_instansi_id_foreign` FOREIGN KEY (`pengusul_instansi_id`) REFERENCES `ref_instansi` (`id`) ON DELETE SET NULL,
   CONSTRAINT `usulan_psn_psn_id_foreign` FOREIGN KEY (`psn_id`) REFERENCES `psn` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `usulan_psn_unit_kerja_id_foreign` FOREIGN KEY (`unit_kerja_id`) REFERENCES `ref_unit_kerja` (`id`) ON DELETE SET NULL,
   CONSTRAINT `usulan_psn_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

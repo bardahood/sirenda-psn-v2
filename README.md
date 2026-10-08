@@ -30,7 +30,7 @@ npm install && npm run build
 php artisan serve        # buka http://127.0.0.1:8000, login dengan akun admin dari seeder
 ```
 
-Halaman yang sudah tersedia: `/login`, `/dashboard` (Ringkasan Eksekutif), `/proyek` (Portofolio PSN), `/proyek/{id}` (Detail Proyek), `/kualitas-data`, dan `/ganti-password`. Halaman lain menyusul per fase (lihat `docs/rancangan-aplikasi.md` §11).
+Halaman yang sudah tersedia: `/login`, `/dashboard` (Ringkasan Eksekutif), `/proyek` (Portofolio PSN), `/proyek/{id}` (Detail Proyek), `/kualitas-data`, `/perencanaan` (Penilaian Usulan), `/peta`, `/laporan/ringkasan.pdf`, dan `/ganti-password`. Halaman lain menyusul per fase (lihat `docs/rancangan-aplikasi.md` §11).
 
 ## Impor data dari basis data lama
 
