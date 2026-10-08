@@ -61,11 +61,11 @@ Tujuan v2: **basis data terpadu yang ternormalisasi** sebagai fondasi dashboard 
 | v1 | `/proyek` | Portofolio PSN | `v_psn_ringkas` (+ snapshot untuk status) |
 | v1 | `/proyek/{id}` | Detail Proyek, 8 tab | Tabel inti |
 | v1 | `/perencanaan` | Penilaian Usulan PSN | `usulan_psn`, `penilaian`, `penilaian_skor`, `ref_kriteria` |
-| v2 | `/risiko` | Risiko, Isu & Regulasi | `risiko`, `risiko_pemantauan`, `snapshot_risiko`, `isu`, `regulasi` |
+| v2 (tersedia Fase 6) | `/risiko` | Risiko, Isu & Regulasi | `risiko`, `risiko_pemantauan`, `snapshot_risiko`, `isu`, `regulasi` |
 | v1 | `/peta` | Peta Sebaran | `psn_lokasi` + `ref_wilayah` |
 | v1 | `/kualitas-data` | Kualitas Data | `pengisian_psn`, `snapshot_kelengkapan` |
 | v2 | `/laporan` | Laporan | Snapshot per cut-off |
-| — | `/pengaturan/*` | Master data, pengguna & peran, kamus indikator, cut-off | `ref_*`, `users`, `periode_cutoff` |
+| — (tersedia Fase 6) | `/pengaturan/*`, `/kamus-indikator` | Master data, pengguna & peran, kamus indikator, cut-off | `ref_*`, `users`, `periode_cutoff` |
 
 Tab Detail Proyek dipetakan ke tabel sebagai berikut:
 
@@ -279,7 +279,23 @@ Parameter filter: `periode=2026-09`, `prov=31,32`, `klaster=3,7`, `dit=12`, `sta
 - **Peta** (`/peta`, `GET /api/v1/peta`): Leaflet dibundel dan dimuat terpisah. Sementara memakai lingkaran proporsional di titik tengah 38 provinsi (`ref_wilayah.lat/lng`). Klik provinsi menambah filter global.
   - Bila berkas `public/geo/provinsi.geojson` (properti `kode` = kode provinsi) tersedia, peta **otomatis menjadi choropleth** (Q-12).
   - Tile peta diatur lewat `PETA_TILE_URL`. Kosongkan untuk jaringan intranet tanpa akses internet, atau isi dengan server tile internal.
-- **Halaman `/risiko`**: placeholder rilis v2.
+- **Halaman `/risiko`**: placeholder rilis v2 (diganti pada Fase 6).
+
+### 8.4 Implementasi Fase 6
+
+- **Pengaturan** (`/pengaturan/*`, izin `pengaturan.kelola` = Super Admin):
+  - *Pengguna & Peran*: daftar (cari, filter peran/aktif), tambah, ubah, nonaktifkan, reset kata sandi. Kata sandi sementara dibangkitkan acak dan wajib diganti saat login. Peran terbatas (Operator K/L, Direktorat Sektor) wajib memiliki unit kerja. Super Admin tidak dapat menonaktifkan/mencabut peran akunnya sendiri. Perubahan pengguna dan peran tercatat di `audit_log` (hash kata sandi dan token tidak pernah dicatat).
+  - *Cut-off & Snapshot*: bangun snapshot DRAFT, terbitkan, atau bangun ulang (setara `psn:snapshot`); daftar periode beserta jumlah PSN dan status pengisian. Penerbitan tercatat `PUBLISH` dan membatalkan cache dashboard.
+  - *Master Data*: ubah nama/urutan/status klaster, sub klaster (sektor), dan unit kerja beserta jenisnya. Perubahan tercatat di audit dan membatalkan cache opsi filter global. Tidak ada hapus (hanya nonaktif) agar relasi data lama aman.
+- **Kamus Indikator** (`/kamus-indikator`): untuk semua pengguna yang login, isi dari `KamusIndikator` (sumber yang sama dengan tooltip ⓘ).
+- **Halaman `/risiko`** (`RisikoService`, `GET /api/v1/risiko/{ringkasan,register,isu}`):
+  - Matriks 5×5 kemungkinan × dampak untuk risiko **harapan** dan **aktual** (pemantauan terakhir ≤ tanggal cut-off), dibaca dari `snapshot_risiko`. Zona warna mengikuti level (1–4/5–9/10–16/17–25) dan level selalu tertulis (tooltip dan tombol per level).
+  - Risiko data lama yang hanya berlabel level (tanpa skala 1–5) **tidak ditempatkan** di matriks (tidak dikarang); jumlahnya ditampilkan sebagai "tanpa skala" dan tetap dihitung per level serta tampil di register.
+  - Klik sel atau tombol level → memfilter register. Register diurutkan dari skor residual tertinggi (aktual bila sudah dipantau; selain itu harapan; label lama dikonversi lewat `risiko.skor_dari_label`).
+  - Isu & debottlenecking terbuka: lewat tenggat di atas (ditandai badge "Lewat tenggat"), lalu tenggat terdekat; opsi hanya lewat tenggat.
+  - Pipeline regulasi per tahap (Identifikasi → Penyusunan → Harmonisasi → Ditetapkan).
+  - Isu dan regulasi membaca data terkini (tidak di-snapshot) untuk PSN yang lolos filter global; cakupan Operator/Direktorat tetap diterapkan di query.
+- Perbaikan: paginasi master unit kerja (kolom agregat pada `paginate`).
 
 ## 9. Hasil impor awal (dump 7 Oktober 2026)
 
@@ -337,3 +353,5 @@ Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan
 | 3 | Portofolio, Detail Proyek (Profil, KP/RO, Progres, Dokumen & Riwayat), Kualitas Data | **Selesai** |
 | 4 | Perencanaan + `ScoringService`, Policy, ekspor PNG/CSV/PDF/Excel, peta provinsi | **Selesai** |
 | 5 | Feature test endpoint, uji akurasi K1–K4/P1–P7 terhadap query acuan, uji hak akses, profil kinerja | **Selesai**; lihat `docs/kriteria-selesai-v1.md` |
+| 6 | Pengaturan (pengguna & peran, cut-off & snapshot, master data), halaman Kamus Indikator, halaman Risiko, Isu & Regulasi | **Selesai, menunggu review** |
+| 7 (usulan) | `/laporan` per cut-off (arsip PDF/Excel), alur pengisian & verifikasi progres/realisasi oleh Operator → Direktorat, input risiko & pemantauan, Content-Security-Policy | Belum dimulai |

@@ -37,6 +37,9 @@ Berlaku untuk semua endpoint dashboard, portofolio, kualitas data, dan peta. Nil
 | `GET /kualitas-data` | `kualitas.lihat` | harian | KPI kualitas, per sektor, heatmap, field kosong, aktivitas |
 | `GET /peta` | `ringkasan.lihat` | sda dashboard | Jumlah PSN per provinsi + koordinat |
 | `GET /usulan/{id}/skor[?penilaian=id]` | `perencanaan.lihat` + `UsulanPsnPolicy::view` | tanpa cache | Hasil ScoringService: gate, komponen, nilai akhir, rekomendasi |
+| `GET /risiko/ringkasan[?kategori=]` | `risiko.lihat` | sda dashboard | Matriks 5×5 harapan & aktual (`sel`, `berskala`, `tanpa_skala`, `per_level`), pipeline regulasi, ringkasan isu, opsi kategori |
+| `GET /risiko/register` | `risiko.lihat` | tanpa cache | Register risiko (paginasi, skor residual menurun). Opsi: `kategori`, `jenis=harapan\|aktual` + `kemungkinan` + `dampak` (1–5), `level`, `q`, `page` |
+| `GET /risiko/isu` | `risiko.lihat` | tanpa cache | Isu terbuka (lewat tenggat di atas). Opsi: `lewat_tenggat`, `termasuk_selesai`, `page` |
 | `GET /filter-opsi` | login | 10 menit | Opsi filter global dari tabel referensi |
 | `GET /kamus-indikator` | login | — | Teks tooltip ⓘ |
 
@@ -47,7 +50,8 @@ Cache dashboard dibatalkan otomatis saat snapshot cut-off diterbitkan (`Dashboar
 | Rute | Keterangan |
 |---|---|
 | `GET /laporan/ringkasan.pdf?{filter}` | PDF Ringkasan Eksekutif (angka identik dengan dashboard) |
-| `GET /dashboard`, `/proyek`, `/proyek/{id}?tab=`, `/perencanaan`, `/perencanaan/{id}`, `/peta`, `/kualitas-data`, `/risiko` | Halaman aplikasi |
+| `GET /dashboard`, `/proyek`, `/proyek/{id}?tab=`, `/perencanaan`, `/perencanaan/{id}`, `/peta`, `/kualitas-data`, `/risiko`, `/kamus-indikator` | Halaman aplikasi |
+| `GET /pengaturan/{pengguna,cutoff,master}`, `POST /pengaturan/pengguna`, `PUT /pengaturan/pengguna/{id}`, `POST /pengaturan/pengguna/{id}/reset-sandi`, `POST /pengaturan/cutoff`, `PUT /pengaturan/master/{klaster,sub-klaster,unit}/{id}` | Pengaturan (izin `pengaturan.kelola`, tercatat di jejak audit) |
 | `POST /perencanaan`, `POST /perencanaan/{id}/penilaian`, `PUT /perencanaan/penilaian/{id}/skor`, `POST /perencanaan/penilaian/{id}/final`, `POST /perencanaan/penilaian/{id}/buka` | Aksi penilaian usulan (diotorisasi `UsulanPsnPolicy`, tercatat di jejak audit) |
 
 Kontrak seluruh endpoint GET diuji di `tests/Feature/KontrakEndpointTest.php`.

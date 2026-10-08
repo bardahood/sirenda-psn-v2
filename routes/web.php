@@ -4,9 +4,13 @@ use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\KualitasDataController;
 use App\Http\Controllers\Api\V1\ProyekController as ProyekApiController;
 use App\Http\Controllers\Api\V1\ReferensiController;
+use App\Http\Controllers\Api\V1\RisikoController;
 use App\Http\Controllers\Api\V1\UsulanController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\Pengaturan\CutoffController;
+use App\Http\Controllers\Pengaturan\MasterDataController;
+use App\Http\Controllers\Pengaturan\PenggunaController;
 use App\Http\Controllers\PerencanaanController;
 use App\Http\Controllers\PetaController;
 use App\Http\Controllers\ProyekController;
@@ -31,6 +35,25 @@ Route::middleware(['auth', 'akun.aktif'])->group(function () {
     Route::get('/peta', [PetaController::class, 'index'])->middleware('can:ringkasan.lihat')->name('peta');
     Route::get('/laporan/ringkasan.pdf', [LaporanController::class, 'ringkasanPdf'])->middleware('can:ringkasan.lihat')->name('laporan.ringkasan-pdf');
 
+    Route::view('/kamus-indikator', 'kamus.index')->name('kamus');
+
+    // Pengaturan (Super Admin): pengguna & peran, cut-off & snapshot, master data.
+    Route::middleware('can:pengaturan.kelola')->prefix('pengaturan')->name('pengaturan.')->group(function () {
+        Route::redirect('/', '/pengaturan/pengguna')->name('index');
+        Route::get('/pengguna', [PenggunaController::class, 'index'])->name('pengguna.index');
+        Route::get('/pengguna/baru', [PenggunaController::class, 'create'])->name('pengguna.create');
+        Route::post('/pengguna', [PenggunaController::class, 'store'])->name('pengguna.store');
+        Route::get('/pengguna/{pengguna}', [PenggunaController::class, 'edit'])->whereNumber('pengguna')->name('pengguna.edit');
+        Route::put('/pengguna/{pengguna}', [PenggunaController::class, 'update'])->whereNumber('pengguna')->name('pengguna.update');
+        Route::post('/pengguna/{pengguna}/reset-sandi', [PenggunaController::class, 'resetSandi'])->whereNumber('pengguna')->name('pengguna.reset');
+        Route::get('/cutoff', [CutoffController::class, 'index'])->name('cutoff');
+        Route::post('/cutoff', [CutoffController::class, 'bangun'])->name('cutoff.bangun');
+        Route::get('/master', [MasterDataController::class, 'index'])->name('master');
+        Route::put('/master/klaster/{id}', [MasterDataController::class, 'ubahKlaster'])->whereNumber('id')->name('master.klaster');
+        Route::put('/master/sub-klaster/{id}', [MasterDataController::class, 'ubahSubKlaster'])->whereNumber('id')->name('master.sub-klaster');
+        Route::put('/master/unit/{id}', [MasterDataController::class, 'ubahUnit'])->whereNumber('id')->name('master.unit');
+    });
+
     // Perencanaan & penilaian usulan; otorisasi rinci di UsulanPsnPolicy.
     Route::prefix('perencanaan')->name('perencanaan.')->controller(PerencanaanController::class)->group(function () {
         Route::get('/', 'index')->name('index');
@@ -50,6 +73,11 @@ Route::middleware(['auth', 'akun.aktif'])->group(function () {
 
         Route::get('/proyek', [ProyekApiController::class, 'index'])->middleware('can:portofolio.lihat')->name('proyek.index');
         Route::get('/proyek/{psn}', [ProyekApiController::class, 'show'])->middleware('can:detail.lihat')->whereNumber('psn')->name('proyek.show');
+        Route::middleware('can:risiko.lihat')->prefix('risiko')->name('risiko.')->controller(RisikoController::class)->group(function () {
+            Route::get('/ringkasan', 'ringkasan')->name('ringkasan');
+            Route::get('/register', 'register')->name('register');
+            Route::get('/isu', 'isu')->name('isu');
+        });
         Route::get('/peta', [PetaController::class, 'data'])->middleware('can:ringkasan.lihat')->name('peta');
         Route::get('/usulan/{usulan}/skor', [UsulanController::class, 'skor'])->whereNumber('usulan')->name('usulan.skor');
         Route::get('/kualitas-data', [KualitasDataController::class, 'index'])->middleware('can:kualitas.lihat')->name('kualitas-data');

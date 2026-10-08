@@ -50,7 +50,7 @@ class KontrakEndpointTest extends TestCase
     public function test_semua_endpoint_api_menolak_tamu_dan_mengembalikan_data_meta(): void
     {
         $urls = $this->urlApi();
-        $this->assertGreaterThanOrEqual(17, count($urls), 'Daftar endpoint tidak lengkap: '.implode(', ', $urls));
+        $this->assertGreaterThanOrEqual(20, count($urls), 'Daftar endpoint tidak lengkap: '.implode(', ', $urls));
 
         foreach ($urls as $url) {
             $this->getJson($url)->assertUnauthorized();
@@ -85,6 +85,11 @@ class KontrakEndpointTest extends TestCase
             $u19 => [200, 200, 200, 200, 404],          // Operator: I¹
             '/perencanaan/baru' => [200, 403, 200, 200, 200],
             '/risiko' => [200, 200, 200, 200, 200],
+            $api('/risiko/ringkasan') => [200, 200, 200, 200, 200],
+            '/kamus-indikator' => [200, 200, 200, 200, 200],
+            '/pengaturan/pengguna' => [200, 403, 403, 403, 403],
+            '/pengaturan/cutoff' => [200, 403, 403, 403, 403],
+            '/pengaturan/master' => [200, 403, 403, 403, 403],
             '/peta' => [200, 200, 200, 200, 200],
             '/kualitas-data' => [200, 200, 200, 200, 200],
             '/laporan/ringkasan.pdf' => [200, 200, 200, 200, 200],
@@ -109,6 +114,7 @@ class KontrakEndpointTest extends TestCase
         $this->assertSame(1, (int) collect($this->getJson('/api/v1/dashboard/kpi')->json('data'))->firstWhere('kode', 'K1')['nilai']);
         $this->assertSame(1, $this->getJson('/api/v1/proyek')->json('meta.total'));
         $this->assertSame(['31' => 1], collect($this->getJson('/api/v1/peta')->json('data'))->where('jumlah', '>', 0)->pluck('jumlah', 'kode')->all());
+        $this->assertSame(0, $this->getJson('/api/v1/risiko/register')->json('meta.total'));
         $this->assertSame(['Milik Dit 07'], collect($this->getJson('/api/v1/kualitas-data')->json('data.field_kosong'))->pluck('nama')->all());
     }
 

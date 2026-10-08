@@ -175,3 +175,33 @@ export function batangSorot(baris) {
         }],
     };
 }
+
+// Zona matriks risiko per level (tint muda; teks gelap agar kontras). Level selalu juga tertulis di tooltip & legenda.
+const ZONA_RISIKO = { Rendah: '#dcfce7', Sedang: '#fef3c7', Tinggi: '#fed7aa', 'Sangat Tinggi': '#fecaca' };
+const levelSkor = (s) => (s <= 4 ? 'Rendah' : s <= 9 ? 'Sedang' : s <= 16 ? 'Tinggi' : 'Sangat Tinggi');
+
+/** Matriks risiko 5x5: sumbu X dampak, Y kemungkinan; isi = jumlah risiko; sel terpilih ditebalkan. */
+export function matriksRisiko(sel, terpilih) {
+    const jumlah = Object.fromEntries(sel.map((c) => [`${c.kemungkinan}-${c.dampak}`, c.jumlah]));
+    const data = [];
+    for (let k = 1; k <= 5; k++) {
+        for (let d = 1; d <= 5; d++) {
+            const aktif = terpilih && terpilih.kemungkinan === k && terpilih.dampak === d;
+            data.push({
+                value: [d - 1, k - 1, jumlah[`${k}-${d}`] ?? 0],
+                itemStyle: { color: ZONA_RISIKO[levelSkor(k * d)], borderColor: aktif ? '#0E2747' : '#fff', borderWidth: aktif ? 3 : 2 },
+            });
+        }
+    }
+    return {
+        grid: { left: 44, right: 8, top: 8, bottom: 44 },
+        tooltip: { ...dasar.tooltip, trigger: 'item', formatter: (p) => {
+            const [d, k, n] = p.value;
+            const skor = (k + 1) * (d + 1);
+            return `Kemungkinan ${k + 1} × Dampak ${d + 1} = ${skor} (${levelSkor(skor)})<br/><b>${n}</b> risiko${n ? '<br/><span style="color:#64748b">Klik untuk memfilter register</span>' : ''}`;
+        } },
+        xAxis: { type: 'category', data: ['1', '2', '3', '4', '5'], name: 'Dampak', nameLocation: 'middle', nameGap: 28, nameTextStyle: { color: WARNA.teks, fontSize: 11 }, axisTick: { show: false }, axisLine: { show: false }, axisLabel: { color: WARNA.teks } },
+        yAxis: { type: 'category', data: ['1', '2', '3', '4', '5'], name: 'Kemungkinan', nameLocation: 'middle', nameGap: 24, nameTextStyle: { color: WARNA.teks, fontSize: 11 }, axisTick: { show: false }, axisLine: { show: false }, axisLabel: { color: WARNA.teks } },
+        series: [{ type: 'heatmap', data, cursor: 'pointer', label: { show: true, color: '#0f172a', fontSize: 13, fontWeight: 600, formatter: (p) => (p.value[2] ? p.value[2] : '') } }],
+    };
+}

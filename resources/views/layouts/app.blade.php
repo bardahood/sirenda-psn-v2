@@ -26,11 +26,13 @@
                 ['Risiko, Isu & Regulasi', '/risiko', 'risiko.lihat', 'M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z'],
                 ['Peta Sebaran', '/peta', 'ringkasan.lihat', 'M9 20l-5.4-2.7A1 1 0 0 1 3 16.4V5.6a1 1 0 0 1 1.4-.9L9 7m0 13 6-3m-6 3V7m6 10 4.6 2.3a1 1 0 0 0 1.4-.9V7.6a1 1 0 0 0-.6-.9L15 4m0 13V4m0 0L9 7'],
                 ['Kualitas Data', '/kualitas-data', 'kualitas.lihat', 'M9 17v-6m4 6V7m4 10v-3M5 21h14'],
+                ['Kamus Indikator', '/kamus-indikator', null, 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15Z'],
+                ['Pengaturan', '/pengaturan', 'pengaturan.kelola', 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm7.4-3a7.4 7.4 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7.6 7.6 0 0 0-2-1.2L14.5 3h-5l-.4 2.6a7.6 7.6 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6a7.4 7.4 0 0 0 0 2.4l-2 1.6 2 3.4 2.4-1a7.6 7.6 0 0 0 2 1.2l.4 2.6h5l.4-2.6a7.6 7.6 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2Z'],
             ];
         @endphp
         <nav class="flex-1 space-y-1 px-3 py-4">
             @foreach ($menu as [$label, $url, $izin, $ikon])
-                @can($izin)
+                @if ($izin === null || auth()->user()->can($izin))
                     @php($aktif = request()->is(ltrim($url, '/').'*'))
                     <a :href="$store.filter.tautan('{{ $url }}')" href="{{ $url }}"
                        @class(['flex items-center gap-3 rounded-lg px-3 py-2 text-sm', 'bg-white/10 font-semibold' => $aktif, 'text-white/80 hover:bg-white/5 hover:text-white' => ! $aktif])
@@ -38,7 +40,7 @@
                         <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ $ikon }}"/></svg>
                         <span x-show="!ciut">{{ $label }}</span>
                     </a>
-                @endcan
+                @endif
             @endforeach
         </nav>
         <div class="space-y-1 border-t border-white/10 p-3">

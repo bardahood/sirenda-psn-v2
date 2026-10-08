@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Concerns\Auditable;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,7 +14,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasRoles, Notifiable;
+    use Auditable, HasFactory, HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -50,6 +51,17 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    public function auditPsnId(): ?int
+    {
+        return null;
+    }
+
+    /** Kata sandi, token, dan statistik login tidak dicatat di jejak audit. */
+    public function auditAbaikan(): array
+    {
+        return ['password', 'remember_token', 'created_at', 'updated_at', 'last_login_at', 'jumlah_login'];
+    }
 
     public function unitKerja(): BelongsTo
     {
