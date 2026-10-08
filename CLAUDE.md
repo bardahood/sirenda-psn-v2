@@ -29,6 +29,7 @@ Konvensi proyek untuk asisten AI dan pengembang.
 - Blade + Alpine + Tailwind; tanpa CDN (font & library dibundel Vite). Jalankan `npm run build` setelah mengubah JS/CSS.
 - Token desain di `tailwind.config.js` (`primer`, `aksen`, `rounded-kartu`, `text-kpi`/`panel`/`isi`/`label`). Komponen panel: `<x-panel kode=... judul=...>` (ⓘ + unduh PNG/CSV).
 - Status selalu badge berlabel (`badge-{KODE}` + `titik-{KODE}`), tidak pernah warna saja.
+- Kartu KPI: warna identitas tetap per indikator (K1 biru, K2 hijau, K3 oranye, K4 merah) untuk ikon & sparkline.
 - Grafik: satu seri = warna aksen; dua seri memakai palet tervalidasi (#2a78d6, #eb6834); tidak ada grafik dua sumbu Y.
 - Filter global hidup di query string (`Alpine.store('filter')`). Tautan antarhalaman memakai `$store.filter.tautan(path)` agar filter terbawa.
 

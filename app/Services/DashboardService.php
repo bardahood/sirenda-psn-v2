@@ -64,6 +64,17 @@ class DashboardService
         });
     }
 
+    /** Nilai K1-K4 per cut-off terbit (maks. 12 terakhir s.d. cut-off ini) untuk sparkline kartu KPI. */
+    public function kpiTren(PeriodeCutoff $c, FilterGlobal $f): array
+    {
+        return $this->cache('kpi-tren', $c, $f, function () use ($c, $f) {
+            return PeriodeCutoff::where('status', 'TERBIT')->where('tanggal_cutoff', '<=', $c->tanggal_cutoff)
+                ->orderByDesc('tanggal_cutoff')->limit(12)->get()->reverse()
+                ->map(fn ($p) => ['cutoff' => $p->kode] + collect($this->ringkasKpi($this->baris($p, $f)))->only(['K1', 'K2', 'K3', 'K4'])->all())
+                ->values()->all();
+        });
+    }
+
     protected function ringkasKpi(Collection $rows): array
     {
         $aktif = $rows->where('is_aktif', true);
@@ -112,6 +123,8 @@ class DashboardService
                 'direktorat' => $this->perDirektorat($aktif),
                 'provinsi' => $this->perProvinsi($aktif),
                 'dana' => $this->perDana($aktif),
+                'pulau' => $this->perPulau($aktif),
+                'komposisi_dana' => $this->komposisiDana($aktif),
             };
         });
     }
@@ -148,6 +161,46 @@ class DashboardService
             ->all();
     }
 
+    /** PSN per kelompok pulau (PSN multi-provinsi dalam satu pulau dihitung sekali), urutan geografis. */
+    protected function perPulau(Collection $rows): array
+    {
+        $prov = DB::table('ref_wilayah')->where('level', 1)->get(['kode', 'lat', 'lng'])->keyBy('kode');
+
+        return collect(config('psn_dashboard.pulau'))->map(function ($kode, $nama) use ($rows, $prov) {
+            $p = $prov->only($kode);
+
+            return [
+                'kode' => $nama, 'label' => $nama,
+                'jumlah' => $rows->filter(fn ($r) => array_intersect((array) $r->provinsi_kode, $kode))->count(),
+                'lat' => $p->isEmpty() ? null : round($p->avg('lat'), 3), 'lng' => $p->isEmpty() ? null : round($p->avg('lng'), 3),
+            ];
+        })->values()->all();
+    }
+
+    /**
+     * Komposisi investasi per kombinasi skema yang saling lepas (setiap PSN tepat di satu kelompok),
+     * sehingga bagian-bagiannya berjumlah = total investasi (K2). Urutan kelompok tetap.
+     */
+    protected function komposisiDana(Collection $rows): array
+    {
+        $skema = $this->skemaPerDanaId();
+        $kelompok = collect(['APBN' => 'APBN', 'KPBU' => 'KPBU', 'CAMPURAN' => 'Campuran (≥ 2 skema)', 'LAINNYA' => 'Lainnya', 'APBD' => 'APBD', 'TANPA' => 'Belum ada data dana'])
+            ->map(fn ($l, $k) => ['kode' => strtolower($k), 'label' => $l, 'investasi_triliun' => 0.0, 'jumlah' => 0]);
+
+        foreach ($rows as $r) {
+            $s = array_values(array_unique(array_map(fn ($id) => $skema[$id] ?? 'LAINNYA', (array) $r->sumber_dana_id)));
+            $k = match (count($s)) {
+                0 => 'TANPA', 1 => $s[0], default => 'CAMPURAN'
+            };
+            $k = $kelompok->has($k) ? $k : 'LAINNYA';
+            $kelompok[$k] = ['investasi_triliun' => $kelompok[$k]['investasi_triliun'] + (float) $r->nilai_investasi_rp / 1e12, 'jumlah' => $kelompok[$k]['jumlah'] + 1] + $kelompok[$k];
+        }
+        $total = $kelompok->sum('investasi_triliun');
+
+        return $kelompok->map(fn ($h) => ['investasi_triliun' => round($h['investasi_triliun'], 1),
+            'persen' => $total > 0 ? round($h['investasi_triliun'] / $total * 100, 1) : null] + $h)->values()->all();
+    }
+
     /**
      * Urutan jumlah menurun dengan pemecah seri nama menaik, agar hasil (termasuk
      * batas "8 teratas + Lainnya") selalu sama untuk filter yang sama.
@@ -175,7 +228,7 @@ class DashboardService
 
     public function progres(PeriodeCutoff $c, FilterGlobal $f): array
     {
-        return $this->cache('progres', $c, $f, function () use ($c, $f) {
+        return $this->cache('progres.v2', $c, $f, function () use ($c, $f) {
             $aktif = $this->baris($c, $f)->where('is_aktif', true);
             $denganData = $aktif->filter(fn ($r) => $r->progres_rencana_persen !== null && $r->progres_realisasi_persen !== null);
             [$rencana] = $this->rataProgres($denganData, 'progres_rencana_persen');
@@ -205,11 +258,26 @@ class DashboardService
                     'total' => (int) $ro,
                     'persen' => $ro > 0 ? round($aktif->sum('jumlah_ro_tercapai') / $ro * 100, 1) : null,
                 ],
+                'DP' => $this->progresDp($aktif),
                 'status_progres' => collect(StatusProgres::cases())->map(fn ($s) => [
                     'kode' => $s->value, 'label' => $s->label(), 'jumlah' => $aktif->where('status_progres', $s->value)->count(),
                 ])->all(),
             ];
         });
+    }
+
+    /** PSN klaster Direktif Presiden: total dan yang On Track pada cut-off. */
+    protected function progresDp(Collection $aktif): array
+    {
+        $dp = $aktif->where('klaster_id', $this->idKlasterDp());
+
+        return ['total' => $dp->count(), 'on_track' => $dp->where('status_progres', StatusProgres::OnTrack->value)->count(),
+            'berdata' => $dp->where('status_progres', '<>', StatusProgres::TanpaData->value)->count()];
+    }
+
+    protected function idKlasterDp(): ?int
+    {
+        return DB::table('ref_klaster')->where('kode', 'DP')->value('id');
     }
 
     // ------------------------------------------------------------------ P5
@@ -238,10 +306,10 @@ class DashboardService
 
     public function roKritis(PeriodeCutoff $c, FilterGlobal $f, int $limit = 10): array
     {
-        return $this->cache("ro-kritis.{$limit}", $c, $f, function () use ($c, $f, $limit) {
+        return $this->cache("ro-kritis.v2.{$limit}", $c, $f, function () use ($c, $f, $limit) {
             $psnIds = $this->baris($c, $f)->where('is_aktif', true)->pluck('psn_id');
 
-            return SnapshotKegiatan::query()
+            $baris = SnapshotKegiatan::query()
                 ->join('kegiatan as k', 'k.id', '=', 'snapshot_kegiatan.kegiatan_id')
                 ->join('psn as p', 'p.id', '=', 'snapshot_kegiatan.psn_id')
                 ->where('snapshot_kegiatan.periode_cutoff_id', $c->id)
@@ -249,12 +317,15 @@ class DashboardService
                 ->whereIn('snapshot_kegiatan.status_progres', [StatusProgres::Berisiko->value, StatusProgres::Terlambat->value])
                 ->whereIn('snapshot_kegiatan.psn_id', $psnIds)
                 ->orderBy('snapshot_kegiatan.deviasi_pp')->limit($limit)
-                ->get(['snapshot_kegiatan.*', 'k.nama as kegiatan_nama', 'p.nama as psn_nama'])
-                ->map(fn ($r) => [
-                    'kegiatan_id' => $r->kegiatan_id, 'kegiatan' => $r->kegiatan_nama, 'psn_id' => $r->psn_id, 'psn' => $r->psn_nama,
-                    'rencana_persen' => (float) $r->target_persen, 'realisasi_persen' => (float) $r->realisasi_persen,
-                    'deviasi_pp' => (float) $r->deviasi_pp, 'status' => $r->status_progres,
-                ])->all();
+                ->get(['snapshot_kegiatan.*', 'k.nama as kegiatan_nama', 'p.nama as psn_nama']);
+            $dir = $this->direktoratPsn($baris->pluck('psn_id')->unique()->all());
+
+            return $baris->map(fn ($r) => [
+                'direktorat' => $dir[$r->psn_id] ?? null,
+                'kegiatan_id' => $r->kegiatan_id, 'kegiatan' => $r->kegiatan_nama, 'psn_id' => $r->psn_id, 'psn' => $r->psn_nama,
+                'rencana_persen' => (float) $r->target_persen, 'realisasi_persen' => (float) $r->realisasi_persen,
+                'deviasi_pp' => (float) $r->deviasi_pp, 'status' => $r->status_progres,
+            ])->all();
         });
     }
 
@@ -314,6 +385,33 @@ class DashboardService
                 ->push(['label' => 'Belum ada', 'jumlah' => $tahun['TANPA'] ?? 0])
                 ->all();
         });
+    }
+
+    /** Daftar proyek klaster Direktif Presiden (tahun selesai terdekat dulu) untuk timeline menuju 2029. */
+    public function dpProyek(PeriodeCutoff $c, FilterGlobal $f): array
+    {
+        return $this->cache('dp-proyek', $c, $f, function () use ($c, $f) {
+            $rows = $this->baris($c, $f)->where('is_aktif', true)->where('klaster_id', $this->idKlasterDp())->keyBy('psn_id');
+            $psn = DB::table('psn')->whereIn('id', $rows->keys())->get(['id', 'nama', 'tahun_selesai']);
+            $dir = $this->direktoratPsn($rows->keys()->all());
+
+            $daftar = $psn->sort(fn ($a, $b) => [$a->tahun_selesai === null, $a->tahun_selesai, $a->nama] <=> [$b->tahun_selesai === null, $b->tahun_selesai, $b->nama])
+                ->map(fn ($p) => [
+                    'psn_id' => $p->id, 'nama' => $p->nama, 'direktorat' => $dir[$p->id] ?? null, 'tahun_selesai' => $p->tahun_selesai,
+                    'status' => $rows[$p->id]->status_progres, 'realisasi_persen' => $rows[$p->id]->progres_realisasi_persen !== null ? (float) $rows[$p->id]->progres_realisasi_persen : null,
+                ])->values();
+
+            return ['tahun_awal' => $c->tanggal_cutoff->year, 'tahun_akhir' => 2029, 'total' => $daftar->count(),
+                'proyek' => $daftar->take(config('psn_dashboard.dashboard_top.dp_proyek'))->all()];
+        });
+    }
+
+    /** @return array<int,string> psn_id => nama direktorat pengampu pertama (abjad) */
+    protected function direktoratPsn(array $psnIds): array
+    {
+        return DB::table('psn_unit_pengampu as pu')->join('ref_unit_kerja as u', 'u.id', '=', 'pu.unit_kerja_id')
+            ->where('u.jenis', 'DIREKTORAT')->whereIn('pu.psn_id', $psnIds)->orderBy('u.nama')->get(['pu.psn_id', 'u.nama'])
+            ->groupBy('psn_id')->map(fn ($g) => $g->first()->nama)->all();
     }
 
     /** Aktivitas terbaru dari jejak audit, dibatasi cakupan akses (tanpa cache). */

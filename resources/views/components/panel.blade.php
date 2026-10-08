@@ -2,7 +2,10 @@
 {{-- Panel standar: judul, ikon ⓘ (rumus, sumber, cut-off), unduh PNG/CSV. --}}
 <section {{ $attributes->merge(['class' => 'kartu flex flex-col']) }} aria-labelledby="judul-{{ $kode }}">
     <div class="mb-3 flex items-start gap-2">
-        <h2 id="judul-{{ $kode }}" class="judul-panel mr-auto">{{ $judul }}</h2>
+        <div class="mr-auto min-w-0">
+            <h2 id="judul-{{ $kode }}" class="judul-panel">{{ $judul }}</h2>
+            @isset($subjudul)<p class="mt-0.5 text-label font-normal text-slate-500">{{ $subjudul }}</p>@endisset
+        </div>
         <div class="relative" x-data="{ buka: false }" @click.outside="buka = false" @keydown.escape="buka = false">
             <button type="button" class="ikon-tombol" @click="buka = !buka" :aria-expanded="buka" aria-label="Informasi indikator {{ $judul }}">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>

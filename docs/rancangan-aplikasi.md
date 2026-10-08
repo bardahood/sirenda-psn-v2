@@ -313,6 +313,13 @@ Parameter filter: `periode=2026-09`, `prov=31,32`, `klaster=3,7`, `dit=12`, `sta
 - **Content-Security-Policy** dipasang; atribut `on*` diganti Alpine. Lihat `docs/kinerja-keamanan.md`.
 - Perbaikan: kedipan tata letak sebelum Alpine aktif (lebar sidebar default statis); `PengisianPsn` tidak lagi memakai `HasJejak` (tabel tanpa kolom `created_by`).
 
+### 8.6 Penyesuaian tampilan dashboard (mengikuti rancangan visual)
+
+- Layout: sidebar biru tua dengan logo instansi (berkas `public/img/logo.svg|png` bila ada), menu aktif berlatar aksen, tagline; header berisi judul + subjudul, filter global bergaya kotak (Periode Data, Provinsi, Sektor = klaster/direktorat, Status Proyek, Dana & Kategori) dan menu pengguna (ganti kata sandi, keluar). Di bawah 1760 px filter turun ke baris kedua.
+- Dashboard: kartu KPI berikon + delta + sparkline per cut-off; Distribusi per Klaster; Kontribusi Trisula (cincin = PSN berindikator, metodologi belum ditetapkan); Peta ringkas per provinsi + label pulau (tanpa basemap; choropleth tetap di `/peta` setelah GeoJSON tersedia); Progres Fisik & Keuangan (termasuk PSN DP on track); Sebaran per Direktorat (5 teratas); Komposisi Sumber Pendanaan (donat kelompok saling lepas, Σ = K2); RO Critical Path; Tren progres bulanan; Tahapan; Timeline PSN DP menuju 2029; Aktivitas terbaru.
+- Penyimpangan sadar dari gambar contoh: (1) batang klaster & direktorat memakai satu warna aksen (satu seri, aturan CLAUDE.md), bukan warna berbeda per baris; (2) "Tren Realisasi Anggaran" diganti tren progres fisik karena target anggaran bulanan tidak tersedia; (3) cincin Trisula menampilkan cakupan indikator, bukan capaian, karena metodologi belum ditetapkan (P8); (4) peta tanpa garis pulau karena GeoJSON belum ditetapkan (Q-12).
+- Palet donat komposisi dana divalidasi (lolos uji CVD & normal-vision); warna kartu KPI: K1 biru, K2 hijau, K3 oranye, K4 merah.
+
 ## 9. Hasil impor awal (dump 7 Oktober 2026)
 
 Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan test`): jumlah PSN, lokasi, item profil, regulasi, KP/RO, agregat per provinsi, agregat per klaster, dan total nilai investasi **identik** dengan basis data lama.

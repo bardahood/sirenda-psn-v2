@@ -96,6 +96,8 @@ Route::middleware(['auth', 'akun.aktif'])->group(function () {
 
         Route::middleware('can:ringkasan.lihat')->prefix('dashboard')->name('dashboard.')->controller(DashboardController::class)->group(function () {
             Route::get('/kpi', 'kpi')->name('kpi');
+            Route::get('/kpi-tren', 'kpiTren')->name('kpi-tren');
+            Route::get('/dp-proyek', 'dpProyek')->name('dp-proyek');
             Route::get('/distribusi', 'distribusi')->name('distribusi');
             Route::get('/progres', 'progres')->name('progres');
             Route::get('/tren', 'tren')->name('tren');

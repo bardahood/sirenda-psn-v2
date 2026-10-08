@@ -201,8 +201,35 @@ class DashboardApiTest extends TestCase
 
     public function test_halaman_dashboard_dan_filter_opsi(): void
     {
-        $this->get('/dashboard?klaster=1')->assertOk()->assertSee('Ringkasan Eksekutif')->assertSee('Total Investasi');
+        $this->get('/dashboard?klaster=1')->assertOk()->assertSee('Dashboard Monitoring &amp; Evaluasi PSN', false)->assertSee('Total Investasi')
+            ->assertSee('Komposisi Sumber Pendanaan')->assertSee('Timeline PSN Klaster Direktif Presiden');
         $this->getJson('/api/v1/filter-opsi')->assertOk()->assertJsonCount(2, 'data.periode')->assertJsonCount(38, 'data.provinsi');
+    }
+
+    /** Data panel rancangan baru konsisten dengan K1/K2 dan antar-endpoint. */
+    public function test_endpoint_panel_dashboard_konsisten(): void
+    {
+        $kpi = collect($this->getJson('/api/v1/dashboard/kpi')->json('data'))->keyBy('kode');
+
+        $tren = $this->getJson('/api/v1/dashboard/kpi-tren')->assertOk()->json('data');
+        $terakhir = end($tren);
+        foreach (['K1', 'K2', 'K3', 'K4'] as $k) {
+            $this->assertEquals($kpi[$k]['nilai'], $terakhir[$k], "kpi-tren {$k}");
+        }
+
+        // Komposisi dana: kelompok saling lepas -> jumlah PSN = K1, investasi = K2.
+        $kom = collect($this->getJson('/api/v1/dashboard/distribusi?dim=komposisi_dana')->assertOk()->json('data'));
+        $this->assertSame((int) $kpi['K1']['nilai'], $kom->sum('jumlah'));
+        $this->assertEqualsWithDelta($kpi['K2']['nilai'], $kom->sum('investasi_triliun'), 0.2);
+
+        // Pulau: PSN dihitung sekali per pulau; tidak melebihi K1 per pulau.
+        $pulau = collect($this->getJson('/api/v1/dashboard/distribusi?dim=pulau')->assertOk()->json('data'));
+        $this->assertSame(['Sumatera', 'Jawa', 'Bali & Nusa Tenggara', 'Kalimantan', 'Sulawesi', 'Maluku', 'Papua'], $pulau->pluck('label')->all());
+        $this->assertTrue($pulau->every(fn ($p) => $p['jumlah'] <= $kpi['K1']['nilai']));
+
+        $dp = $this->getJson('/api/v1/dashboard/dp-proyek')->assertOk()->json('data');
+        $this->assertSame($dp['total'], $this->getJson('/api/v1/dashboard/progres')->json('data.DP.total'));
+        $this->assertLessThanOrEqual(config('psn_dashboard.dashboard_top.dp_proyek'), count($dp['proyek']));
     }
 
     public function test_peran_tanpa_izin_ringkasan_ditolak(): void

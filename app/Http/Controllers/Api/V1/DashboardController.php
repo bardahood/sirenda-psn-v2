@@ -23,9 +23,21 @@ class DashboardController extends Controller
         return $this->jawab($r, fn ($c, $f) => $this->dashboard->kpi($c, $f));
     }
 
+    /** GET /api/v1/dashboard/kpi-tren -- K1-K4 per cut-off terbit (sparkline). */
+    public function kpiTren(Request $r): JsonResponse
+    {
+        return $this->jawab($r, fn ($c, $f) => $this->dashboard->kpiTren($c, $f));
+    }
+
+    /** GET /api/v1/dashboard/dp-proyek -- proyek klaster Direktif Presiden untuk timeline. */
+    public function dpProyek(Request $r): JsonResponse
+    {
+        return $this->jawab($r, fn ($c, $f) => $this->dashboard->dpProyek($c, $f));
+    }
+
     public function distribusi(Request $r): JsonResponse
     {
-        $r->validate(['dim' => ['required', Rule::in(['klaster', 'direktorat', 'provinsi', 'dana'])]], ['dim.*' => 'Parameter dim harus klaster, direktorat, provinsi, atau dana.']);
+        $r->validate(['dim' => ['required', Rule::in(['klaster', 'direktorat', 'provinsi', 'dana', 'pulau', 'komposisi_dana'])]], ['dim.*' => 'Parameter dim harus klaster, direktorat, provinsi, dana, pulau, atau komposisi_dana.']);
 
         return $this->jawab($r, fn ($c, $f) => $this->dashboard->distribusi($c, $f, $r->query('dim')));
     }

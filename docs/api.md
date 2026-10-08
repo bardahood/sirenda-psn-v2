@@ -24,13 +24,16 @@ Berlaku untuk semua endpoint dashboard, portofolio, kualitas data, dan peta. Nil
 |---|---|---|---|
 | `GET /dashboard/kpi` | `ringkasan.lihat` | per cut-off + filter + cakupan | K1–K4 + delta vs cut-off sebelumnya |
 | `GET /dashboard/distribusi?dim=klaster\|direktorat\|provinsi\|dana` | `ringkasan.lihat` | sda | P1, P7, P6, distribusi direktorat |
-| `GET /dashboard/progres` | `ringkasan.lihat` | sda | P2, P3, P4 + jumlah per status progres |
+| `GET /dashboard/progres` | `ringkasan.lihat` | sda | P2, P3, P4, `DP` (PSN Direktif Presiden: total, on track) + jumlah per status progres |
 | `GET /dashboard/tren` | `ringkasan.lihat` | sda | P5 Januari–Desember |
 | `GET /dashboard/ro-kritis?limit=10` | `ringkasan.lihat` | sda | KP/RO critical path Berisiko/Terlambat |
 | `GET /dashboard/tahapan` | `ringkasan.lihat` | sda | Jumlah PSN per tahap |
 | `GET /dashboard/status-data` | `ringkasan.lihat` | sda | Tanggal cut-off, kelengkapan, belum terverifikasi |
 | `GET /dashboard/trisula` | `ringkasan.lihat` | sda | P8 (placeholder, metodologi belum ditetapkan) |
 | `GET /dashboard/timeline-dp` | `ringkasan.lihat` | sda | Klaster Direktif Presiden menuju 2029 |
+| `GET /dashboard/kpi-tren` | `ringkasan.lihat` | sda | K1–K4 per cut-off terbit (maks. 12) untuk sparkline kartu |
+| `GET /dashboard/distribusi?dim=pulau\|komposisi_dana` | `ringkasan.lihat` | sda | PSN per kelompok pulau (dihitung sekali per pulau); komposisi investasi per kombinasi skema yang saling lepas (Σ = K2) |
+| `GET /dashboard/dp-proyek` | `ringkasan.lihat` | sda | Proyek klaster Direktif Presiden (tahun selesai, status, realisasi) untuk timeline |
 | `GET /dashboard/aktivitas` | `ringkasan.lihat` | tanpa cache | Aktivitas terbaru dari jejak audit |
 | `GET /proyek` | `portofolio.lihat` | 5 menit | Portofolio (paginasi). Opsi: `q`, `urut`, `arah`, `kritis`, `tahap`, `nonaktif`, `per_halaman`, `page`, `format=csv\|xlsx` |
 | `GET /proyek/{id}` | `detail.lihat` + `PsnPolicy::view` | tanpa cache | Header, profil, KP/RO, progres |

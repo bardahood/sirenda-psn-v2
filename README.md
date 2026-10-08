@@ -80,6 +80,8 @@ php artisan psn:profil-kinerja --ulang=20 # P50/P95 & jumlah query tiap endpoint
 node tests/Browser/ukur-halaman.mjs http://127.0.0.1:8000 <username> <password> 10   # waktu muat halaman (butuh playwright)
 ```
 
+Panduan akses URL per peran: [docs/panduan-akses-peran.md](docs/panduan-akses-peran.md).
+
 Fase 7 menambah Pengisian & Verifikasi (`/pengisian`), arsip `/laporan` per cut-off, dan Content-Security-Policy (`CSP_AKTIF`). Bukti dukung disimpan di disk `public`: jalankan `php artisan storage:link` sekali per server.
 
 Fase 6 menambah Pengaturan (`/pengaturan`: pengguna & peran, cut-off & snapshot, master data; khusus Super Admin), `/kamus-indikator`, dan halaman `/risiko`. Snapshot juga dapat dibangun/diterbitkan dari Pengaturan > Cut-off & Snapshot.

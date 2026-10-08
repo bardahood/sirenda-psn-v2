@@ -2,11 +2,11 @@
 // tren dua seri memakai palet tervalidasi (biru #2a78d6, oranye #eb6834),
 // sudut data 4px, grid/axis samar, tooltip per-batang & crosshair untuk garis.
 import * as echarts from 'echarts/core';
-import { BarChart, LineChart, HeatmapChart } from 'echarts/charts';
+import { BarChart, LineChart, HeatmapChart, PieChart, ScatterChart } from 'echarts/charts';
 import { GridComponent, TooltipComponent, LegendComponent, MarkLineComponent, MarkPointComponent, VisualMapComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 
-echarts.use([BarChart, LineChart, HeatmapChart, GridComponent, TooltipComponent, LegendComponent, MarkLineComponent, MarkPointComponent, VisualMapComponent, CanvasRenderer]);
+echarts.use([BarChart, LineChart, HeatmapChart, PieChart, ScatterChart, GridComponent, TooltipComponent, LegendComponent, MarkLineComponent, MarkPointComponent, VisualMapComponent, CanvasRenderer]);
 
 export const WARNA = {
     aksen: '#1F6FD1',
@@ -204,4 +204,82 @@ export function matriksRisiko(sel, terpilih) {
         yAxis: { type: 'category', data: ['1', '2', '3', '4', '5'], name: 'Kemungkinan', nameLocation: 'middle', nameGap: 24, nameTextStyle: { color: WARNA.teks, fontSize: 11 }, axisTick: { show: false }, axisLine: { show: false }, axisLabel: { color: WARNA.teks } },
         series: [{ type: 'heatmap', data, cursor: 'pointer', label: { show: true, color: '#0f172a', fontSize: 13, fontWeight: 600, formatter: (p) => (p.value[2] ? p.value[2] : '') } }],
     };
+}
+
+/** Sparkline kartu KPI: satu seri, tanpa sumbu; titik terakhir ditandai. Tooltip per cut-off. */
+export function garisMini(titik, warna, format = (v) => angka(v)) {
+    return {
+        animation: false,
+        grid: { left: 2, right: 6, top: 6, bottom: 2 },
+        tooltip: { ...dasar.tooltip, trigger: 'axis', axisPointer: { type: 'line', lineStyle: { color: WARNA.grid } }, formatter: (p) => `Cut-off ${p[0].name}<br/><b>${format(p[0].value)}</b>` },
+        xAxis: { type: 'category', show: false, boundaryGap: false, data: titik.map((t) => t.label) },
+        yAxis: { type: 'value', show: false, scale: true },
+        series: [{
+            type: 'line', data: titik.map((t) => t.nilai), smooth: 0.3, symbol: 'circle', symbolSize: (v, p) => (p.dataIndex === titik.length - 1 ? 7 : 0),
+            lineStyle: { width: 2, color: warna }, itemStyle: { color: warna, borderColor: '#fff', borderWidth: 2 },
+            areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: `${warna}40` }, { offset: 1, color: `${warna}00` }]) },
+        }],
+    };
+}
+
+/** Donat komposisi (bagian dari keseluruhan); celah 2px antar-irisan; label di legenda HTML. */
+export function donat(segmen, { satuan = 'Rp triliun', klik = false } = {}) {
+    return {
+        tooltip: { ...dasar.tooltip, trigger: 'item', formatter: (p) => `${p.name}<br/><b>${angka(p.value)}</b> ${satuan} (${angka(p.percent)}%)<br/>${angka(p.data.jumlah, 0)} PSN${klik && p.data.kode ? '<br/><span style="color:#64748b">Klik untuk memfilter</span>' : ''}` },
+        series: [{
+            type: 'pie', radius: ['62%', '90%'], center: ['50%', '50%'], avoidLabelOverlap: false, label: { show: false }, labelLine: { show: false },
+            itemStyle: { borderColor: '#fff', borderWidth: 2, borderRadius: 3 }, cursor: klik ? 'pointer' : 'default',
+            emphasis: { scale: true, scaleSize: 4 },
+            data: segmen.map((d) => ({ name: d.label, value: d.nilai, jumlah: d.jumlah, kode: d.kode, itemStyle: { color: d.warna } })),
+        }],
+    };
+}
+
+/**
+ * Peta ringkas tanpa basemap: simbol provinsi di titik tengahnya (bujur, lintang), ukuran & gelap
+ * mengikuti kelas jumlah PSN (sekuensial satu hue), dan label ringkas per pulau.
+ */
+export function petaRingkas(prov, pulau, kelas) {
+    const RAMP = ['#0b4a9c', '#1F6FD1', '#5b9be3', '#a9c9f0'];
+    const UKURAN = [22, 16, 11, 7];
+    const kelasDari = (n) => kelas.findIndex((k) => n >= k.min);
+    const titik = prov.filter((p) => p.lat !== null && p.lng !== null);
+    // Posisi label pulau agar tidak menutupi simbol utama.
+    const POSISI = { Sumatera: 'left', Jawa: 'bottom', 'Bali & Nusa Tenggara': 'right', Kalimantan: 'top', Sulawesi: 'right', Maluku: 'top', Papua: 'top' };
+    return {
+        grid: { left: 8, right: 8, top: 8, bottom: 8 },
+        tooltip: { ...dasar.tooltip, trigger: 'item', formatter: (p) => (p.seriesIndex === 0 ? `${p.data.nama}<br/><b>${angka(p.data.jumlah, 0)}</b> PSN<br/><span style="color:#64748b">Klik untuk memfilter</span>` : `${p.data.nama}<br/><b>${angka(p.data.jumlah, 0)}</b> PSN (dihitung sekali per pulau)`) },
+        xAxis: { type: 'value', min: 94, max: 142, show: false },
+        yAxis: { type: 'value', min: -12, max: 7, show: false },
+        series: [
+            {
+                type: 'scatter', cursor: 'pointer', z: 2,
+                data: titik.map((p) => {
+                    const k = kelasDari(p.jumlah);
+                    return { value: [p.lng, p.lat], nama: p.label, kode: p.kode, jumlah: p.jumlah, symbolSize: k < 0 ? 5 : UKURAN[k], itemStyle: { color: k < 0 ? '#cbd5e1' : RAMP[k], borderColor: '#fff', borderWidth: 1.5 } };
+                }),
+            },
+            {
+                type: 'scatter', symbolSize: 1, z: 3, silent: false, itemStyle: { color: 'transparent' },
+                data: pulau.filter((p) => p.lat !== null).map((p) => ({
+                    value: [p.lng, p.lat], nama: p.label, jumlah: p.jumlah,
+                    label: {
+                        show: true, position: POSISI[p.label] ?? 'top', distance: 14, formatter: `{n|${p.label}}\n{v|${angka(p.jumlah, 0)} PSN}`,
+                        backgroundColor: '#fff', borderColor: WARNA.grid, borderWidth: 1, borderRadius: 6, padding: [4, 6],
+                        shadowColor: 'rgba(15,23,42,.08)', shadowBlur: 6,
+                        rich: { n: { fontSize: 10, color: WARNA.teksSamar, lineHeight: 13 }, v: { fontSize: 11, fontWeight: 700, color: '#0f172a', lineHeight: 14 } },
+                    },
+                })),
+            },
+        ],
+    };
+}
+
+/** Tren bulanan rencana (putus-putus) vs realisasi (garis + area) kumulatif; satu sumbu persen. */
+export function trenArea(bulan) {
+    const opsi = tren(bulan);
+    opsi.grid = { left: 8, right: 16, top: 36, bottom: 8, containLabel: true };
+    opsi.series.forEach((s) => { s.endLabel = { show: false }; });
+    opsi.series[1].areaStyle = { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: `${WARNA.seri1}33` }, { offset: 1, color: `${WARNA.seri1}05` }]) };
+    return opsi;
 }

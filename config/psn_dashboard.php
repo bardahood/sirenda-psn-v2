@@ -117,6 +117,28 @@ return [
         'terbit_otomatis' => false,
     ],
 
+    // Kelompok pulau untuk peta ringkas dashboard (prefiks kode provinsi Kemendagri), urutan barat -> timur.
+    'pulau' => [
+        'Sumatera' => ['11', '12', '13', '14', '15', '16', '17', '18', '19', '21'],
+        'Jawa' => ['31', '32', '33', '34', '35', '36'],
+        'Bali & Nusa Tenggara' => ['51', '52', '53'],
+        'Kalimantan' => ['61', '62', '63', '64', '65'],
+        'Sulawesi' => ['71', '72', '73', '74', '75', '76'],
+        'Maluku' => ['81', '82'],
+        'Papua' => ['91', '92', '93', '94', '95', '96'],
+    ],
+
+    // Kelas ukuran simbol provinsi pada peta ringkas dashboard (jumlah PSN, batas bawah inklusif).
+    'peta_kelas' => [
+        ['min' => 51, 'label' => '> 50 PSN'],
+        ['min' => 21, 'label' => '21 – 50 PSN'],
+        ['min' => 6, 'label' => '6 – 20 PSN'],
+        ['min' => 1, 'label' => '1 – 5 PSN'],
+    ],
+
+    // Jumlah baris panel ringkas dashboard.
+    'dashboard_top' => ['direktorat' => 5, 'dp_proyek' => 6],
+
     // Keamanan HTTP. CSP dapat dimatikan sementara (CSP_AKTIF=false) bila mengganggu integrasi.
     'keamanan' => [
         'csp' => (bool) env('CSP_AKTIF', true),
