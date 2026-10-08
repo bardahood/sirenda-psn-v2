@@ -1,0 +1,5394 @@
+{
+ "ASCI": [
+  {
+   "kode": "1",
+   "nama": "Memperkokoh ideologi Pancasila, demokrasi, dan hak asasi manusia (HAM)."
+  },
+  {
+   "kode": "2",
+   "nama": "Memantapkan sistem pertahanan keamanan negara dan mendorong kemandirian bangsa melalui swasembada pangan, energi, air, ekonomi kreatif, ekonomi hijau, dan ekonomi biru"
+  },
+  {
+   "kode": "3",
+   "nama": "Meningkatkan lapangan kerja yang berkualitas, mendorong kewirausahaan, mengembangkan industri kreatif, dan melanjutkan pengembangan infrastruktur."
+  },
+  {
+   "kode": "4",
+   "nama": "Memperkuat pembangunan sumber daya manusia (SDM), sains, teknologi, pendidikan, kesehatan, prestasi olahraga, kesetaraan gender, serta penguatan peran perempuan, pemuda, dan penyandang disabilitas."
+  },
+  {
+   "kode": "5",
+   "nama": "Melanjutkan hilirisasi dan industrialisasi untuk meningkatkan nilai tambah di dalam negeri."
+  },
+  {
+   "kode": "6",
+   "nama": "Membangun dari desa dan dari bawah untuk pemerataan ekonomi dan pemberantasan kemiskinan."
+  },
+  {
+   "kode": "7",
+   "nama": "Memperkuat reformasi politik, hukum, dan birokrasi, serta memperkuat pencegahan dan pemberantasan korupsi dan narkoba."
+  },
+  {
+   "kode": "8",
+   "nama": "Memperkuat penyelarasan kehidupan yang harmonis dengan lingkungan, alam, dan budaya, serta peningkatan toleransi antarumat beragama untuk mencapai masyarakat yang adil dan Makmur"
+  }
+ ],
+ "DANA": [
+  {
+   "kode": "A",
+   "nama": "APBN"
+  },
+  {
+   "kode": "B",
+   "nama": "APBD"
+  },
+  {
+   "kode": "C",
+   "nama": "BUMN"
+  },
+  {
+   "kode": "D",
+   "nama": "Badan Usaha/Swasta"
+  },
+  {
+   "kode": "E",
+   "nama": "Lainnya"
+  }
+ ],
+ "FAST": [
+  {
+   "kode": "A",
+   "nama": "Perijinan Usaha"
+  },
+  {
+   "kode": "B",
+   "nama": "Pembiayaan Proyek"
+  },
+  {
+   "kode": "C",
+   "nama": "Percepatan Pengadaan Barang/Jasa"
+  },
+  {
+   "kode": "D",
+   "nama": "Rencana Tata Ruang dan Ruang Laut"
+  },
+  {
+   "kode": "E",
+   "nama": "Fasilitas Penyiapan Proyek"
+  },
+  {
+   "kode": "F",
+   "nama": "Penanganan Dampak Sosial"
+  },
+  {
+   "kode": "G",
+   "nama": "Perencanaan Dalam Rencana Induk Sektor"
+  },
+  {
+   "kode": "H",
+   "nama": "Anggaran Pengadaan Tanah"
+  },
+  {
+   "kode": "I",
+   "nama": "Penyelesaian Masalah Hukum"
+  }
+ ],
+ "INST": [
+  {
+   "kode": "001",
+   "nama": "MAJELIS PERMUSYAWARATAN RAKYAT (MPR)"
+  },
+  {
+   "kode": "002",
+   "nama": "DEWAN PERWAKILAN RAKYAT"
+  },
+  {
+   "kode": "004",
+   "nama": "BADAN PEMERIKSA KEUANGAN"
+  },
+  {
+   "kode": "005",
+   "nama": "MAHKAMAH AGUNG"
+  },
+  {
+   "kode": "006",
+   "nama": "KEJAKSAAN REPUBLIK INDONESIA"
+  },
+  {
+   "kode": "007",
+   "nama": "KEMENTERIAN SEKRETARIAT NEGARA"
+  },
+  {
+   "kode": "010",
+   "nama": "KEMENTERIAN DALAM NEGERI"
+  },
+  {
+   "kode": "011",
+   "nama": "KEMENTERIAN LUAR NEGERI"
+  },
+  {
+   "kode": "012",
+   "nama": "KEMENTERIAN PERTAHANAN"
+  },
+  {
+   "kode": "013",
+   "nama": "KEMENTERIAN HUKUM DAN HAK ASASI MANUSIA RI"
+  },
+  {
+   "kode": "015",
+   "nama": "KEMENTERIAN KEUANGAN"
+  },
+  {
+   "kode": "018",
+   "nama": "KEMENTERIAN PERTANIAN"
+  },
+  {
+   "kode": "019",
+   "nama": "KEMENTERIAN PERINDUSTRIAN"
+  },
+  {
+   "kode": "020",
+   "nama": "KEMENTERIAN ENERGI DAN SUMBER DAYA MINERAL"
+  },
+  {
+   "kode": "022",
+   "nama": "KEMENTERIAN PERHUBUNGAN"
+  },
+  {
+   "kode": "023",
+   "nama": "KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI"
+  },
+  {
+   "kode": "024",
+   "nama": "KEMENTERIAN KESEHATAN"
+  },
+  {
+   "kode": "025",
+   "nama": "KEMENTERIAN AGAMA"
+  },
+  {
+   "kode": "026",
+   "nama": "KEMENTERIAN KETENAGAKERJAAN"
+  },
+  {
+   "kode": "027",
+   "nama": "KEMENTERIAN SOSIAL"
+  },
+  {
+   "kode": "029",
+   "nama": "Kementerian Lingkungan Hidup/Badan Pengendalian Lingkungan Hidup"
+  },
+  {
+   "kode": "032",
+   "nama": "KEMENTERIAN KELAUTAN DAN PERIKANAN"
+  },
+  {
+   "kode": "033",
+   "nama": "KEMENTERIAN PEKERJAAN UMUM DAN PERUMAHAN RAKYAT"
+  },
+  {
+   "kode": "034",
+   "nama": "KEMENTERIAN KOORDINATOR BIDANG POLITIK, HUKUM DAN KEAMANAN"
+  },
+  {
+   "kode": "035",
+   "nama": "KEMENTERIAN KOORDINATOR BIDANG PEREKONOMIAN"
+  },
+  {
+   "kode": "036",
+   "nama": "KEMENTERIAN KOORDINATOR BIDANG PEMBANGUNAN MANUSIA DAN KEBUDAYAAN"
+  },
+  {
+   "kode": "040",
+   "nama": "KEMENTERIAN PARIWISATA DAN EKONOMI KREATIF/BADAN PARIWISATA DAN EKONOMI KREATIF"
+  },
+  {
+   "kode": "041",
+   "nama": "KEMENTERIAN BADAN USAHA MILIK NEGARA"
+  },
+  {
+   "kode": "042",
+   "nama": "BADAN RISET DAN INOVASI NASIONAL (BRIN)"
+  },
+  {
+   "kode": "044",
+   "nama": "KEMENTERIAN KOPERASI DAN USAHA KECIL DAN MENENGAH"
+  },
+  {
+   "kode": "047",
+   "nama": "KEMENTERIAN PEMBERDAYAAN PEREMPUAN DAN PERLINDUNGAN ANAK"
+  },
+  {
+   "kode": "048",
+   "nama": "KEMENTERIAN PENDAYAGUNAAN APARATUR NEGARA DAN REFORMASI BIROKRASI"
+  },
+  {
+   "kode": "050",
+   "nama": "BADAN INTELIJEN NEGARA"
+  },
+  {
+   "kode": "051",
+   "nama": "BADAN SIBER DAN SANDI NEGARA"
+  },
+  {
+   "kode": "052",
+   "nama": "DEWAN KETAHANAN NASIONAL"
+  },
+  {
+   "kode": "054",
+   "nama": "BADAN PUSAT STATISTIK"
+  },
+  {
+   "kode": "055",
+   "nama": "KEMENTERIAN PERENCANAAN PEMBANGUNAN NASIONAL/BADAN PERENCANAAN PEMBANGUNAN NASIONAL"
+  },
+  {
+   "kode": "056",
+   "nama": "KEMENTERIAN AGRARIA DAN TATA RUANG/BADAN PERTANAHAN NASIONAL"
+  },
+  {
+   "kode": "057",
+   "nama": "PERPUSTAKAAN NASIONAL REPUBLIK INDONESIA"
+  },
+  {
+   "kode": "059",
+   "nama": "KEMENTERIAN KOMUNIKASI DAN DIGITAL"
+  },
+  {
+   "kode": "060",
+   "nama": "KEPOLISIAN NEGARA REPUBLIK INDONESIA"
+  },
+  {
+   "kode": "063",
+   "nama": "BADAN PENGAWAS OBAT DAN MAKANAN"
+  },
+  {
+   "kode": "064",
+   "nama": "LEMBAGA KETAHANAN NASIONAL"
+  },
+  {
+   "kode": "065",
+   "nama": "KEMENTERIAN INVESTASI DAN HILIRISASI/BADAN KOORDINASI PENANAMAN MODAL"
+  },
+  {
+   "kode": "066",
+   "nama": "BADAN NARKOTIKA NASIONAL (BNN)"
+  },
+  {
+   "kode": "067",
+   "nama": "KEMENTERIAN DESA, PEMBANGUNAN DAERAH TERTINGGAL"
+  },
+  {
+   "kode": "068",
+   "nama": "KEMENTERIAN KEPENDUDUKAN DAN PEMBANGUNAN KELUARGA/BADAN KEPENDUDUKAN DAN KELUARGA BERENCANA NASIONAL"
+  },
+  {
+   "kode": "074",
+   "nama": "KOMISI NASIONAL HAK ASASI MANUSIA"
+  },
+  {
+   "kode": "075",
+   "nama": "BADAN METEOROLOGI, KLIMATOLOGI DAN GEOFISIKA"
+  },
+  {
+   "kode": "076",
+   "nama": "KOMISI PEMILIHAN UMUM"
+  },
+  {
+   "kode": "077",
+   "nama": "MAHKAMAH KONSTITUSI RI"
+  },
+  {
+   "kode": "078",
+   "nama": "PUSAT PELAPORAN DAN ANALISIS TRANSAKSI KEUANGAN (PPATK)"
+  },
+  {
+   "kode": "079",
+   "nama": "LEMBAGA ILMU PENGETAHUAN INDONESIA (LIPI)"
+  },
+  {
+   "kode": "080",
+   "nama": "BADAN TENAGA NUKLIR NASIONAL (BATAN)"
+  },
+  {
+   "kode": "081",
+   "nama": "BADAN PENGKAJIAN DAN PENERAPAN TEKNOLOGI (BPPT)"
+  },
+  {
+   "kode": "082",
+   "nama": "LEMBAGA PENERBANGAN DAN ANTARIKSA NASIONAL (LAPAN)"
+  },
+  {
+   "kode": "083",
+   "nama": "BADAN INFORMASI GEOSPASIAL (BIG)"
+  },
+  {
+   "kode": "084",
+   "nama": "BADAN STANDARDISASI NASIONAL (BSN)"
+  },
+  {
+   "kode": "085",
+   "nama": "BADAN PENGAWAS TENAGA NUKLIR (BAPETEN)"
+  },
+  {
+   "kode": "086",
+   "nama": "LEMBAGA ADMINISTRASI NEGARA"
+  },
+  {
+   "kode": "087",
+   "nama": "ARSIP NASIONAL REPUBLIK INDONESIA"
+  },
+  {
+   "kode": "088",
+   "nama": "BADAN KEPEGAWAIAN NEGARA"
+  },
+  {
+   "kode": "089",
+   "nama": "BADAN PENGAWASAN KEUANGAN DAN PEMBANGUNAN (BPKP)"
+  },
+  {
+   "kode": "090",
+   "nama": "KEMENTERIAN PERDAGANGAN"
+  },
+  {
+   "kode": "092",
+   "nama": "KEMENTERIAN PEMUDA DAN OLAHRAGA"
+  },
+  {
+   "kode": "093",
+   "nama": "KOMISI PEMBERANTASAN KORUPSI (KPK)"
+  },
+  {
+   "kode": "095",
+   "nama": "DEWAN PERWAKILAN DAERAH (DPD)"
+  },
+  {
+   "kode": "100",
+   "nama": "KOMISI YUDISIAL REPUBLIK INDONESIA"
+  },
+  {
+   "kode": "103",
+   "nama": "BADAN NASIONAL PENANGGULANGAN BENCANA (BNPB)"
+  },
+  {
+   "kode": "104",
+   "nama": "KEMENTERIAN PELINDUNGAN PEKERJA MIGRAN INDONESIA/BADAN PELINDUNGAN PEKERJA MIGRAN INDONESIA (BP2MI)"
+  },
+  {
+   "kode": "105",
+   "nama": "BADAN PENANGGULANGAN LUMPUR SIDOARJO (BPLS)"
+  },
+  {
+   "kode": "106",
+   "nama": "LEMBAGA KEBIJAKAN PENGADAAN BARANG/JASA PEMERINTAH (LKPP)"
+  },
+  {
+   "kode": "107",
+   "nama": "BADAN SAR NASIONAL"
+  },
+  {
+   "kode": "108",
+   "nama": "KOMISI PENGAWAS PERSAINGAN USAHA (KPPU)"
+  },
+  {
+   "kode": "109",
+   "nama": "BADAN PENGEMBANGAN WILAYAH SURAMADU (BPWS)"
+  },
+  {
+   "kode": "110",
+   "nama": "OMBUDSMAN REPUBLIK INDONESIA"
+  },
+  {
+   "kode": "111",
+   "nama": "BADAN NASIONAL PENGELOLA PERBATASAN (BNPP)"
+  },
+  {
+   "kode": "112",
+   "nama": "BADAN PENGUSAHAAN KAWASAN PERDAGANGAN BEBAS DAN PELABUHAN BEBAS BATAM (BPKPB BATAM)"
+  },
+  {
+   "kode": "113",
+   "nama": "BADAN NASIONAL PENANGGULANGAN TERORISME (BNPT)"
+  },
+  {
+   "kode": "114",
+   "nama": "SEKRETARIAT KABINET"
+  },
+  {
+   "kode": "115",
+   "nama": "BADAN PENGAWAS PEMILIHAN UMUM"
+  },
+  {
+   "kode": "116",
+   "nama": "LEMBAGA PENYIARAN PUBLIK RADIO REPUBLIK INDONESIA"
+  },
+  {
+   "kode": "117",
+   "nama": "LEMBAGA PENYIARAN PUBLIK TELEVISI REPUBLIK INDONESIA"
+  },
+  {
+   "kode": "118",
+   "nama": "BADAN PENGUSAHAAN KAWASAN PERDAGANGAN BEBAS DAN PELABUHAN BEBAS SABANG (BPKPB SABANG)"
+  },
+  {
+   "kode": "119",
+   "nama": "BADAN KEAMANAN LAUT"
+  },
+  {
+   "kode": "120",
+   "nama": "KEMENTERIAN KOORDINATOR BIDANG KEMARITIMAN DAN INVESTASI"
+  },
+  {
+   "kode": "121",
+   "nama": "BADAN EKONOMI KREATIF"
+  },
+  {
+   "kode": "122",
+   "nama": "BADAN PEMBINAAN IDEOLOGI PANCASILA"
+  },
+  {
+   "kode": "123",
+   "nama": "LEMBAGA PERLINDUNGAN SAKSI DAN KORBAN"
+  },
+  {
+   "kode": "124",
+   "nama": "BADAN RISET DAN INOVASI NASIONAL"
+  },
+  {
+   "kode": "125",
+   "nama": "BADAN PANGAN NASIONAL"
+  },
+  {
+   "kode": "126",
+   "nama": "OTORITA IBU KOTA NUSANTARA"
+  },
+  {
+   "kode": "127",
+   "nama": "BADAN KARANTINA INDONESIA"
+  },
+  {
+   "kode": "128",
+   "nama": "BADAN GIZI NASIONAL"
+  },
+  {
+   "kode": "129",
+   "nama": "KEMENTERIAN KOORDINATOR BIDANG POLITIK DAN KEAMANAN"
+  },
+  {
+   "kode": "130",
+   "nama": "KEMENTERIAN KOORDINATOR BIDANG HUKUM, HAK ASASI MANUSIA, IMIGRASI DAN PEMASYARAKATAN"
+  },
+  {
+   "kode": "131",
+   "nama": "KEMENTERIAN KOORDINATOR BIDANG PANGAN"
+  },
+  {
+   "kode": "132",
+   "nama": "KEMENTERIAN KOORDINATOR BIDANG INFRASTRUKTUR DAN PEMBANGUNAN KEWILAYAHAN"
+  },
+  {
+   "kode": "134",
+   "nama": "KEMENTERIAN KOORDINATOR BIDANG PEMBERDAYAAN MASYARAKAT"
+  },
+  {
+   "kode": "135",
+   "nama": "KEMENTERIAN HUKUM"
+  },
+  {
+   "kode": "136",
+   "nama": "KEMENTERIAN HAK ASASI MANUSIA"
+  },
+  {
+   "kode": "137",
+   "nama": "KEMENTERIAN IMIGRASI DAN PEMASYARAKATAN"
+  },
+  {
+   "kode": "138",
+   "nama": "KEMENTERIAN PENDIDIKAN DASAR DAN MENENGAH"
+  },
+  {
+   "kode": "139",
+   "nama": "KEMENTERIAN PENDIDIKAN TINGGI, SAINS, DAN TEKNOLOGI"
+  },
+  {
+   "kode": "140",
+   "nama": "KEMENTERIAN KEBUDAYAAN"
+  },
+  {
+   "kode": "141",
+   "nama": "BADAN PENYELENGGARA HAJI"
+  },
+  {
+   "kode": "142",
+   "nama": "BADAN PENYELENGGARA JAMINAN PRODUK HALAL"
+  },
+  {
+   "kode": "143",
+   "nama": "KEMENTERIAN KEHUTANAN"
+  },
+  {
+   "kode": "144",
+   "nama": "KEMENTERIAN LINGKUNGAN HIDUP/BADAN PENGENDALIAN LINGKUNGAN HIDUP"
+  },
+  {
+   "kode": "145",
+   "nama": "KEMENTERIAN PEKERJAAN UMUM"
+  },
+  {
+   "kode": "146",
+   "nama": "KEMENTERIAN PERUMAHAN DAN KAWASAN PERMUKIMAN"
+  },
+  {
+   "kode": "147",
+   "nama": "KEMENTERIAN PARIWISATA"
+  },
+  {
+   "kode": "148",
+   "nama": "KEMENTERIAN EKONOMI KREATIF/BADAN EKONOMI KREATIF"
+  },
+  {
+   "kode": "149",
+   "nama": "KEMENTERIAN KOPERASI"
+  },
+  {
+   "kode": "150",
+   "nama": "KEMENTERIAN USAHA MIKRO, KECIL, DAN MENENGAH"
+  },
+  {
+   "kode": "151",
+   "nama": "KEMENTERIAN DESA DAN PEMBANGUNAN DAERAH TERTINGGAL"
+  },
+  {
+   "kode": "152",
+   "nama": "KEMENTERIAN TRANSMIGRASI"
+  },
+  {
+   "kode": "153",
+   "nama": "Kepolisian Republik Indonesia (POLRI)"
+  },
+  {
+   "kode": "154",
+   "nama": "Tentara Nasional Indonesia (TNI)"
+  },
+  {
+   "kode": "155",
+   "nama": "KANTOR KOMUNIKASI PRESIDEN"
+  },
+  {
+   "kode": "156",
+   "nama": "Badan Pusat Statistik (BPS)"
+  },
+  {
+   "kode": "157",
+   "nama": "Badan Siber dan Sandi Negara (BSSN)"
+  },
+  {
+   "kode": "158",
+   "nama": "Badan Nasional Pencarian dan Pertolongan (Basarnas)"
+  },
+  {
+   "kode": "159",
+   "nama": "Badan Otorita Pengelola Pantai Utara Jawa"
+  },
+  {
+   "kode": "160",
+   "nama": "PT. Amman Mineral Nusa Tenggara"
+  },
+  {
+   "kode": "161",
+   "nama": "PT. Sumbawa Timur Minning"
+  },
+  {
+   "kode": "162",
+   "nama": "Badan Pengaturan BUMN"
+  },
+  {
+   "kode": "163",
+   "nama": "Badan Pengelola Investasi Danantara"
+  },
+  {
+   "kode": "666",
+   "nama": "BADAN RESTORASI GAMBUT"
+  },
+  {
+   "kode": "999",
+   "nama": "BAGIAN ANGGARAN BENDAHARA UMUM NEGARA"
+  }
+ ],
+ "KABP": [
+  {
+   "kode": "11.01",
+   "nama": "KAB. ACEH SELATAN"
+  },
+  {
+   "kode": "11.02",
+   "nama": "KAB. ACEH TENGGARA"
+  },
+  {
+   "kode": "11.03",
+   "nama": "KAB. ACEH TIMUR"
+  },
+  {
+   "kode": "11.04",
+   "nama": "KAB. ACEH TENGAH"
+  },
+  {
+   "kode": "11.05",
+   "nama": "KAB. ACEH BARAT"
+  },
+  {
+   "kode": "11.06",
+   "nama": "KAB. ACEH BESAR"
+  },
+  {
+   "kode": "11.07",
+   "nama": "KAB. PIDIE"
+  },
+  {
+   "kode": "11.08",
+   "nama": "KAB. ACEH UTARA"
+  },
+  {
+   "kode": "11.09",
+   "nama": "KAB. SIMEULUE"
+  },
+  {
+   "kode": "11.10",
+   "nama": "KAB. ACEH SINGKIL"
+  },
+  {
+   "kode": "11.11",
+   "nama": "KAB. BIREUEN"
+  },
+  {
+   "kode": "11.12",
+   "nama": "KAB. ACEH BARAT DAYA"
+  },
+  {
+   "kode": "11.13",
+   "nama": "KAB. GAYO LUES"
+  },
+  {
+   "kode": "11.14",
+   "nama": "KAB. ACEH JAYA"
+  },
+  {
+   "kode": "11.15",
+   "nama": "KAB. NAGAN RAYA"
+  },
+  {
+   "kode": "11.16",
+   "nama": "KAB. ACEH TAMIANG"
+  },
+  {
+   "kode": "11.17",
+   "nama": "KAB. BENER MERIAH"
+  },
+  {
+   "kode": "11.18",
+   "nama": "KAB. PIDIE JAYA"
+  },
+  {
+   "kode": "11.71",
+   "nama": "KOTA BANDA ACEH"
+  },
+  {
+   "kode": "11.72",
+   "nama": "KOTA SABANG"
+  },
+  {
+   "kode": "11.73",
+   "nama": "KOTA LHOKSEUMAWE"
+  },
+  {
+   "kode": "11.74",
+   "nama": "KOTA LANGSA"
+  },
+  {
+   "kode": "11.75",
+   "nama": "KOTA SUBULUSSALAM"
+  },
+  {
+   "kode": "12.01",
+   "nama": "KAB. TAPANULI TENGAH"
+  },
+  {
+   "kode": "12.02",
+   "nama": "KAB. TAPANULI UTARA"
+  },
+  {
+   "kode": "12.03",
+   "nama": "KAB. TAPANULI SELATAN"
+  },
+  {
+   "kode": "12.04",
+   "nama": "KAB. NIAS"
+  },
+  {
+   "kode": "12.05",
+   "nama": "KAB. LANGKAT"
+  },
+  {
+   "kode": "12.06",
+   "nama": "KAB. KARO"
+  },
+  {
+   "kode": "12.07",
+   "nama": "KAB. DELI SERDANG"
+  },
+  {
+   "kode": "12.08",
+   "nama": "KAB. SIMALUNGUN"
+  },
+  {
+   "kode": "12.09",
+   "nama": "KAB. ASAHAN"
+  },
+  {
+   "kode": "12.10",
+   "nama": "KAB. LABUHANBATU"
+  },
+  {
+   "kode": "12.11",
+   "nama": "KAB. DAIRI"
+  },
+  {
+   "kode": "12.12",
+   "nama": "KAB. TOBA SAMOSIR"
+  },
+  {
+   "kode": "12.13",
+   "nama": "KAB. MANDAILING NATAL"
+  },
+  {
+   "kode": "12.14",
+   "nama": "KAB. NIAS SELATAN"
+  },
+  {
+   "kode": "12.15",
+   "nama": "KAB. PAKPAK BHARAT"
+  },
+  {
+   "kode": "12.16",
+   "nama": "KAB. HUMBANG HASUNDUTAN"
+  },
+  {
+   "kode": "12.17",
+   "nama": "KAB. SAMOSIR"
+  },
+  {
+   "kode": "12.18",
+   "nama": "KAB. SERDANG BEDAGAI"
+  },
+  {
+   "kode": "12.19",
+   "nama": "KAB. BATU BARA"
+  },
+  {
+   "kode": "12.20",
+   "nama": "KAB. PADANG LAWAS UTARA"
+  },
+  {
+   "kode": "12.21",
+   "nama": "KAB. PADANG LAWAS"
+  },
+  {
+   "kode": "12.22",
+   "nama": "KAB. LABUHANBATU SELATAN"
+  },
+  {
+   "kode": "12.23",
+   "nama": "KAB. LABUHANBATU UTARA"
+  },
+  {
+   "kode": "12.24",
+   "nama": "KAB. NIAS UTARA"
+  },
+  {
+   "kode": "12.25",
+   "nama": "KAB. NIAS BARAT"
+  },
+  {
+   "kode": "12.71",
+   "nama": "KOTA MEDAN"
+  },
+  {
+   "kode": "12.72",
+   "nama": "KOTA PEMATANGSIANTAR"
+  },
+  {
+   "kode": "12.73",
+   "nama": "KOTA SIBOLGA"
+  },
+  {
+   "kode": "12.74",
+   "nama": "KOTA TANJUNG BALAI"
+  },
+  {
+   "kode": "12.75",
+   "nama": "KOTA BINJAI"
+  },
+  {
+   "kode": "12.76",
+   "nama": "KOTA TEBING TINGGI"
+  },
+  {
+   "kode": "12.77",
+   "nama": "KOTA PADANGSIDIMPUAN"
+  },
+  {
+   "kode": "12.78",
+   "nama": "KOTA GUNUNGSITOLI"
+  },
+  {
+   "kode": "13.01",
+   "nama": "KAB. PESISIR SELATAN"
+  },
+  {
+   "kode": "13.02",
+   "nama": "KAB. SOLOK"
+  },
+  {
+   "kode": "13.03",
+   "nama": "KAB. SIJUNJUNG"
+  },
+  {
+   "kode": "13.04",
+   "nama": "KAB. TANAH DATAR"
+  },
+  {
+   "kode": "13.05",
+   "nama": "KAB. PADANG PARIAMAN"
+  },
+  {
+   "kode": "13.06",
+   "nama": "KAB. AGAM"
+  },
+  {
+   "kode": "13.07",
+   "nama": "KAB. LIMA PULUH KOTA"
+  },
+  {
+   "kode": "13.08",
+   "nama": "KAB. PASAMAN"
+  },
+  {
+   "kode": "13.09",
+   "nama": "KAB. KEPULAUAN MENTAWAI"
+  },
+  {
+   "kode": "13.10",
+   "nama": "KAB. DHARMASRAYA"
+  },
+  {
+   "kode": "13.11",
+   "nama": "KAB. SOLOK SELATAN"
+  },
+  {
+   "kode": "13.12",
+   "nama": "KAB. PASAMAN BARAT"
+  },
+  {
+   "kode": "13.71",
+   "nama": "KOTA PADANG"
+  },
+  {
+   "kode": "13.72",
+   "nama": "KOTA SOLOK"
+  },
+  {
+   "kode": "13.73",
+   "nama": "KOTA SAWAHLUNTO"
+  },
+  {
+   "kode": "13.74",
+   "nama": "KOTA PADANG PANJANG"
+  },
+  {
+   "kode": "13.75",
+   "nama": "KOTA BUKITTINGGI"
+  },
+  {
+   "kode": "13.76",
+   "nama": "KOTA PAYAKUMBUH"
+  },
+  {
+   "kode": "13.77",
+   "nama": "KOTA PARIAMAN"
+  },
+  {
+   "kode": "14.01",
+   "nama": "KAB. KAMPAR"
+  },
+  {
+   "kode": "14.02",
+   "nama": "KAB. INDRAGIRI HULU"
+  },
+  {
+   "kode": "14.03",
+   "nama": "KAB. BENGKALIS"
+  },
+  {
+   "kode": "14.04",
+   "nama": "KAB. INDRAGIRI HILIR"
+  },
+  {
+   "kode": "14.05",
+   "nama": "KAB. PELALAWAN"
+  },
+  {
+   "kode": "14.06",
+   "nama": "KAB. ROKAN HULU"
+  },
+  {
+   "kode": "14.07",
+   "nama": "KAB. ROKAN HILIR"
+  },
+  {
+   "kode": "14.08",
+   "nama": "KAB. SIAK"
+  },
+  {
+   "kode": "14.09",
+   "nama": "KAB. KUANTAN SINGINGI"
+  },
+  {
+   "kode": "14.10",
+   "nama": "KAB. KEPULAUAN MERANTI"
+  },
+  {
+   "kode": "14.71",
+   "nama": "KOTA PEKANBARU"
+  },
+  {
+   "kode": "14.72",
+   "nama": "KOTA DUMAI"
+  },
+  {
+   "kode": "15.01",
+   "nama": "KAB. KERINCI"
+  },
+  {
+   "kode": "15.02",
+   "nama": "KAB. MERANGIN"
+  },
+  {
+   "kode": "15.03",
+   "nama": "KAB. SAROLANGUN"
+  },
+  {
+   "kode": "15.04",
+   "nama": "KAB. BATANGHARI"
+  },
+  {
+   "kode": "15.05",
+   "nama": "KAB. MUARO JAMBI"
+  },
+  {
+   "kode": "15.06",
+   "nama": "KAB. TANJUNG JABUNG BARAT"
+  },
+  {
+   "kode": "15.07",
+   "nama": "KAB. TANJUNG JABUNG TIMUR"
+  },
+  {
+   "kode": "15.08",
+   "nama": "KAB. BUNGO"
+  },
+  {
+   "kode": "15.09",
+   "nama": "KAB. TEBO"
+  },
+  {
+   "kode": "15.71",
+   "nama": "KOTA JAMBI"
+  },
+  {
+   "kode": "15.72",
+   "nama": "KOTA SUNGAI PENUH"
+  },
+  {
+   "kode": "16.01",
+   "nama": "KAB. OGAN KOMERING ULU"
+  },
+  {
+   "kode": "16.02",
+   "nama": "KAB. OGAN KOMERING ILIR"
+  },
+  {
+   "kode": "16.03",
+   "nama": "KAB. MUARA ENIM"
+  },
+  {
+   "kode": "16.04",
+   "nama": "KAB. LAHAT"
+  },
+  {
+   "kode": "16.05",
+   "nama": "KAB. MUSI RAWAS"
+  },
+  {
+   "kode": "16.06",
+   "nama": "KAB. MUSI BANYUASIN"
+  },
+  {
+   "kode": "16.07",
+   "nama": "KAB. BANYUASIN"
+  },
+  {
+   "kode": "16.08",
+   "nama": "KAB. OGAN KOMERING ULU TIMUR"
+  },
+  {
+   "kode": "16.09",
+   "nama": "KAB. OGAN KOMERING ULU SELATAN"
+  },
+  {
+   "kode": "16.10",
+   "nama": "KAB. OGAN ILIR"
+  },
+  {
+   "kode": "16.11",
+   "nama": "KAB. EMPAT LAWANG"
+  },
+  {
+   "kode": "16.12",
+   "nama": "KAB. PENUKAL ABAB LEMATANG ILIR"
+  },
+  {
+   "kode": "16.13",
+   "nama": "KAB. MUSI RAWAS UTARA"
+  },
+  {
+   "kode": "16.71",
+   "nama": "KOTA PALEMBANG"
+  },
+  {
+   "kode": "16.72",
+   "nama": "KOTA PAGAR ALAM"
+  },
+  {
+   "kode": "16.73",
+   "nama": "KOTA LUBUK LINGGAU"
+  },
+  {
+   "kode": "16.74",
+   "nama": "KOTA PRABUMULIH"
+  },
+  {
+   "kode": "17.01",
+   "nama": "KAB. BENGKULU SELATAN"
+  },
+  {
+   "kode": "17.02",
+   "nama": "KAB. REJANG LEBONG"
+  },
+  {
+   "kode": "17.03",
+   "nama": "KAB. BENGKULU UTARA"
+  },
+  {
+   "kode": "17.04",
+   "nama": "KAB. KAUR"
+  },
+  {
+   "kode": "17.05",
+   "nama": "KAB. SELUMA"
+  },
+  {
+   "kode": "17.06",
+   "nama": "KAB. MUKO MUKO"
+  },
+  {
+   "kode": "17.07",
+   "nama": "KAB. LEBONG"
+  },
+  {
+   "kode": "17.08",
+   "nama": "KAB. KEPAHIANG"
+  },
+  {
+   "kode": "17.09",
+   "nama": "KAB. BENGKULU TENGAH"
+  },
+  {
+   "kode": "17.71",
+   "nama": "KOTA BENGKULU"
+  },
+  {
+   "kode": "18.01",
+   "nama": "KAB. LAMPUNG SELATAN"
+  },
+  {
+   "kode": "18.02",
+   "nama": "KAB. LAMPUNG TENGAH"
+  },
+  {
+   "kode": "18.03",
+   "nama": "KAB. LAMPUNG UTARA"
+  },
+  {
+   "kode": "18.04",
+   "nama": "KAB. LAMPUNG BARAT"
+  },
+  {
+   "kode": "18.05",
+   "nama": "KAB. TULANG BAWANG"
+  },
+  {
+   "kode": "18.06",
+   "nama": "KAB. TANGGAMUS"
+  },
+  {
+   "kode": "18.07",
+   "nama": "KAB. LAMPUNG TIMUR"
+  },
+  {
+   "kode": "18.08",
+   "nama": "KAB. WAY KANAN"
+  },
+  {
+   "kode": "18.09",
+   "nama": "KAB. PESAWARAN"
+  },
+  {
+   "kode": "18.10",
+   "nama": "KAB. PRINGSEWU"
+  },
+  {
+   "kode": "18.11",
+   "nama": "KAB. MESUJI"
+  },
+  {
+   "kode": "18.12",
+   "nama": "KAB. TULANG BAWANG BARAT"
+  },
+  {
+   "kode": "18.13",
+   "nama": "KAB. PESISIR BARAT"
+  },
+  {
+   "kode": "18.71",
+   "nama": "KOTA BANDAR LAMPUNG"
+  },
+  {
+   "kode": "18.72",
+   "nama": "KOTA METRO"
+  },
+  {
+   "kode": "19.01",
+   "nama": "KAB. BANGKA"
+  },
+  {
+   "kode": "19.02",
+   "nama": "KAB. BELITUNG"
+  },
+  {
+   "kode": "19.03",
+   "nama": "KAB. BANGKA SELATAN"
+  },
+  {
+   "kode": "19.04",
+   "nama": "KAB. BANGKA TENGAH"
+  },
+  {
+   "kode": "19.05",
+   "nama": "KAB. BANGKA BARAT"
+  },
+  {
+   "kode": "19.06",
+   "nama": "KAB. BELITUNG TIMUR"
+  },
+  {
+   "kode": "19.71",
+   "nama": "KOTA PANGKAL PINANG"
+  },
+  {
+   "kode": "21.01",
+   "nama": "KAB. BINTAN"
+  },
+  {
+   "kode": "21.02",
+   "nama": "KAB. KARIMUN"
+  },
+  {
+   "kode": "21.03",
+   "nama": "KAB. NATUNA"
+  },
+  {
+   "kode": "21.04",
+   "nama": "KAB. LINGGA"
+  },
+  {
+   "kode": "21.05",
+   "nama": "KAB. KEPULAUAN ANAMBAS"
+  },
+  {
+   "kode": "21.71",
+   "nama": "KOTA BATAM"
+  },
+  {
+   "kode": "21.72",
+   "nama": "KOTA TANJUNG PINANG"
+  },
+  {
+   "kode": "31.01",
+   "nama": "KAB. ADM. KEP. SERIBU"
+  },
+  {
+   "kode": "31.71",
+   "nama": "KOTA ADM. JAKARTA PUSAT"
+  },
+  {
+   "kode": "31.72",
+   "nama": "KOTA ADM. JAKARTA UTARA"
+  },
+  {
+   "kode": "31.73",
+   "nama": "KOTA ADM. JAKARTA BARAT"
+  },
+  {
+   "kode": "31.74",
+   "nama": "KOTA ADM. JAKARTA SELATAN"
+  },
+  {
+   "kode": "31.75",
+   "nama": "KOTA ADM. JAKARTA TIMUR"
+  },
+  {
+   "kode": "32.01",
+   "nama": "KAB. BOGOR"
+  },
+  {
+   "kode": "32.02",
+   "nama": "KAB. SUKABUMI"
+  },
+  {
+   "kode": "32.03",
+   "nama": "KAB. CIANJUR"
+  },
+  {
+   "kode": "32.04",
+   "nama": "KAB. BANDUNG"
+  },
+  {
+   "kode": "32.05",
+   "nama": "KAB. GARUT"
+  },
+  {
+   "kode": "32.06",
+   "nama": "KAB. TASIKMALAYA"
+  },
+  {
+   "kode": "32.07",
+   "nama": "KAB. CIAMIS"
+  },
+  {
+   "kode": "32.08",
+   "nama": "KAB. KUNINGAN"
+  },
+  {
+   "kode": "32.09",
+   "nama": "KAB. CIREBON"
+  },
+  {
+   "kode": "32.10",
+   "nama": "KAB. MAJALENGKA"
+  },
+  {
+   "kode": "32.11",
+   "nama": "KAB. SUMEDANG"
+  },
+  {
+   "kode": "32.12",
+   "nama": "KAB. INDRAMAYU"
+  },
+  {
+   "kode": "32.13",
+   "nama": "KAB. SUBANG"
+  },
+  {
+   "kode": "32.14",
+   "nama": "KAB. PURWAKARTA"
+  },
+  {
+   "kode": "32.15",
+   "nama": "KAB. KARAWANG"
+  },
+  {
+   "kode": "32.16",
+   "nama": "KAB. BEKASI"
+  },
+  {
+   "kode": "32.17",
+   "nama": "KAB. BANDUNG BARAT"
+  },
+  {
+   "kode": "32.18",
+   "nama": "KAB. PANGANDARAN"
+  },
+  {
+   "kode": "32.71",
+   "nama": "KOTA BOGOR"
+  },
+  {
+   "kode": "32.72",
+   "nama": "KOTA SUKABUMI"
+  },
+  {
+   "kode": "32.73",
+   "nama": "KOTA BANDUNG"
+  },
+  {
+   "kode": "32.74",
+   "nama": "KOTA CIREBON"
+  },
+  {
+   "kode": "32.75",
+   "nama": "KOTA BEKASI"
+  },
+  {
+   "kode": "32.76",
+   "nama": "KOTA DEPOK"
+  },
+  {
+   "kode": "32.77",
+   "nama": "KOTA CIMAHI"
+  },
+  {
+   "kode": "32.78",
+   "nama": "KOTA TASIKMALAYA"
+  },
+  {
+   "kode": "32.79",
+   "nama": "KOTA BANJAR"
+  },
+  {
+   "kode": "33.01",
+   "nama": "KAB. CILACAP"
+  },
+  {
+   "kode": "33.02",
+   "nama": "KAB. BANYUMAS"
+  },
+  {
+   "kode": "33.03",
+   "nama": "KAB. PURBALINGGA"
+  },
+  {
+   "kode": "33.04",
+   "nama": "KAB. BANJARNEGARA"
+  },
+  {
+   "kode": "33.05",
+   "nama": "KAB. KEBUMEN"
+  },
+  {
+   "kode": "33.06",
+   "nama": "KAB. PURWOREJO"
+  },
+  {
+   "kode": "33.07",
+   "nama": "KAB. WONOSOBO"
+  },
+  {
+   "kode": "33.08",
+   "nama": "KAB. MAGELANG"
+  },
+  {
+   "kode": "33.09",
+   "nama": "KAB. BOYOLALI"
+  },
+  {
+   "kode": "33.10",
+   "nama": "KAB. KLATEN"
+  },
+  {
+   "kode": "33.11",
+   "nama": "KAB. SUKOHARJO"
+  },
+  {
+   "kode": "33.12",
+   "nama": "KAB. WONOGIRI"
+  },
+  {
+   "kode": "33.13",
+   "nama": "KAB. KARANGANYAR"
+  },
+  {
+   "kode": "33.14",
+   "nama": "KAB. SRAGEN"
+  },
+  {
+   "kode": "33.15",
+   "nama": "KAB. GROBOGAN"
+  },
+  {
+   "kode": "33.16",
+   "nama": "KAB. BLORA"
+  },
+  {
+   "kode": "33.17",
+   "nama": "KAB. REMBANG"
+  },
+  {
+   "kode": "33.18",
+   "nama": "KAB. PATI"
+  },
+  {
+   "kode": "33.19",
+   "nama": "KAB. KUDUS"
+  },
+  {
+   "kode": "33.20",
+   "nama": "KAB. JEPARA"
+  },
+  {
+   "kode": "33.21",
+   "nama": "KAB. DEMAK"
+  },
+  {
+   "kode": "33.22",
+   "nama": "KAB. SEMARANG"
+  },
+  {
+   "kode": "33.23",
+   "nama": "KAB. TEMANGGUNG"
+  },
+  {
+   "kode": "33.24",
+   "nama": "KAB. KENDAL"
+  },
+  {
+   "kode": "33.25",
+   "nama": "KAB. BATANG"
+  },
+  {
+   "kode": "33.26",
+   "nama": "KAB. PEKALONGAN"
+  },
+  {
+   "kode": "33.27",
+   "nama": "KAB. PEMALANG"
+  },
+  {
+   "kode": "33.28",
+   "nama": "KAB. TEGAL"
+  },
+  {
+   "kode": "33.29",
+   "nama": "KAB. BREBES"
+  },
+  {
+   "kode": "33.71",
+   "nama": "KOTA MAGELANG"
+  },
+  {
+   "kode": "33.72",
+   "nama": "KOTA SURAKARTA"
+  },
+  {
+   "kode": "33.73",
+   "nama": "KOTA SALATIGA"
+  },
+  {
+   "kode": "33.74",
+   "nama": "KOTA SEMARANG"
+  },
+  {
+   "kode": "33.75",
+   "nama": "KOTA PEKALONGAN"
+  },
+  {
+   "kode": "33.76",
+   "nama": "KOTA TEGAL"
+  },
+  {
+   "kode": "34.01",
+   "nama": "KAB. KULON PROGO"
+  },
+  {
+   "kode": "34.02",
+   "nama": "KAB. BANTUL"
+  },
+  {
+   "kode": "34.03",
+   "nama": "KAB. GUNUNGKIDUL"
+  },
+  {
+   "kode": "34.04",
+   "nama": "KAB. SLEMAN"
+  },
+  {
+   "kode": "34.71",
+   "nama": "KOTA YOGYAKARTA"
+  },
+  {
+   "kode": "35.01",
+   "nama": "KAB. PACITAN"
+  },
+  {
+   "kode": "35.02",
+   "nama": "KAB. PONOROGO"
+  },
+  {
+   "kode": "35.03",
+   "nama": "KAB. TRENGGALEK"
+  },
+  {
+   "kode": "35.04",
+   "nama": "KAB. TULUNGAGUNG"
+  },
+  {
+   "kode": "35.05",
+   "nama": "KAB. BLITAR"
+  },
+  {
+   "kode": "35.06",
+   "nama": "KAB. KEDIRI"
+  },
+  {
+   "kode": "35.07",
+   "nama": "KAB. MALANG"
+  },
+  {
+   "kode": "35.08",
+   "nama": "KAB. LUMAJANG"
+  },
+  {
+   "kode": "35.09",
+   "nama": "KAB. JEMBER"
+  },
+  {
+   "kode": "35.10",
+   "nama": "KAB. BANYUWANGI"
+  },
+  {
+   "kode": "35.11",
+   "nama": "KAB. BONDOWOSO"
+  },
+  {
+   "kode": "35.12",
+   "nama": "KAB. SITUBONDO"
+  },
+  {
+   "kode": "35.13",
+   "nama": "KAB. PROBOLINGGO"
+  },
+  {
+   "kode": "35.14",
+   "nama": "KAB. PASURUAN"
+  },
+  {
+   "kode": "35.15",
+   "nama": "KAB. SIDOARJO"
+  },
+  {
+   "kode": "35.16",
+   "nama": "KAB. MOJOKERTO"
+  },
+  {
+   "kode": "35.17",
+   "nama": "KAB. JOMBANG"
+  },
+  {
+   "kode": "35.18",
+   "nama": "KAB. NGANJUK"
+  },
+  {
+   "kode": "35.19",
+   "nama": "KAB. MADIUN"
+  },
+  {
+   "kode": "35.20",
+   "nama": "KAB. MAGETAN"
+  },
+  {
+   "kode": "35.21",
+   "nama": "KAB. NGAWI"
+  },
+  {
+   "kode": "35.22",
+   "nama": "KAB. BOJONEGORO"
+  },
+  {
+   "kode": "35.23",
+   "nama": "KAB. TUBAN"
+  },
+  {
+   "kode": "35.24",
+   "nama": "KAB. LAMONGAN"
+  },
+  {
+   "kode": "35.25",
+   "nama": "KAB. GRESIK"
+  },
+  {
+   "kode": "35.26",
+   "nama": "KAB. BANGKALAN"
+  },
+  {
+   "kode": "35.27",
+   "nama": "KAB. SAMPANG"
+  },
+  {
+   "kode": "35.28",
+   "nama": "KAB. PAMEKASAN"
+  },
+  {
+   "kode": "35.29",
+   "nama": "KAB. SUMENEP"
+  },
+  {
+   "kode": "35.71",
+   "nama": "KOTA KEDIRI"
+  },
+  {
+   "kode": "35.72",
+   "nama": "KOTA BLITAR"
+  },
+  {
+   "kode": "35.73",
+   "nama": "KOTA MALANG"
+  },
+  {
+   "kode": "35.74",
+   "nama": "KOTA PROBOLINGGO"
+  },
+  {
+   "kode": "35.75",
+   "nama": "KOTA PASURUAN"
+  },
+  {
+   "kode": "35.76",
+   "nama": "KOTA MOJOKERTO"
+  },
+  {
+   "kode": "35.77",
+   "nama": "KOTA MADIUN"
+  },
+  {
+   "kode": "35.78",
+   "nama": "KOTA SURABAYA"
+  },
+  {
+   "kode": "35.79",
+   "nama": "KOTA BATU"
+  },
+  {
+   "kode": "36.01",
+   "nama": "KAB. PANDEGLANG"
+  },
+  {
+   "kode": "36.02",
+   "nama": "KAB. LEBAK"
+  },
+  {
+   "kode": "36.03",
+   "nama": "KAB. TANGERANG"
+  },
+  {
+   "kode": "36.04",
+   "nama": "KAB. SERANG"
+  },
+  {
+   "kode": "36.71",
+   "nama": "KOTA TANGERANG"
+  },
+  {
+   "kode": "36.72",
+   "nama": "KOTA CILEGON"
+  },
+  {
+   "kode": "36.73",
+   "nama": "KOTA SERANG"
+  },
+  {
+   "kode": "36.74",
+   "nama": "KOTA TANGERANG SELATAN"
+  },
+  {
+   "kode": "51.01",
+   "nama": "KAB. JEMBRANA"
+  },
+  {
+   "kode": "51.02",
+   "nama": "KAB. TABANAN"
+  },
+  {
+   "kode": "51.03",
+   "nama": "KAB. BADUNG"
+  },
+  {
+   "kode": "51.04",
+   "nama": "KAB. GIANYAR"
+  },
+  {
+   "kode": "51.05",
+   "nama": "KAB. KLUNGKUNG"
+  },
+  {
+   "kode": "51.06",
+   "nama": "KAB. BANGLI"
+  },
+  {
+   "kode": "51.07",
+   "nama": "KAB. KARANGASEM"
+  },
+  {
+   "kode": "51.08",
+   "nama": "KAB. BULELENG"
+  },
+  {
+   "kode": "51.71",
+   "nama": "KOTA DENPASAR"
+  },
+  {
+   "kode": "52.01",
+   "nama": "KAB. LOMBOK BARAT"
+  },
+  {
+   "kode": "52.02",
+   "nama": "KAB. LOMBOK TENGAH"
+  },
+  {
+   "kode": "52.03",
+   "nama": "KAB. LOMBOK TIMUR"
+  },
+  {
+   "kode": "52.04",
+   "nama": "KAB. SUMBAWA"
+  },
+  {
+   "kode": "52.05",
+   "nama": "KAB. DOMPU"
+  },
+  {
+   "kode": "52.06",
+   "nama": "KAB. BIMA"
+  },
+  {
+   "kode": "52.07",
+   "nama": "KAB. SUMBAWA BARAT"
+  },
+  {
+   "kode": "52.08",
+   "nama": "KAB. LOMBOK UTARA"
+  },
+  {
+   "kode": "52.71",
+   "nama": "KOTA MATARAM"
+  },
+  {
+   "kode": "52.72",
+   "nama": "KOTA BIMA"
+  },
+  {
+   "kode": "53.01",
+   "nama": "KAB. KUPANG"
+  },
+  {
+   "kode": "53.02",
+   "nama": "KAB TIMOR TENGAH SELATAN"
+  },
+  {
+   "kode": "53.03",
+   "nama": "KAB. TIMOR TENGAH UTARA"
+  },
+  {
+   "kode": "53.04",
+   "nama": "KAB. BELU"
+  },
+  {
+   "kode": "53.05",
+   "nama": "KAB. ALOR"
+  },
+  {
+   "kode": "53.06",
+   "nama": "KAB. FLORES TIMUR"
+  },
+  {
+   "kode": "53.07",
+   "nama": "KAB. SIKKA"
+  },
+  {
+   "kode": "53.08",
+   "nama": "KAB. ENDE"
+  },
+  {
+   "kode": "53.09",
+   "nama": "KAB. NGADA"
+  },
+  {
+   "kode": "53.10",
+   "nama": "KAB. MANGGARAI"
+  },
+  {
+   "kode": "53.11",
+   "nama": "KAB. SUMBA TIMUR"
+  },
+  {
+   "kode": "53.12",
+   "nama": "KAB. SUMBA BARAT"
+  },
+  {
+   "kode": "53.13",
+   "nama": "KAB. LEMBATA"
+  },
+  {
+   "kode": "53.14",
+   "nama": "KAB. ROTE NDAO"
+  },
+  {
+   "kode": "53.15",
+   "nama": "KAB. MANGGARAI BARAT"
+  },
+  {
+   "kode": "53.16",
+   "nama": "KAB. NAGEKEO"
+  },
+  {
+   "kode": "53.17",
+   "nama": "KAB. SUMBA TENGAH"
+  },
+  {
+   "kode": "53.18",
+   "nama": "KAB. SUMBA BARAT DAYA"
+  },
+  {
+   "kode": "53.19",
+   "nama": "KAB. MANGGARAI TIMUR"
+  },
+  {
+   "kode": "53.20",
+   "nama": "KAB. SABU RAIJUA"
+  },
+  {
+   "kode": "53.21",
+   "nama": "KAB. MALAKA"
+  },
+  {
+   "kode": "53.71",
+   "nama": "KOTA KUPANG"
+  },
+  {
+   "kode": "61.01",
+   "nama": "KAB. SAMBAS"
+  },
+  {
+   "kode": "61.02",
+   "nama": "KAB. MEMPAWAH"
+  },
+  {
+   "kode": "61.03",
+   "nama": "KAB. SANGGAU"
+  },
+  {
+   "kode": "61.04",
+   "nama": "KAB. KETAPANG"
+  },
+  {
+   "kode": "61.05",
+   "nama": "KAB. SINTANG"
+  },
+  {
+   "kode": "61.06",
+   "nama": "KAB. KAPUAS HULU"
+  },
+  {
+   "kode": "61.07",
+   "nama": "KAB. BENGKAYANG"
+  },
+  {
+   "kode": "61.08",
+   "nama": "KAB. LANDAK"
+  },
+  {
+   "kode": "61.09",
+   "nama": "KAB. SEKADAU"
+  },
+  {
+   "kode": "61.10",
+   "nama": "KAB. MELAWI"
+  },
+  {
+   "kode": "61.11",
+   "nama": "KAB. KAYONG UTARA"
+  },
+  {
+   "kode": "61.12",
+   "nama": "KAB. KUBU RAYA"
+  },
+  {
+   "kode": "61.71",
+   "nama": "KOTA PONTIANAK"
+  },
+  {
+   "kode": "61.72",
+   "nama": "KOTA SINGKAWANG"
+  },
+  {
+   "kode": "62.01",
+   "nama": "KAB. KOTAWARINGIN BARAT"
+  },
+  {
+   "kode": "62.02",
+   "nama": "KAB. KOTAWARINGIN TIMUR"
+  },
+  {
+   "kode": "62.03",
+   "nama": "KAB. KAPUAS"
+  },
+  {
+   "kode": "62.04",
+   "nama": "KAB. BARITO SELATAN"
+  },
+  {
+   "kode": "62.05",
+   "nama": "KAB. BARITO UTARA"
+  },
+  {
+   "kode": "62.06",
+   "nama": "KAB. KATINGAN"
+  },
+  {
+   "kode": "62.07",
+   "nama": "KAB. SERUYAN"
+  },
+  {
+   "kode": "62.08",
+   "nama": "KAB. SUKAMARA"
+  },
+  {
+   "kode": "62.09",
+   "nama": "KAB. LAMANDAU"
+  },
+  {
+   "kode": "62.10",
+   "nama": "KAB. GUNUNG MAS"
+  },
+  {
+   "kode": "62.11",
+   "nama": "KAB. PULANG PISAU"
+  },
+  {
+   "kode": "62.12",
+   "nama": "KAB. MURUNG RAYA"
+  },
+  {
+   "kode": "62.13",
+   "nama": "KAB. BARITO TIMUR"
+  },
+  {
+   "kode": "62.71",
+   "nama": "KOTA PALANGKARAYA"
+  },
+  {
+   "kode": "63.01",
+   "nama": "KAB. TANAH LAUT"
+  },
+  {
+   "kode": "63.02",
+   "nama": "KAB. KOTABARU"
+  },
+  {
+   "kode": "63.03",
+   "nama": "KAB. BANJAR"
+  },
+  {
+   "kode": "63.04",
+   "nama": "KAB. BARITO KUALA"
+  },
+  {
+   "kode": "63.05",
+   "nama": "KAB. TAPIN"
+  },
+  {
+   "kode": "63.06",
+   "nama": "KAB. HULU SUNGAI SELATAN"
+  },
+  {
+   "kode": "63.07",
+   "nama": "KAB. HULU SUNGAI TENGAH"
+  },
+  {
+   "kode": "63.08",
+   "nama": "KAB. HULU SUNGAI UTARA"
+  },
+  {
+   "kode": "63.09",
+   "nama": "KAB. TABALONG"
+  },
+  {
+   "kode": "63.10",
+   "nama": "KAB. TANAH BUMBU"
+  },
+  {
+   "kode": "63.11",
+   "nama": "KAB. BALANGAN"
+  },
+  {
+   "kode": "63.71",
+   "nama": "KOTA BANJARMASIN"
+  },
+  {
+   "kode": "63.72",
+   "nama": "KOTA BANJARBARU"
+  },
+  {
+   "kode": "64.01",
+   "nama": "KAB. PASER"
+  },
+  {
+   "kode": "64.02",
+   "nama": "KAB. KUTAI KARTANEGARA"
+  },
+  {
+   "kode": "64.03",
+   "nama": "KAB. BERAU"
+  },
+  {
+   "kode": "64.07",
+   "nama": "KAB. KUTAI BARAT"
+  },
+  {
+   "kode": "64.08",
+   "nama": "KAB. KUTAI TIMUR"
+  },
+  {
+   "kode": "64.09",
+   "nama": "KAB. PENAJAM PASER UTARA"
+  },
+  {
+   "kode": "64.11",
+   "nama": "KAB. MAHAKAM ULU"
+  },
+  {
+   "kode": "64.71",
+   "nama": "KOTA BALIKPAPAN"
+  },
+  {
+   "kode": "64.72",
+   "nama": "KOTA SAMARINDA"
+  },
+  {
+   "kode": "64.74",
+   "nama": "KOTA BONTANG"
+  },
+  {
+   "kode": "65.01",
+   "nama": "KAB. BULUNGAN"
+  },
+  {
+   "kode": "65.02",
+   "nama": "KAB. MALINAU"
+  },
+  {
+   "kode": "65.03",
+   "nama": "KAB. NUNUKAN"
+  },
+  {
+   "kode": "65.04",
+   "nama": "KAB. TANA TIDUNG"
+  },
+  {
+   "kode": "65.71",
+   "nama": "KOTA TARAKAN"
+  },
+  {
+   "kode": "71.01",
+   "nama": "KAB. BOLAANG MONGONDOW"
+  },
+  {
+   "kode": "71.02",
+   "nama": "KAB. MINAHASA"
+  },
+  {
+   "kode": "71.03",
+   "nama": "KAB. KEPULAUAN SANGIHE"
+  },
+  {
+   "kode": "71.04",
+   "nama": "KAB. KEPULAUAN TALAUD"
+  },
+  {
+   "kode": "71.05",
+   "nama": "KAB. MINAHASA SELATAN"
+  },
+  {
+   "kode": "71.06",
+   "nama": "KAB. MINAHASA UTARA"
+  },
+  {
+   "kode": "71.07",
+   "nama": "KAB. MINAHASA TENGGARA"
+  },
+  {
+   "kode": "71.08",
+   "nama": "KAB. BOLAANG MONGONDOW UTARA"
+  },
+  {
+   "kode": "71.09",
+   "nama": "KAB. KEP. SIAU TAGULANDANG BIARO"
+  },
+  {
+   "kode": "71.10",
+   "nama": "KAB. BOLAANG MONGONDOW TIMUR"
+  },
+  {
+   "kode": "71.11",
+   "nama": "KAB. BOLAANG MONGONDOW SELATAN"
+  },
+  {
+   "kode": "71.71",
+   "nama": "KOTA MANADO"
+  },
+  {
+   "kode": "71.72",
+   "nama": "KOTA BITUNG"
+  },
+  {
+   "kode": "71.73",
+   "nama": "KOTA TOMOHON"
+  },
+  {
+   "kode": "71.74",
+   "nama": "KOTA KOTAMOBAGU"
+  },
+  {
+   "kode": "72.01",
+   "nama": "KAB. BANGGAI"
+  },
+  {
+   "kode": "72.02",
+   "nama": "KAB. POSO"
+  },
+  {
+   "kode": "72.03",
+   "nama": "KAB. DONGGALA"
+  },
+  {
+   "kode": "72.04",
+   "nama": "KAB. TOLI TOLI"
+  },
+  {
+   "kode": "72.05",
+   "nama": "KAB. BUOL"
+  },
+  {
+   "kode": "72.06",
+   "nama": "KAB. MOROWALI"
+  },
+  {
+   "kode": "72.07",
+   "nama": "KAB. BANGGAI KEPULAUAN"
+  },
+  {
+   "kode": "72.08",
+   "nama": "KAB. PARIGI MOUTONG"
+  },
+  {
+   "kode": "72.09",
+   "nama": "KAB. TOJO UNA UNA"
+  },
+  {
+   "kode": "72.10",
+   "nama": "KAB. SIGI"
+  },
+  {
+   "kode": "72.11",
+   "nama": "KAB. BANGGAI LAUT"
+  },
+  {
+   "kode": "72.12",
+   "nama": "KAB. MOROWALI UTARA"
+  },
+  {
+   "kode": "72.71",
+   "nama": "KOTA PALU"
+  },
+  {
+   "kode": "73.01",
+   "nama": "KAB. KEPULAUAN SELAYAR"
+  },
+  {
+   "kode": "73.02",
+   "nama": "KAB. BULUKUMBA"
+  },
+  {
+   "kode": "73.03",
+   "nama": "KAB. BANTAENG"
+  },
+  {
+   "kode": "73.04",
+   "nama": "KAB. JENEPONTO"
+  },
+  {
+   "kode": "73.05",
+   "nama": "KAB. TAKALAR"
+  },
+  {
+   "kode": "73.06",
+   "nama": "KAB. GOWA"
+  },
+  {
+   "kode": "73.07",
+   "nama": "KAB. SINJAI"
+  },
+  {
+   "kode": "73.08",
+   "nama": "KAB. BONE"
+  },
+  {
+   "kode": "73.09",
+   "nama": "KAB. MAROS"
+  },
+  {
+   "kode": "73.10",
+   "nama": "KAB. PANGKAJENE KEPULAUAN"
+  },
+  {
+   "kode": "73.11",
+   "nama": "KAB. BARRU"
+  },
+  {
+   "kode": "73.12",
+   "nama": "KAB. SOPPENG"
+  },
+  {
+   "kode": "73.13",
+   "nama": "KAB. WAJO"
+  },
+  {
+   "kode": "73.14",
+   "nama": "KAB. SIDENRENG RAPPANG"
+  },
+  {
+   "kode": "73.15",
+   "nama": "KAB. PINRANG"
+  },
+  {
+   "kode": "73.16",
+   "nama": "KAB. ENREKANG"
+  },
+  {
+   "kode": "73.17",
+   "nama": "KAB. LUWU"
+  },
+  {
+   "kode": "73.18",
+   "nama": "KAB. TANA TORAJA"
+  },
+  {
+   "kode": "73.22",
+   "nama": "KAB. LUWU UTARA"
+  },
+  {
+   "kode": "73.24",
+   "nama": "KAB. LUWU TIMUR"
+  },
+  {
+   "kode": "73.26",
+   "nama": "KAB. TORAJA UTARA"
+  },
+  {
+   "kode": "73.71",
+   "nama": "KOTA MAKASSAR"
+  },
+  {
+   "kode": "73.72",
+   "nama": "KOTA PARE PARE"
+  },
+  {
+   "kode": "73.73",
+   "nama": "KOTA PALOPO"
+  },
+  {
+   "kode": "74.01",
+   "nama": "KAB. KOLAKA"
+  },
+  {
+   "kode": "74.02",
+   "nama": "KAB. KONAWE"
+  },
+  {
+   "kode": "74.03",
+   "nama": "KAB. MUNA"
+  },
+  {
+   "kode": "74.04",
+   "nama": "KAB. BUTON"
+  },
+  {
+   "kode": "74.05",
+   "nama": "KAB. KONAWE SELATAN"
+  },
+  {
+   "kode": "74.06",
+   "nama": "KAB. BOMBANA"
+  },
+  {
+   "kode": "74.07",
+   "nama": "KAB. WAKATOBI"
+  },
+  {
+   "kode": "74.08",
+   "nama": "KAB. KOLAKA UTARA"
+  },
+  {
+   "kode": "74.09",
+   "nama": "KAB. KONAWE UTARA"
+  },
+  {
+   "kode": "74.10",
+   "nama": "KAB. BUTON UTARA"
+  },
+  {
+   "kode": "74.11",
+   "nama": "KAB. KOLAKA TIMUR"
+  },
+  {
+   "kode": "74.12",
+   "nama": "KAB. KONAWE KEPULAUAN"
+  },
+  {
+   "kode": "74.13",
+   "nama": "KAB. MUNA BARAT"
+  },
+  {
+   "kode": "74.14",
+   "nama": "KAB. BUTON TENGAH"
+  },
+  {
+   "kode": "74.15",
+   "nama": "KAB. BUTON SELATAN"
+  },
+  {
+   "kode": "74.71",
+   "nama": "KOTA KENDARI"
+  },
+  {
+   "kode": "74.72",
+   "nama": "KOTA BAU BAU"
+  },
+  {
+   "kode": "75.01",
+   "nama": "KAB. GORONTALO"
+  },
+  {
+   "kode": "75.02",
+   "nama": "KAB. BOALEMO"
+  },
+  {
+   "kode": "75.03",
+   "nama": "KAB. BONE BOLANGO"
+  },
+  {
+   "kode": "75.04",
+   "nama": "KAB. PAHUWATO"
+  },
+  {
+   "kode": "75.05",
+   "nama": "KAB. GORONTALO UTARA"
+  },
+  {
+   "kode": "75.71",
+   "nama": "KOTA GORONTALO"
+  },
+  {
+   "kode": "76.01",
+   "nama": "KAB. PASANGKAYU"
+  },
+  {
+   "kode": "76.02",
+   "nama": "KAB. MAMUJU"
+  },
+  {
+   "kode": "76.03",
+   "nama": "KAB. MAMASA"
+  },
+  {
+   "kode": "76.04",
+   "nama": "KAB. POLEWALI MANDAR"
+  },
+  {
+   "kode": "76.05",
+   "nama": "KAB. MAJENE"
+  },
+  {
+   "kode": "76.06",
+   "nama": "KAB. MAMUJU TENGAH"
+  },
+  {
+   "kode": "81.01",
+   "nama": "KAB. MALUKU TENGAH"
+  },
+  {
+   "kode": "81.02",
+   "nama": "KAB. MALUKU TENGGARA"
+  },
+  {
+   "kode": "81.03",
+   "nama": "KAB. MALUKU TENGGARA BARAT"
+  },
+  {
+   "kode": "81.04",
+   "nama": "KAB. BURU"
+  },
+  {
+   "kode": "81.05",
+   "nama": "KAB. SERAM BAGIAN TIMUR"
+  },
+  {
+   "kode": "81.06",
+   "nama": "KAB. SERAM BAGIAN BARAT"
+  },
+  {
+   "kode": "81.07",
+   "nama": "KAB. KEPULAUAN ARU"
+  },
+  {
+   "kode": "81.08",
+   "nama": "KAB. MALUKU BARAT DAYA"
+  },
+  {
+   "kode": "81.09",
+   "nama": "KAB. BURU SELATAN"
+  },
+  {
+   "kode": "81.71",
+   "nama": "KOTA AMBON"
+  },
+  {
+   "kode": "81.72",
+   "nama": "KOTA TUAL"
+  },
+  {
+   "kode": "82.01",
+   "nama": "KAB. HALMAHERA BARAT"
+  },
+  {
+   "kode": "82.02",
+   "nama": "KAB. HALMAHERA TENGAH"
+  },
+  {
+   "kode": "82.03",
+   "nama": "KAB. HALMAHERA UTARA"
+  },
+  {
+   "kode": "82.04",
+   "nama": "KAB. HALMAHERA SELATAN"
+  },
+  {
+   "kode": "82.05",
+   "nama": "KAB. KEPULAUAN SULA"
+  },
+  {
+   "kode": "82.06",
+   "nama": "KAB. HALMAHERA TIMUR"
+  },
+  {
+   "kode": "82.07",
+   "nama": "KAB. PULAU MOROTAI"
+  },
+  {
+   "kode": "82.08",
+   "nama": "KAB. PULAU TALIABU"
+  },
+  {
+   "kode": "82.71",
+   "nama": "KOTA TERNATE"
+  },
+  {
+   "kode": "82.72",
+   "nama": "KOTA TIDORE KEPULAUAN"
+  },
+  {
+   "kode": "91.01",
+   "nama": "KAB. MERAUKE"
+  },
+  {
+   "kode": "91.02",
+   "nama": "KAB. JAYAWIJAYA"
+  },
+  {
+   "kode": "91.03",
+   "nama": "KAB. JAYAPURA"
+  },
+  {
+   "kode": "91.04",
+   "nama": "KAB. NABIRE"
+  },
+  {
+   "kode": "91.05",
+   "nama": "KAB. KEPULAUAN YAPEN"
+  },
+  {
+   "kode": "91.06",
+   "nama": "KAB. BIAK NUMFOR"
+  },
+  {
+   "kode": "91.07",
+   "nama": "KAB. PUNCAK JAYA"
+  },
+  {
+   "kode": "91.08",
+   "nama": "KAB. PANIAI"
+  },
+  {
+   "kode": "91.09",
+   "nama": "KAB. MIMIKA"
+  },
+  {
+   "kode": "91.10",
+   "nama": "KAB. SARMI"
+  },
+  {
+   "kode": "91.11",
+   "nama": "KAB. KEEROM"
+  },
+  {
+   "kode": "91.12",
+   "nama": "KAB. PEGUNUNGAN BINTANG"
+  },
+  {
+   "kode": "91.13",
+   "nama": "KAB. YAHUKIMO"
+  },
+  {
+   "kode": "91.14",
+   "nama": "KAB. TOLIKARA"
+  },
+  {
+   "kode": "91.15",
+   "nama": "KAB. WAROPEN"
+  },
+  {
+   "kode": "91.16",
+   "nama": "KAB. BOVEN DIGOEL"
+  },
+  {
+   "kode": "91.17",
+   "nama": "KAB. MAPPI"
+  },
+  {
+   "kode": "91.18",
+   "nama": "KAB. ASMAT"
+  },
+  {
+   "kode": "91.19",
+   "nama": "KAB. SUPIORI"
+  },
+  {
+   "kode": "91.20",
+   "nama": "KAB. MAMBERAMO RAYA"
+  },
+  {
+   "kode": "91.21",
+   "nama": "KAB. MAMBERAMO TENGAH"
+  },
+  {
+   "kode": "91.22",
+   "nama": "KAB. YALIMO"
+  },
+  {
+   "kode": "91.23",
+   "nama": "KAB. LANNY JAYA"
+  },
+  {
+   "kode": "91.24",
+   "nama": "KAB. NDUGA"
+  },
+  {
+   "kode": "91.25",
+   "nama": "KAB. PUNCAK"
+  },
+  {
+   "kode": "91.26",
+   "nama": "KAB. DOGIYAI"
+  },
+  {
+   "kode": "91.27",
+   "nama": "KAB. INTAN JAYA"
+  },
+  {
+   "kode": "91.28",
+   "nama": "KAB. DEIYAI"
+  },
+  {
+   "kode": "91.71",
+   "nama": "KOTA JAYAPURA"
+  },
+  {
+   "kode": "92.01",
+   "nama": "KAB. SORONG"
+  },
+  {
+   "kode": "92.02",
+   "nama": "KAB. MANOKWARI"
+  },
+  {
+   "kode": "92.03",
+   "nama": "KAB. FAK FAK"
+  },
+  {
+   "kode": "92.04",
+   "nama": "KAB. SORONG SELATAN"
+  },
+  {
+   "kode": "92.05",
+   "nama": "KAB. RAJA AMPAT"
+  },
+  {
+   "kode": "92.06",
+   "nama": "KAB. TELUK BINTUNI"
+  },
+  {
+   "kode": "92.07",
+   "nama": "KAB. TELUK WONDAMA"
+  },
+  {
+   "kode": "92.08",
+   "nama": "KAB. KAIMANA"
+  },
+  {
+   "kode": "92.09",
+   "nama": "KAB. TAMBRAUW"
+  },
+  {
+   "kode": "92.10",
+   "nama": "KAB. MAYBRAT"
+  },
+  {
+   "kode": "92.11",
+   "nama": "KAB. MANOKWARI SELATAN"
+  },
+  {
+   "kode": "92.12",
+   "nama": "KAB. PEGUNUNGAN ARFAK"
+  },
+  {
+   "kode": "92.71",
+   "nama": "KOTA SORONG"
+  },
+  {
+   "kode": "93.01",
+   "nama": "KAB. MERAUKE"
+  },
+  {
+   "kode": "93.02",
+   "nama": "KAB. BOVEN DIGOEL"
+  },
+  {
+   "kode": "93.03",
+   "nama": "KAB. MAPPI"
+  },
+  {
+   "kode": "93.04",
+   "nama": "KAB. ASMAT"
+  },
+  {
+   "kode": "94.01",
+   "nama": "KAB. NABIRE"
+  },
+  {
+   "kode": "94.02",
+   "nama": "KAB. PUNCAK JAYA"
+  },
+  {
+   "kode": "94.03",
+   "nama": "KAB. PANIAI"
+  },
+  {
+   "kode": "94.04",
+   "nama": "KAB. MIMIKA"
+  },
+  {
+   "kode": "94.05",
+   "nama": "KAB. PUNCAK"
+  },
+  {
+   "kode": "94.06",
+   "nama": "KAB. DOGIYAI"
+  },
+  {
+   "kode": "94.07",
+   "nama": "KAB. INTAN JAYA"
+  },
+  {
+   "kode": "94.08",
+   "nama": "KAB. DEIYAI"
+  },
+  {
+   "kode": "95.01",
+   "nama": "KAB. JAYAWIJAYA"
+  },
+  {
+   "kode": "95.02",
+   "nama": "KAB PEGUNUNGAN BINTANG"
+  },
+  {
+   "kode": "95.03",
+   "nama": "KAB. YAHUKIMO"
+  },
+  {
+   "kode": "95.04",
+   "nama": "KAB. TOLIKARA"
+  },
+  {
+   "kode": "95.05",
+   "nama": "KAB. MAMBERAMO TENGAH"
+  },
+  {
+   "kode": "95.06",
+   "nama": "KAB. YALIMO"
+  },
+  {
+   "kode": "95.07",
+   "nama": "KAB. LANNY JAYA"
+  },
+  {
+   "kode": "95.08",
+   "nama": "KAB. NDUGA"
+  }
+ ],
+ "KATD": [
+  {
+   "kode": "A",
+   "nama": "Foto Lapangan"
+  },
+  {
+   "kode": "B",
+   "nama": "Berita Acara"
+  },
+  {
+   "kode": "C",
+   "nama": "Dokumen Realisasi Anggaran"
+  },
+  {
+   "kode": "D",
+   "nama": "Dokumen Teknis"
+  },
+  {
+   "kode": "E",
+   "nama": "Regulasi"
+  },
+  {
+   "kode": "F",
+   "nama": "Bukti Pelaporan"
+  },
+  {
+   "kode": "G",
+   "nama": "Lainnya"
+  }
+ ],
+ "KLST": [
+  {
+   "kode": "1",
+   "nama": "Peningkatan SDM Berkualitas"
+  },
+  {
+   "kode": "2",
+   "nama": "Penurunan Kemiskinan"
+  },
+  {
+   "kode": "3",
+   "nama": "Pertumbuhan Ekonomi Berkelanjutan"
+  },
+  {
+   "kode": "DP",
+   "nama": "Direktif Presiden"
+  },
+  {
+   "kode": "R.1",
+   "nama": "Pembangunan Manusia dan Kebudayaan"
+  },
+  {
+   "kode": "R.10",
+   "nama": "Industrialisasi"
+  },
+  {
+   "kode": "R.11",
+   "nama": "Kawasan Ekonomi Khusus"
+  },
+  {
+   "kode": "R.12",
+   "nama": "Perumahan dan Permukiman"
+  },
+  {
+   "kode": "R.13",
+   "nama": "Transformasi Tata Kelola"
+  },
+  {
+   "kode": "R.14",
+   "nama": "Permenko"
+  },
+  {
+   "kode": "R.2",
+   "nama": "Kawasan Swasembada Pangan, Energi, dan Air Nasional"
+  },
+  {
+   "kode": "R.3",
+   "nama": "Swasembada Pangan"
+  },
+  {
+   "kode": "R.4",
+   "nama": "Swasembada Air"
+  },
+  {
+   "kode": "R.5",
+   "nama": "Swasembada Energi"
+  },
+  {
+   "kode": "R.6",
+   "nama": "Konektivitas dan Infrastruktur Logistik Jalan"
+  },
+  {
+   "kode": "R.7",
+   "nama": "Konektivitas dan Infrastruktur Logistik Non-Jalan"
+  },
+  {
+   "kode": "R.8",
+   "nama": "Perencanaan Wilayah dan Pengembangan Kawasan"
+  },
+  {
+   "kode": "R.9",
+   "nama": "Hilirisasi"
+  }
+ ],
+ "KSPK": [
+  {
+   "kode": "A",
+   "nama": "Kedaulatan Pangan"
+  },
+  {
+   "kode": "B",
+   "nama": "Kemandirian Energi dan Air"
+  },
+  {
+   "kode": "C",
+   "nama": "Pendidikan"
+  },
+  {
+   "kode": "D",
+   "nama": "Kesehatan"
+  },
+  {
+   "kode": "E",
+   "nama": "Hilirisasi dan Industrialisasi"
+  },
+  {
+   "kode": "F",
+   "nama": "Infrastruktur, Perumahan, dan Ketahanan Bencana"
+  },
+  {
+   "kode": "G",
+   "nama": "Ekonomi Kerakyatan dan Desa"
+  },
+  {
+   "kode": "H",
+   "nama": "Penurunan Kemiskinan serta Fondasi PKPN"
+  }
+ ],
+ "KTAC": [
+  {
+   "kode": "A",
+   "nama": "Kemiskinan"
+  },
+  {
+   "kode": "B",
+   "nama": "Pertumbuhan Ekonomi"
+  },
+  {
+   "kode": "C",
+   "nama": "Sumber Daya Manusia"
+  }
+ ],
+ "KTGR": [
+  {
+   "kode": "A",
+   "nama": "Penetapan Awal"
+  },
+  {
+   "kode": "B",
+   "nama": "Pemutakhiran"
+  }
+ ],
+ "PAUT": [
+  {
+   "kode": "01",
+   "nama": "Daging Ayam"
+  },
+  {
+   "kode": "02",
+   "nama": "Telur"
+  },
+  {
+   "kode": "03",
+   "nama": "Daging Ikan Fillet"
+  },
+  {
+   "kode": "04",
+   "nama": "Daging Sapi"
+  },
+  {
+   "kode": "05",
+   "nama": "Susu"
+  },
+  {
+   "kode": "06",
+   "nama": "Tahu"
+  },
+  {
+   "kode": "07",
+   "nama": "Tempe"
+  },
+  {
+   "kode": "08",
+   "nama": "Nasi (Beras)"
+  },
+  {
+   "kode": "09",
+   "nama": "Terigu"
+  },
+  {
+   "kode": "10",
+   "nama": "Kentang"
+  },
+  {
+   "kode": "11",
+   "nama": "Jagung"
+  },
+  {
+   "kode": "12",
+   "nama": "Minyak Goreng"
+  },
+  {
+   "kode": "13",
+   "nama": "Mentega"
+  },
+  {
+   "kode": "14",
+   "nama": "Aneka Sayur"
+  },
+  {
+   "kode": "15",
+   "nama": "Aneka Buah Tropis"
+  },
+  {
+   "kode": "16",
+   "nama": "Aneka Buah Non Tropis"
+  },
+  {
+   "kode": "17",
+   "nama": "Buncis"
+  },
+  {
+   "kode": "18",
+   "nama": "Kol"
+  },
+  {
+   "kode": "19",
+   "nama": "Timun"
+  },
+  {
+   "kode": "20",
+   "nama": "Selada"
+  },
+  {
+   "kode": "21",
+   "nama": "Sawi"
+  },
+  {
+   "kode": "22",
+   "nama": "Pokcoy"
+  },
+  {
+   "kode": "23",
+   "nama": "Wortel"
+  },
+  {
+   "kode": "24",
+   "nama": "Anggur"
+  },
+  {
+   "kode": "25",
+   "nama": "Mangga"
+  },
+  {
+   "kode": "26",
+   "nama": "Jeruk"
+  },
+  {
+   "kode": "27",
+   "nama": "Lengkeng"
+  },
+  {
+   "kode": "28",
+   "nama": "Melon"
+  },
+  {
+   "kode": "29",
+   "nama": "Semangka"
+  },
+  {
+   "kode": "30",
+   "nama": "Pisang"
+  },
+  {
+   "kode": "31",
+   "nama": "Stroberi"
+  }
+ ],
+ "PJWB": [
+  {
+   "kode": "01",
+   "nama": "Gubernur Bali"
+  },
+  {
+   "kode": "02",
+   "nama": "Gubernur Banten"
+  },
+  {
+   "kode": "03",
+   "nama": "Gubernur Daerah Istimewa Yogyakarta"
+  },
+  {
+   "kode": "04",
+   "nama": "Gubernur DKI Jakarta"
+  },
+  {
+   "kode": "05",
+   "nama": "Gubernur Jawa Barat"
+  },
+  {
+   "kode": "06",
+   "nama": "Gubernur Jawa Tengah"
+  },
+  {
+   "kode": "07",
+   "nama": "Gubernur Sulawesi Selatan"
+  },
+  {
+   "kode": "08",
+   "nama": "Gubernur Sumatera Selatan"
+  },
+  {
+   "kode": "09",
+   "nama": "Gubernur Sumatera Utara"
+  },
+  {
+   "kode": "10",
+   "nama": "Kepala Badan Informasi Geospasial"
+  },
+  {
+   "kode": "11",
+   "nama": "Kepala Badan Karantina Indonesia"
+  },
+  {
+   "kode": "12",
+   "nama": "Kepala Badan Nasional Pengelola Perbatasan"
+  },
+  {
+   "kode": "13",
+   "nama": "Kepala Badan Otorita Pengelola Pantai Utara Jawa dan Menteri Pekerjaan Umum"
+  },
+  {
+   "kode": "14",
+   "nama": "Kepala Badan Pengaturan BUMN"
+  },
+  {
+   "kode": "15",
+   "nama": "Kepala Badan Pengaturan BUMN/ Kepala Badan Pengelola Investasi Danantara"
+  },
+  {
+   "kode": "16",
+   "nama": "Kepala Badan Pengusahaan Batam"
+  },
+  {
+   "kode": "17",
+   "nama": "Kepala BP BUMN"
+  },
+  {
+   "kode": "18",
+   "nama": "Kepala Otorita Ibu Kota Nusantara"
+  },
+  {
+   "kode": "19",
+   "nama": "Menteri Agama"
+  },
+  {
+   "kode": "20",
+   "nama": "Menteri Dalam Negeri"
+  },
+  {
+   "kode": "21",
+   "nama": "Menteri Energi dan Sumber Daya Mineral"
+  },
+  {
+   "kode": "22",
+   "nama": "Menteri Investasi dan Hilirisasi/Kepala BKPM"
+  },
+  {
+   "kode": "23",
+   "nama": "Menteri Kehutanan"
+  },
+  {
+   "kode": "24",
+   "nama": "Menteri Kelautan dan Perikanan"
+  },
+  {
+   "kode": "25",
+   "nama": "Menteri Koordinator Bidang Perekonomian /Ketua Dewan Nasional KEK"
+  },
+  {
+   "kode": "26",
+   "nama": "Menteri Koperasi"
+  },
+  {
+   "kode": "27",
+   "nama": "Menteri Lingkungan Hidup/Kepala Badan Pengendalian Lingkungan Hidup"
+  },
+  {
+   "kode": "28",
+   "nama": "Menteri Pariwisata"
+  },
+  {
+   "kode": "29",
+   "nama": "Menteri Pekerjaan Umum"
+  },
+  {
+   "kode": "30",
+   "nama": "Menteri Pendidikan Dasar dan Menengah"
+  },
+  {
+   "kode": "31",
+   "nama": "Menteri Perhubungan"
+  },
+  {
+   "kode": "32",
+   "nama": "Menteri Perindustrian"
+  },
+  {
+   "kode": "33",
+   "nama": "Menteri Pertahanan"
+  },
+  {
+   "kode": "34",
+   "nama": "Menteri Pertanian"
+  },
+  {
+   "kode": "35",
+   "nama": "Menteri Pertanian, dan Kepala Badan Pengaturan BUMN"
+  },
+  {
+   "kode": "36",
+   "nama": "Menteri Pertanian, Menteri Energi dan Sumber Daya Mineral, dan Kepala Badan Pengaturan BUMN"
+  },
+  {
+   "kode": "37",
+   "nama": "Menteri PPN/Kepala Bappenas"
+  },
+  {
+   "kode": "38",
+   "nama": "Menteri Sosial"
+  },
+  {
+   "kode": "39",
+   "nama": "Menteri Sosial dan Menteri Pekerjaan Umum"
+  },
+  {
+   "kode": "40",
+   "nama": "Kepala Badan Gizi Nasional"
+  },
+  {
+   "kode": "41",
+   "nama": "Lain-lain"
+  },
+  {
+   "kode": "42",
+   "nama": "Gubernur"
+  },
+  {
+   "kode": "43",
+   "nama": "Kementerian Komunikasi dan Digital"
+  },
+  {
+   "kode": "44",
+   "nama": "Kementerian Pendidikan Tinggi, Sains, dan Teknologi"
+  },
+  {
+   "kode": "45",
+   "nama": "BRIN"
+  }
+ ],
+ "PRAN": [
+  {
+   "kode": "A",
+   "nama": "Pengusul"
+  },
+  {
+   "kode": "B",
+   "nama": "Penanggung Jawab"
+  },
+  {
+   "kode": "C",
+   "nama": "Pengelola"
+  },
+  {
+   "kode": "D",
+   "nama": "Kontraktor"
+  },
+  {
+   "kode": "E",
+   "nama": "Supervisi"
+  }
+ ],
+ "PROG": [
+  {
+   "kode": "01",
+   "nama": "Digitalisasi Pendidikan"
+  },
+  {
+   "kode": "02",
+   "nama": "Kartu Kesejahteraan"
+  },
+  {
+   "kode": "03",
+   "nama": "Kartu Usaha Afirmatif"
+  },
+  {
+   "kode": "04",
+   "nama": "Koperasi Desa/Kelurahan Merah Putih"
+  },
+  {
+   "kode": "05",
+   "nama": "Makan Bergizi Gratis"
+  },
+  {
+   "kode": "06",
+   "nama": "Non-Program"
+  },
+  {
+   "kode": "07",
+   "nama": "Pembangunan Sekolah Rakyat"
+  },
+  {
+   "kode": "08",
+   "nama": "Program 3 Juta Rumah"
+  },
+  {
+   "kode": "09",
+   "nama": "Program Ketenagalistrikan"
+  },
+  {
+   "kode": "10",
+   "nama": "Program Pembangunan Angkutan Umum Masal Perkotaan Jabodetabek"
+  },
+  {
+   "kode": "11",
+   "nama": "Program Pembangunan Ibu Kota Negara"
+  },
+  {
+   "kode": "12",
+   "nama": "Program Pembangunan Industri Pertahanan Nasional"
+  },
+  {
+   "kode": "13",
+   "nama": "Program Pembangunan Jalan Tol Trans Sumatera"
+  },
+  {
+   "kode": "14",
+   "nama": "Program Pembangunan Ruas Tol Daerah Khusus Ibukota Jakarta"
+  },
+  {
+   "kode": "15",
+   "nama": "Program Pembangunan Smelter"
+  },
+  {
+   "kode": "16",
+   "nama": "Program Pembangunan Tanggul Laut Pantai Utara Jawa"
+  },
+  {
+   "kode": "17",
+   "nama": "Program Pengelolaan Sampah"
+  },
+  {
+   "kode": "18",
+   "nama": "Program Pengembangan Budi Daya Udang Terintegrasi di Provinsi Nusa Tenggara Timur"
+  },
+  {
+   "kode": "19",
+   "nama": "Program Pengembangan Jalan Akses Exit Toll"
+  },
+  {
+   "kode": "20",
+   "nama": "Program Pengembangan Kawasan Eco-City"
+  },
+  {
+   "kode": "21",
+   "nama": "Program Pengembangan Kawasan Ekonomi Khusus (KEK)"
+  },
+  {
+   "kode": "22",
+   "nama": "Program Pengembangan Kawasan Perbatasan"
+  },
+  {
+   "kode": "23",
+   "nama": "Program Pengembangan Kawasan Strategis Pariwisata Nasional"
+  },
+  {
+   "kode": "24",
+   "nama": "Program Pengembangan Mobil Nasional"
+  },
+  {
+   "kode": "25",
+   "nama": "Program Pengendalian Banjir, Penanganan Kemacetan, dan Peningkatan Kelayakhunian di Provinsi Daerah Khusus Ibukota Jakarta"
+  },
+  {
+   "kode": "26",
+   "nama": "Program Peningkatan Produksi Migas"
+  },
+  {
+   "kode": "27",
+   "nama": "Program Peningkatan Produksi Susu dan Daging Nasional"
+  },
+  {
+   "kode": "28",
+   "nama": "Program Percepatan Penguatan Tata Kelola dan Ekosistem Agribisnis Kelapa Sawit"
+  },
+  {
+   "kode": "29",
+   "nama": "Program Revitalisasi Industri Gula Nasional dan Hilirisasi Industri Kelapa Sawit"
+  },
+  {
+   "kode": "30",
+   "nama": "Program Revitalisasi Tambak Pantura di Provinsi Jawa Barat"
+  },
+  {
+   "kode": "31",
+   "nama": "Program Sustainable Industrial Zone (SIZ)"
+  },
+  {
+   "kode": "32",
+   "nama": "Program Swasembada Pangan, Energi, dan Air Nasional di Provinsi Papua Selatan"
+  },
+  {
+   "kode": "33",
+   "nama": "Upgrading Kilang-Kilang Eksisting/Refinery Development Master Plan (RDMP): Non-Program"
+  }
+ ],
+ "PROV": [
+  {
+   "kode": "00",
+   "nama": "Nasional"
+  },
+  {
+   "kode": "11",
+   "nama": "ACEH"
+  },
+  {
+   "kode": "12",
+   "nama": "SUMATERA UTARA"
+  },
+  {
+   "kode": "13",
+   "nama": "SUMATERA BARAT"
+  },
+  {
+   "kode": "14",
+   "nama": "RIAU"
+  },
+  {
+   "kode": "15",
+   "nama": "JAMBI"
+  },
+  {
+   "kode": "16",
+   "nama": "SUMATERA SELATAN"
+  },
+  {
+   "kode": "17",
+   "nama": "BENGKULU"
+  },
+  {
+   "kode": "18",
+   "nama": "LAMPUNG"
+  },
+  {
+   "kode": "19",
+   "nama": "KEPULAUAN BANGKA BELITUNG"
+  },
+  {
+   "kode": "21",
+   "nama": "KEPULAUAN RIAU"
+  },
+  {
+   "kode": "31",
+   "nama": "DKI JAKARTA"
+  },
+  {
+   "kode": "32",
+   "nama": "JAWA BARAT"
+  },
+  {
+   "kode": "33",
+   "nama": "JAWA TENGAH"
+  },
+  {
+   "kode": "34",
+   "nama": "DAERAH ISTIMEWA YOGYAKARTA"
+  },
+  {
+   "kode": "35",
+   "nama": "JAWA TIMUR"
+  },
+  {
+   "kode": "36",
+   "nama": "BANTEN"
+  },
+  {
+   "kode": "51",
+   "nama": "BALI"
+  },
+  {
+   "kode": "52",
+   "nama": "NUSA TENGGARA BARAT"
+  },
+  {
+   "kode": "53",
+   "nama": "NUSA TENGGARA TIMUR"
+  },
+  {
+   "kode": "61",
+   "nama": "KALIMANTAN BARAT"
+  },
+  {
+   "kode": "62",
+   "nama": "KALIMANTAN TENGAH"
+  },
+  {
+   "kode": "63",
+   "nama": "KALIMANTAN SELATAN"
+  },
+  {
+   "kode": "64",
+   "nama": "KALIMANTAN TIMUR"
+  },
+  {
+   "kode": "65",
+   "nama": "KALIMANTAN UTARA"
+  },
+  {
+   "kode": "71",
+   "nama": "SULAWESI UTARA"
+  },
+  {
+   "kode": "72",
+   "nama": "SULAWESI TENGAH"
+  },
+  {
+   "kode": "73",
+   "nama": "SULAWESI SELATAN"
+  },
+  {
+   "kode": "74",
+   "nama": "SULAWESI TENGGARA"
+  },
+  {
+   "kode": "75",
+   "nama": "GORONTALO"
+  },
+  {
+   "kode": "76",
+   "nama": "SULAWESI BARAT"
+  },
+  {
+   "kode": "81",
+   "nama": "MALUKU"
+  },
+  {
+   "kode": "82",
+   "nama": "MALUKU UTARA"
+  },
+  {
+   "kode": "91",
+   "nama": "PAPUA"
+  },
+  {
+   "kode": "92",
+   "nama": "PAPUA BARAT"
+  },
+  {
+   "kode": "93",
+   "nama": "PAPUA SELATAN"
+  },
+  {
+   "kode": "94",
+   "nama": "PAPUA TENGAH"
+  },
+  {
+   "kode": "95",
+   "nama": "PAPUA PEGUNUNGAN"
+  },
+  {
+   "kode": "96",
+   "nama": "PAPUA BARAT DAYA"
+  }
+ ],
+ "RISK": [
+  {
+   "kode": "A",
+   "nama": "Risiko Sosial (Human Capital, Tren Sosioekonomi, Tren Kesehatan, Penyakit Menular, Persepsi Brand)"
+  },
+  {
+   "kode": "B",
+   "nama": "Risiko Lingkungan (Bencana Alam, Cuaca Ekstrem, Perubahan Iklim, Kekurangan Sumber Daya Alam, Degradasi Lingkungan)"
+  },
+  {
+   "kode": "C",
+   "nama": "Risiko Ekonomi (Prospek Ekonomi, Veriabel Ekonomi Makro, Krisis Pasar)"
+  },
+  {
+   "kode": "D",
+   "nama": "Risiko Teknologi (Teknologi Disruptif, Siber, Inftarstruktur Kritikal)"
+  },
+  {
+   "kode": "E",
+   "nama": "Risiko Geopolitik (Konflik Antar Negara, Kekerasan Politik, Lingkungan Bisnis )"
+  },
+  {
+   "kode": "F",
+   "nama": "Risiko Tata Kelola (Regulasi, Hukum, Kinerja Strategis, Layanan Publik, Fraud, Kelembagaan )"
+  },
+  {
+   "kode": "G",
+   "nama": "Risiko Operasional (Tenaga Kerja, Metode Kerja, Pembiayaan, Peralatan Kerja, Bahan Baku )"
+  },
+  {
+   "kode": "H",
+   "nama": "Risiko Pemerintah Digital (Kedaulatan Teknolgi Pemdi, Data Interoperabilitas dan Keterpaduan Sistem Pemdi, Keamanan Pemd, Tata Kelola dan Akuntabilitas Pemdi, Kapabilitas SDM Pemdi, Kepatuhan Regulasi Pemdi )"
+  }
+ ],
+ "SDGS": [
+  {
+   "kode": "1",
+   "nama": "Tanpa Kemiskinan (No Poverty)"
+  },
+  {
+   "kode": "10",
+   "nama": "Konsumsi dan Produksi yang Bertanggung Jawab (Responsible Consumption and Production)"
+  },
+  {
+   "kode": "11",
+   "nama": "Air Bersih dan Sanitasi Layak (Clean Water and Sanitation)"
+  },
+  {
+   "kode": "12",
+   "nama": "Kota dan Permukiman yang Berkelanjutan (Sustainable Cities and Communities)"
+  },
+  {
+   "kode": "13",
+   "nama": "Penanganan Perubahan Iklim (Climate Action)"
+  },
+  {
+   "kode": "14",
+   "nama": "Ekosistem Laut (Life Below Water)"
+  },
+  {
+   "kode": "15",
+   "nama": "Ekosistem Daratan (Life on Land)"
+  },
+  {
+   "kode": "16",
+   "nama": "Perdamaian, Keadilan, dan Kelembagaan yang Tangguh (Peace, Justice, and Strong Institutions)"
+  },
+  {
+   "kode": "17",
+   "nama": "Kemitraan untuk Mencapai Tujuan (Partnerships for the Goals)"
+  },
+  {
+   "kode": "2",
+   "nama": "Tanpa Kelaparan (Zero Hunger)"
+  },
+  {
+   "kode": "3",
+   "nama": "Kehidupan Sehat dan Sejahtera (Good Health and Well-being)"
+  },
+  {
+   "kode": "4",
+   "nama": "Pendidikan Berkualitas (Quality Education)"
+  },
+  {
+   "kode": "5",
+   "nama": "Kesetaraan Gender (Gender Equality)"
+  },
+  {
+   "kode": "6",
+   "nama": "Energi Bersih dan Terjangkau (Affordable and Clean Energy)"
+  },
+  {
+   "kode": "7",
+   "nama": "Pekerjaan Layak dan Pertumbuhan Ekonomi (Decent Work and Economic Growth)"
+  },
+  {
+   "kode": "8",
+   "nama": "Industri, Inovasi, dan Infrastruktur (Industry, Innovation, and Infrastructure)"
+  },
+  {
+   "kode": "9",
+   "nama": "Berkurangnya Kesenjangan (Reduced Inequalities)"
+  }
+ ],
+ "SKIF": [
+  {
+   "kode": "A",
+   "nama": "Sedikit Lengkap"
+  },
+  {
+   "kode": "B",
+   "nama": "Hampir Lengkap"
+  },
+  {
+   "kode": "C",
+   "nama": "Sebagian Lengkap"
+  },
+  {
+   "kode": "D",
+   "nama": "Lengkap"
+  }
+ ],
+ "SKLT": [
+  {
+   "kode": "01",
+   "nama": "Hilirisasi"
+  },
+  {
+   "kode": "02",
+   "nama": "Industrialisasi"
+  },
+  {
+   "kode": "03",
+   "nama": "Kawasan Ekonomi Khusus"
+  },
+  {
+   "kode": "04",
+   "nama": "Kawasan Swasembada Pangan, Energi, dan Air Nasional"
+  },
+  {
+   "kode": "05",
+   "nama": "Konektivitas dan Infrastruktur Logistik Jalan"
+  },
+  {
+   "kode": "06",
+   "nama": "Konektivitas dan Infrastruktur Logistik Non-Jalan"
+  },
+  {
+   "kode": "07",
+   "nama": "Peningkatan SDM Berkualitas"
+  },
+  {
+   "kode": "08",
+   "nama": "Penurunan Kemiskinan"
+  },
+  {
+   "kode": "09",
+   "nama": "Perencanaan Wilayah dan Pengembangan Kawasan"
+  },
+  {
+   "kode": "10",
+   "nama": "Pertumbuhan Ekonomi Berkelanjutan"
+  },
+  {
+   "kode": "11",
+   "nama": "Perumahan dan Permukiman"
+  },
+  {
+   "kode": "12",
+   "nama": "Swasembada Air"
+  },
+  {
+   "kode": "13",
+   "nama": "Swasembada Energi"
+  },
+  {
+   "kode": "14",
+   "nama": "Swasembada Pangan"
+  },
+  {
+   "kode": "15",
+   "nama": "Transformasi Tata Kelola"
+  }
+ ],
+ "STAT": [
+  {
+   "kode": "1",
+   "nama": "Kumulatif Proyek Selesai"
+  },
+  {
+   "kode": "2",
+   "nama": "Proyek Beroperasi Sebagian"
+  },
+  {
+   "kode": "3",
+   "nama": "Proyek Dalam Tahap Konstruksi"
+  },
+  {
+   "kode": "4",
+   "nama": "Proyek Dalam Tahap Transaksi"
+  },
+  {
+   "kode": "5",
+   "nama": "Proyek Dalam Tahap Penyiapan"
+  },
+  {
+   "kode": "6",
+   "nama": "Proyek Keluar dari PSN"
+  }
+ ],
+ "TACT": [
+  {
+   "kode": "A",
+   "nama": "Rincian Output (RO)"
+  },
+  {
+   "kode": "B",
+   "nama": "Proyek"
+  },
+  {
+   "kode": "C",
+   "nama": "No RO"
+  },
+  {
+   "kode": "D",
+   "nama": "RO (Tambahan)"
+  }
+ ],
+ "TYIT": [
+  {
+   "kode": "A",
+   "nama": "Urgensi"
+  },
+  {
+   "kode": "B",
+   "nama": "Dasar Hukum"
+  },
+  {
+   "kode": "C",
+   "nama": "Tujuan Utama"
+  },
+  {
+   "kode": "D",
+   "nama": "Keterkaitan dengan SDGs"
+  },
+  {
+   "kode": "E",
+   "nama": "Data Teknis"
+  },
+  {
+   "kode": "F",
+   "nama": "Indikator PP"
+  },
+  {
+   "kode": "G",
+   "nama": "Diagram Kerangka Kerja Logis"
+  },
+  {
+   "kode": "H",
+   "nama": "Stakeholder Mapping"
+  },
+  {
+   "kode": "I",
+   "nama": "Kerangka Kerja Lembaga"
+  },
+  {
+   "kode": "J",
+   "nama": "Dampak"
+  },
+  {
+   "kode": "K",
+   "nama": "Manfaat"
+  },
+  {
+   "kode": "L",
+   "nama": "Output"
+  }
+ ],
+ "UNIT": [
+  {
+   "kode": "01",
+   "nama": "Direktorat Agama, Kebudayaan, Pemuda, dan Olahraga"
+  },
+  {
+   "kode": "02",
+   "nama": "Direktorat Industri, Perdagangan, dan Peningkatan Investasi"
+  },
+  {
+   "kode": "03",
+   "nama": "Direktorat Kehutanan dan Konservasi Sumber Daya Air"
+  },
+  {
+   "kode": "04",
+   "nama": "Direktorat Kelautan dan Perikanan"
+  },
+  {
+   "kode": "05",
+   "nama": "Direktorat Kemandirian Sosial dan Ekonomi"
+  },
+  {
+   "kode": "06",
+   "nama": "Direktorat Kesehatan dan Gizi Masyarakat"
+  },
+  {
+   "kode": "07",
+   "nama": "Direktorat Konektivitas dan Infastruktur Logistik"
+  },
+  {
+   "kode": "08",
+   "nama": "Direktorat Lingkungan Hidup"
+  },
+  {
+   "kode": "09",
+   "nama": "Direktorat Pangan dan Pertanian"
+  },
+  {
+   "kode": "10",
+   "nama": "Direktorat Pariwisata, Ekonomi Kreatif, dan Ekonomi; Digital"
+  },
+  {
+   "kode": "100",
+   "nama": "Badan Gizi Nasional"
+  },
+  {
+   "kode": "101",
+   "nama": "Menteri Pekerjaan Umum"
+  },
+  {
+   "kode": "102",
+   "nama": "Kementerian Sosial"
+  },
+  {
+   "kode": "103",
+   "nama": "Menteri Pendidikan Dasar dan Menengah"
+  },
+  {
+   "kode": "104",
+   "nama": "Menteri Agama"
+  },
+  {
+   "kode": "105",
+   "nama": "Menteri Koperasi"
+  },
+  {
+   "kode": "106",
+   "nama": "Menteri Lingkungan Hidup/Kepala Badan Pengendalian Lingkungan Hidup"
+  },
+  {
+   "kode": "107",
+   "nama": "Gubernur DKI Jakarta"
+  },
+  {
+   "kode": "108",
+   "nama": "Gubernur Banten"
+  },
+  {
+   "kode": "109",
+   "nama": "Gubernur Jawa Barat"
+  },
+  {
+   "kode": "11",
+   "nama": "Direktorat Pembangunan Indonesia Barat"
+  },
+  {
+   "kode": "110",
+   "nama": "Gubernur Jawa Tengah"
+  },
+  {
+   "kode": "111",
+   "nama": "Gubernur Daerah Istimewa Yogyakarta"
+  },
+  {
+   "kode": "112",
+   "nama": "Gubernur Sumatera Utara"
+  },
+  {
+   "kode": "113",
+   "nama": "Gubernur Sulawesi Selatan"
+  },
+  {
+   "kode": "114",
+   "nama": "Gubernur Bali"
+  },
+  {
+   "kode": "115",
+   "nama": "Gubernur Sumatera Selatan"
+  },
+  {
+   "kode": "116",
+   "nama": "Menteri Pertanian"
+  },
+  {
+   "kode": "117",
+   "nama": "Menteri Perindustrian"
+  },
+  {
+   "kode": "118",
+   "nama": "Menteri Pertahanan"
+  },
+  {
+   "kode": "119",
+   "nama": "Menteri Energi dan Sumber Daya Mineral"
+  },
+  {
+   "kode": "12",
+   "nama": "Direktorat Pembangunan Indonesia Timur"
+  },
+  {
+   "kode": "120",
+   "nama": "Menteri Perhubungan"
+  },
+  {
+   "kode": "121",
+   "nama": "Menteri Kehutanan"
+  },
+  {
+   "kode": "122",
+   "nama": "Kepala Badan Karantina Indonesia"
+  },
+  {
+   "kode": "123",
+   "nama": "Kementerian Kelautan dan Perikanan"
+  },
+  {
+   "kode": "124",
+   "nama": "Menteri Investasi dan Hilirisasi/Kepala BKPM"
+  },
+  {
+   "kode": "125",
+   "nama": "Kepala Badan Pengaturan BUMN"
+  },
+  {
+   "kode": "126",
+   "nama": "Kepala Badan Informasi Geospasial"
+  },
+  {
+   "kode": "127",
+   "nama": "Menteri Pariwisata"
+  },
+  {
+   "kode": "128",
+   "nama": "Menteri Dalam Negeri"
+  },
+  {
+   "kode": "129",
+   "nama": "Kepala Otorita Ibu Kota Nusantara"
+  },
+  {
+   "kode": "13",
+   "nama": "Direktorat Penanggulangan Kemiskinan dan Kesejahteraan Sosial"
+  },
+  {
+   "kode": "130",
+   "nama": "Kepala Badan Otorita Pengelola Pantai Utara Jawa"
+  },
+  {
+   "kode": "131",
+   "nama": "Kepala Badan Pengusahaan Batam"
+  },
+  {
+   "kode": "132",
+   "nama": "Kepala Badan Nasional Pengelola Perbatasan"
+  },
+  {
+   "kode": "133",
+   "nama": "Kepala Badan Pengelola Investasi Danantara"
+  },
+  {
+   "kode": "134",
+   "nama": "Menteri Koordinator Bidang Perekonomian"
+  },
+  {
+   "kode": "135",
+   "nama": "Menteri Koordinator Bidang Perekonomian /Ketua Dewan Nasional KEK"
+  },
+  {
+   "kode": "136",
+   "nama": "Kementerian Komunikasi dan Digital"
+  },
+  {
+   "kode": "137",
+   "nama": "Kementerian Koordinator Bidang Infrastruktur dan Pembangunan Kewilayahan"
+  },
+  {
+   "kode": "138",
+   "nama": "Kementerian Koordinator Bidang Pembangunan Manusia dan Kebudayaan"
+  },
+  {
+   "kode": "139",
+   "nama": "Kementerian Koordinator Bidang Pemberdayaan Masyarakat"
+  },
+  {
+   "kode": "14",
+   "nama": "Direktorat Pendidikan Dasar dan Menengah"
+  },
+  {
+   "kode": "140",
+   "nama": "Kementerian Koordinator Bidang Pangan"
+  },
+  {
+   "kode": "141",
+   "nama": "Deputi Bidang Perekonomian, Sekretariat Dukungan Kabinet, Kementerian Sekretariat Negara"
+  },
+  {
+   "kode": "142",
+   "nama": "Kantor Staf Presiden"
+  },
+  {
+   "kode": "143",
+   "nama": "PT Global Papua Abadi dan Konsorsium"
+  },
+  {
+   "kode": "144",
+   "nama": "Agrinas Palma Nusantara"
+  },
+  {
+   "kode": "145",
+   "nama": "BWS Sumatera I"
+  },
+  {
+   "kode": "146",
+   "nama": "BWS Maluku"
+  },
+  {
+   "kode": "147",
+   "nama": "BWS Sulawesi I"
+  },
+  {
+   "kode": "148",
+   "nama": "BWS Sulawesi II"
+  },
+  {
+   "kode": "149",
+   "nama": "BWS Sulawesi IV"
+  },
+  {
+   "kode": "15",
+   "nama": "Direktorat Pendidikan Tinggi, Ilmu Pengetahuan, dan Teknologi"
+  },
+  {
+   "kode": "150",
+   "nama": "BWS Sulawesi III"
+  },
+  {
+   "kode": "151",
+   "nama": "BBWS Pompengan"
+  },
+  {
+   "kode": "152",
+   "nama": "BWS Nusa Tenggara II"
+  },
+  {
+   "kode": "153",
+   "nama": "BWS NT II"
+  },
+  {
+   "kode": "154",
+   "nama": "BWS Kalimantan IV"
+  },
+  {
+   "kode": "155",
+   "nama": "BBWS Brantas"
+  },
+  {
+   "kode": "156",
+   "nama": "BBWS Serayu Opak"
+  },
+  {
+   "kode": "157",
+   "nama": "BBWS Bengawan Solo"
+  },
+  {
+   "kode": "158",
+   "nama": "BBWS Pemali Juana"
+  },
+  {
+   "kode": "159",
+   "nama": "BBWS Cidanau - Ciujung - Cidurian"
+  },
+  {
+   "kode": "16",
+   "nama": "Direktorat Perdesaan, Daerah Afirmasi, dan Transmigrasi"
+  },
+  {
+   "kode": "160",
+   "nama": "BBWS Cimanuk Cisanggarung"
+  },
+  {
+   "kode": "161",
+   "nama": "BBWS Sumatera II"
+  },
+  {
+   "kode": "162",
+   "nama": "BBWS Sumatera VIII"
+  },
+  {
+   "kode": "163",
+   "nama": "BBWS Mesuji Sekampung"
+  },
+  {
+   "kode": "164",
+   "nama": "PDAM Jatim"
+  },
+  {
+   "kode": "165",
+   "nama": "PDAM Tirta Moedal Kota Semarang"
+  },
+  {
+   "kode": "166",
+   "nama": "PT Tirta Utama Jawa Tengah"
+  },
+  {
+   "kode": "167",
+   "nama": "PT Wika Tirta Jawa Jatiluhur (WTJJ)"
+  },
+  {
+   "kode": "168",
+   "nama": "PT Pertamina (Persero)"
+  },
+  {
+   "kode": "169",
+   "nama": "PT Pertamina Kilang Internasional (PT KPI)"
+  },
+  {
+   "kode": "17",
+   "nama": "Direktorat Pertahanan dan Keamanan"
+  },
+  {
+   "kode": "170",
+   "nama": "PT Pertamina Kilang Balikpapan (PT KPB) (rdmp balikpapan)"
+  },
+  {
+   "kode": "171",
+   "nama": "PT Pertamina Patra Niaga"
+  },
+  {
+   "kode": "172",
+   "nama": "PT Kilang Pertamina Internasional (rdmp cilacap)"
+  },
+  {
+   "kode": "173",
+   "nama": "PT Butonas Petrochemical Indonesia"
+  },
+  {
+   "kode": "174",
+   "nama": "PT Pertamina Geothermal Energy"
+  },
+  {
+   "kode": "175",
+   "nama": "PT EDC Indonesia"
+  },
+  {
+   "kode": "176",
+   "nama": "Kayan Hydropower Nusantara"
+  },
+  {
+   "kode": "177",
+   "nama": "Keppel Energy Pte. Ltd."
+  },
+  {
+   "kode": "178",
+   "nama": "Mubadala Energy"
+  },
+  {
+   "kode": "179",
+   "nama": "Chevron Rapak Ltd"
+  },
+  {
+   "kode": "18",
+   "nama": "Direktorat Perumahan dan Infrastruktur Kawasan Permukiman"
+  },
+  {
+   "kode": "180",
+   "nama": "BP Berau Ltd."
+  },
+  {
+   "kode": "181",
+   "nama": "PT Pertamina Hulu Energi Metra Enim"
+  },
+  {
+   "kode": "182",
+   "nama": "PT JM Manado Bitung"
+  },
+  {
+   "kode": "183",
+   "nama": "PT JM Balikpapan Samarinda"
+  },
+  {
+   "kode": "184",
+   "nama": "PT Jasa Marga Pandaan Malang"
+  },
+  {
+   "kode": "185",
+   "nama": "PT Trans Jawa Paspro Jalan Tol"
+  },
+  {
+   "kode": "186",
+   "nama": "PT Jasa Marga Probolinggo - Banyuwangi"
+  },
+  {
+   "kode": "187",
+   "nama": "PT Jasa Marga Ngawi Kertosono Kediri"
+  },
+  {
+   "kode": "188",
+   "nama": "PT Jogjasolo Marga Makmur"
+  },
+  {
+   "kode": "189",
+   "nama": "PT Jasamarga Jogja Bawen"
+  },
+  {
+   "kode": "19",
+   "nama": "Direktorat Sumber Daya Air"
+  },
+  {
+   "kode": "190",
+   "nama": "PT PP Semarang Demak"
+  },
+  {
+   "kode": "191",
+   "nama": "PT Citra Karya Jabar Tol"
+  },
+  {
+   "kode": "192",
+   "nama": "PT Trans Jabar Tol"
+  },
+  {
+   "kode": "193",
+   "nama": "PT Citra Waspphutowo"
+  },
+  {
+   "kode": "194",
+   "nama": "PT Marga Sarana Jabar"
+  },
+  {
+   "kode": "195",
+   "nama": "PT Translingkar Kita Jaya"
+  },
+  {
+   "kode": "196",
+   "nama": "PT Cibitung Tanjung Priok Port Tollways"
+  },
+  {
+   "kode": "197",
+   "nama": "PT Kresna Kusuma Dyandra Marga"
+  },
+  {
+   "kode": "198",
+   "nama": "PT Jasamarga Japek Selatan"
+  },
+  {
+   "kode": "199",
+   "nama": "PT Serpong Cinere Jaya"
+  },
+  {
+   "kode": "20",
+   "nama": "Direktorat Sumber Daya Energi, Mineral, dan Pertambangan"
+  },
+  {
+   "kode": "200",
+   "nama": "PT Wijaya Karya Serang Panimbang"
+  },
+  {
+   "kode": "201",
+   "nama": "PT Duta Graha Karya"
+  },
+  {
+   "kode": "202",
+   "nama": "KSOP Kelas II Patimban (Pelindo)"
+  },
+  {
+   "kode": "203",
+   "nama": "PT Pelabuhan Indonesia (Persero)"
+  },
+  {
+   "kode": "204",
+   "nama": "PT Wahyu Samudera Indah"
+  },
+  {
+   "kode": "205",
+   "nama": "PT Kereta Api Indonesia"
+  },
+  {
+   "kode": "206",
+   "nama": "PT Kereta Cepat Indonesia China"
+  },
+  {
+   "kode": "207",
+   "nama": "PT Waskita Karya"
+  },
+  {
+   "kode": "208",
+   "nama": "PT Adhi Karya-PT LRT Jakarta"
+  },
+  {
+   "kode": "209",
+   "nama": "PT Jakarta Propertindo"
+  },
+  {
+   "kode": "21",
+   "nama": "Direktorat Tata Ruang, Perkotaan, Pertanahan, dan Penanggulangan Bencana"
+  },
+  {
+   "kode": "210",
+   "nama": "PT MRT Jakarta"
+  },
+  {
+   "kode": "211",
+   "nama": "PT Seribu Pesona Indonesia"
+  },
+  {
+   "kode": "212",
+   "nama": "PT Granting Jaya"
+  },
+  {
+   "kode": "213",
+   "nama": "PT ASDP Indonesia Ferry (Persero)"
+  },
+  {
+   "kode": "214",
+   "nama": "PT Bumi Etam Chemical"
+  },
+  {
+   "kode": "215",
+   "nama": "PT Amman Mineral Nusa Tenggara Tbk"
+  },
+  {
+   "kode": "216",
+   "nama": "PT Dinamika Sejahtera Mandiri"
+  },
+  {
+   "kode": "217",
+   "nama": "PT Tianshan Alumina Indonesia"
+  },
+  {
+   "kode": "218",
+   "nama": "PT Bahodopi Nickel Smelting Indonesia"
+  },
+  {
+   "kode": "219",
+   "nama": "PT Vale Indonesia Blok Bahodopi"
+  },
+  {
+   "kode": "22",
+   "nama": "Direktorat Transmisi, Ketenagalistrikan, Kedirgantaraan, dan Antariksa"
+  },
+  {
+   "kode": "220",
+   "nama": "PT Kolaka Nickel Indonesia"
+  },
+  {
+   "kode": "221",
+   "nama": "PT Vale Indonesia Blok Pomala"
+  },
+  {
+   "kode": "222",
+   "nama": "PT Aneka Tambang Group"
+  },
+  {
+   "kode": "223",
+   "nama": "PT Industri Baterai Indonesia"
+  },
+  {
+   "kode": "224",
+   "nama": "PT Borneo Alumina Indonesia"
+  },
+  {
+   "kode": "225",
+   "nama": "PT Indonesia Asahan Aluminium (Persero)"
+  },
+  {
+   "kode": "226",
+   "nama": "PT Pupuk Kalimantan Timur"
+  },
+  {
+   "kode": "227",
+   "nama": "PMO Pembangunan KI Teluk Bintuni"
+  },
+  {
+   "kode": "228",
+   "nama": "PT Trimegah Bangun Persada"
+  },
+  {
+   "kode": "229",
+   "nama": "PT Indonesia Weda Bay Industrial Park"
+  },
+  {
+   "kode": "23",
+   "nama": "Direktorat Pengembangan Usaha Kecil, Menengah, dan Koperasi"
+  },
+  {
+   "kode": "230",
+   "nama": "PT Virtue Dragon Nickel Industry"
+  },
+  {
+   "kode": "231",
+   "nama": "PT Indonesia Konawe Industrial Park"
+  },
+  {
+   "kode": "232",
+   "nama": "PT Industri Indonesia Pomalaa Industry Park"
+  },
+  {
+   "kode": "233",
+   "nama": "PT Nusantara Industri Sejati"
+  },
+  {
+   "kode": "234",
+   "nama": "PT Kendari Kawasan Indutri Terpadu"
+  },
+  {
+   "kode": "235",
+   "nama": "PT Indonesia Giga Industry Park"
+  },
+  {
+   "kode": "236",
+   "nama": "PT Kolaka Resources Industrial Park"
+  },
+  {
+   "kode": "237",
+   "nama": "PT Stargate Mineral Asia"
+  },
+  {
+   "kode": "238",
+   "nama": "PT Kawasan Industri Tekno Hijau Konasara"
+  },
+  {
+   "kode": "239",
+   "nama": "PT Indo Mineral Mining"
+  },
+  {
+   "kode": "24",
+   "nama": "Pengembangan Jaringan Pelabuhan Terpadu"
+  },
+  {
+   "kode": "240",
+   "nama": "PT Morowali Industri Sejahtera (MIS)"
+  },
+  {
+   "kode": "241",
+   "nama": "PT Indonesia Morowali Industrial Park"
+  },
+  {
+   "kode": "242",
+   "nama": "PT Baoshuo Taman Industry Investment Group (BTIIG)"
+  },
+  {
+   "kode": "243",
+   "nama": "PT Indonesia Dahuaxing Industry Park"
+  },
+  {
+   "kode": "244",
+   "nama": "PT Anugerah Teknik Industri"
+  },
+  {
+   "kode": "245",
+   "nama": "PT Bantaeng Sinergi Cemerlang (Perseroda)"
+  },
+  {
+   "kode": "246",
+   "nama": "PT Kawasan Industri Tiran"
+  },
+  {
+   "kode": "247",
+   "nama": "PT Indonesia Huali Industry Park"
+  },
+  {
+   "kode": "248",
+   "nama": "PT Kawasan Industri Kalimantan Indonesia (KIKI)"
+  },
+  {
+   "kode": "249",
+   "nama": "PT Wahyu Putra Ramadhan"
+  },
+  {
+   "kode": "25",
+   "nama": "Pembangunan Pos Lintas Batas Negara"
+  },
+  {
+   "kode": "250",
+   "nama": "PT Lentera Multi Energi"
+  },
+  {
+   "kode": "251",
+   "nama": "PT Sungai Tabuk Industri"
+  },
+  {
+   "kode": "252",
+   "nama": "PT Kawasan Industri Rimau"
+  },
+  {
+   "kode": "253",
+   "nama": "PT Landak Barajaki"
+  },
+  {
+   "kode": "254",
+   "nama": "PT Ketapang Bangun Sarana"
+  },
+  {
+   "kode": "255",
+   "nama": "PT Dharma Inti Bersama"
+  },
+  {
+   "kode": "256",
+   "nama": "PT Westerfield Alumina Indonesia"
+  },
+  {
+   "kode": "257",
+   "nama": "PT Kawasan Industri Terpadu Batang"
+  },
+  {
+   "kode": "258",
+   "nama": "PT Wahana Mitra Semesta"
+  },
+  {
+   "kode": "259",
+   "nama": "PT Multimas Nabati Asahan"
+  },
+  {
+   "kode": "26",
+   "nama": "Proyek Terpadu Pengembangan Mineral Kritis"
+  },
+  {
+   "kode": "260",
+   "nama": "PT Bukit Asam"
+  },
+  {
+   "kode": "261",
+   "nama": "PT Asia Pacific Chemical"
+  },
+  {
+   "kode": "262",
+   "nama": "PT Batamraya Sukses Perkasa"
+  },
+  {
+   "kode": "263",
+   "nama": "PT Ladi Kawasan Industri"
+  },
+  {
+   "kode": "264",
+   "nama": "PT Galang Bumi Industri"
+  },
+  {
+   "kode": "265",
+   "nama": "PT GBKEK Industri Park"
+  },
+  {
+   "kode": "266",
+   "nama": "PT Prima Pengembangan Kawasan"
+  },
+  {
+   "kode": "267",
+   "nama": "PT Pindad"
+  },
+  {
+   "kode": "268",
+   "nama": "PT Patriot Nusantara Aceh"
+  },
+  {
+   "kode": "269",
+   "nama": "PT. Perkebunan Nusantara III"
+  },
+  {
+   "kode": "27",
+   "nama": "Direktorat Ekonomi Syariah dan Badan Usaha Milik Negara"
+  },
+  {
+   "kode": "270",
+   "nama": "PT GBKEK Industri Pengolahan"
+  },
+  {
+   "kode": "271",
+   "nama": "PT Berkah Kawasan Manyar Sejahtera"
+  },
+  {
+   "kode": "272",
+   "nama": "PT Pengembangan Pariwisata Indonesia"
+  },
+  {
+   "kode": "273",
+   "nama": "PT Hotel Indonesia Natour"
+  },
+  {
+   "kode": "274",
+   "nama": "PT Taman Resor Internet"
+  },
+  {
+   "kode": "275",
+   "nama": "PT MNCLand Lido"
+  },
+  {
+   "kode": "276",
+   "nama": "PT Intelegensia Grahatama"
+  },
+  {
+   "kode": "277",
+   "nama": "PT Bali Turtle Island Development"
+  },
+  {
+   "kode": "278",
+   "nama": "PT Banten West Java Tourism Development"
+  },
+  {
+   "kode": "279",
+   "nama": "Badan Usaha Pembangun dan Pengelola (BUPP) KEK Tanjung Kelayang"
+  },
+  {
+   "kode": "28",
+   "nama": "Direktorat Kemitraan dan Keterpaduan Pembangunan Infrastruktur"
+  },
+  {
+   "kode": "280",
+   "nama": "Jababeka Group"
+  },
+  {
+   "kode": "281",
+   "nama": "PT Minahasa Permai Resort Development"
+  },
+  {
+   "kode": "282",
+   "nama": "PT Karunia Praja Pesona"
+  },
+  {
+   "kode": "283",
+   "nama": "PT Surya Inter Wisesa"
+  },
+  {
+   "kode": "284",
+   "nama": "PT Kawasan Industri Kendal"
+  },
+  {
+   "kode": "285",
+   "nama": "PT Membangun Sulut Hebat (MSH)"
+  },
+  {
+   "kode": "286",
+   "nama": "PT Bangun Palu Sulawesi Tengah"
+  },
+  {
+   "kode": "287",
+   "nama": "PT Maloy Batuta Trans Kalimantan"
+  },
+  {
+   "kode": "288",
+   "nama": "PT Malamoi Olom Wobok"
+  },
+  {
+   "kode": "289",
+   "nama": "PT Dua Samudera Perkasa"
+  },
+  {
+   "kode": "29",
+   "nama": "Direktorat Pengendalian dan Evaluasi Kebijakan Strategis I"
+  },
+  {
+   "kode": "290",
+   "nama": "KSOP Kelas II Benoa"
+  },
+  {
+   "kode": "291",
+   "nama": "Unit Penyelenggara Pelabuhan Kelas III Likupang"
+  },
+  {
+   "kode": "292",
+   "nama": "Pelabuhan Pantoloan (PT Pelabuhan Indonesia)"
+  },
+  {
+   "kode": "293",
+   "nama": "Pelabuhan Wani (KSOP Kelas II Teluk Palu)"
+  },
+  {
+   "kode": "294",
+   "nama": "Pelabuhan Donggala (PT Pelabuhan Indonesia)"
+  },
+  {
+   "kode": "295",
+   "nama": "PT Pelabuhan Indonesia"
+  },
+  {
+   "kode": "296",
+   "nama": "PT Surya Dhoho Investama"
+  },
+  {
+   "kode": "297",
+   "nama": "PT Angkasa Pura Indonesia"
+  },
+  {
+   "kode": "298",
+   "nama": "PT Bayan Trans Kalimantan"
+  },
+  {
+   "kode": "299",
+   "nama": "BWS Kalimantan II"
+  },
+  {
+   "kode": "30",
+   "nama": "Direktorat Pengendalian dan Evaluasi Kebijakan Strategis II"
+  },
+  {
+   "kode": "300",
+   "nama": "BBWS Pompengan Jeneberang"
+  },
+  {
+   "kode": "301",
+   "nama": "BWS Nusa Tenggara I"
+  },
+  {
+   "kode": "302",
+   "nama": "BBWS Ciliwung Cisadane"
+  },
+  {
+   "kode": "303",
+   "nama": "BBWS Citanduy"
+  },
+  {
+   "kode": "304",
+   "nama": "BBWS Citarum"
+  },
+  {
+   "kode": "305",
+   "nama": "BWS Bali - Penida"
+  },
+  {
+   "kode": "306",
+   "nama": "BWS Pemali Juana"
+  },
+  {
+   "kode": "307",
+   "nama": "BWS Nusa Tenggara I"
+  },
+  {
+   "kode": "308",
+   "nama": "PT Tamaris Hidro"
+  },
+  {
+   "kode": "309",
+   "nama": "PT Moya Indonesia"
+  },
+  {
+   "kode": "31",
+   "nama": "Direktorat Pengendalian dan Evaluasi Kebijakan Strategis III"
+  },
+  {
+   "kode": "310",
+   "nama": "British Petroleum (BP)"
+  },
+  {
+   "kode": "311",
+   "nama": "PT. Pertamina Patra Niaga"
+  },
+  {
+   "kode": "312",
+   "nama": "PT. Kilang Pertamina Internsional"
+  },
+  {
+   "kode": "313",
+   "nama": "PT Aviasi Pariwisata Indonesia"
+  },
+  {
+   "kode": "32",
+   "nama": "Direktorat Pengendalian dan Evaluasi Kebijakan Strategis IV"
+  },
+  {
+   "kode": "320",
+   "nama": "Menteri Pendidikan Tinggi, Sains, dan Teknologi"
+  },
+  {
+   "kode": "321",
+   "nama": "Menteri Ekonomi Kreatif"
+  },
+  {
+   "kode": "322",
+   "nama": "Badan Riset dan Inovasi Nasional"
+  },
+  {
+   "kode": "33",
+   "nama": "Direktorat Pembiayaan Strategis dan Inovatif"
+  },
+  {
+   "kode": "34",
+   "nama": "Direktorat Sistem dan Manajemen Risiko"
+  },
+  {
+   "kode": "35",
+   "nama": "Direktorat Pengembangan dan Pendanaan Pembangunan"
+  },
+  {
+   "kode": "36",
+   "nama": "Direktorat Perencanaan Ekonomi Makro dan Pengembangan Model Pembangunan"
+  },
+  {
+   "kode": "401",
+   "nama": "Direktorat Jenderal Peternakan dan Kesehatan Hewan, Badan Pengaturan BUMN/Badan Pengelola Investasi Danantara"
+  },
+  {
+   "kode": "402",
+   "nama": "Sekretaris Daerah Provinsi Sumatera Selatan, Gubernur Sumatera Selatan"
+  },
+  {
+   "kode": "403",
+   "nama": "Direktorat Jenderal Pendidikan Islam, Kementerian Agama"
+  },
+  {
+   "kode": "404",
+   "nama": "Direktorat Jenderal Energi Baru, Terbarukan, dan Konservasi Energi, Kementerian Energi dan Sumber Daya Mineral"
+  },
+  {
+   "kode": "405",
+   "nama": "Direktorat Jenderal Mineral dan Batubara, Kementerian Energi dan Sumber Daya Mineral"
+  },
+  {
+   "kode": "406",
+   "nama": "Direktorat Jenderal Minyak dan Gas Bumi, Kementerian Energi dan Sumber Daya Mineral"
+  },
+  {
+   "kode": "407",
+   "nama": "Direktorat Jenderal Minyak dan Gas Bumi, Kementerian Investasi dan Hilirisasi/Kepala BKPM"
+  },
+  {
+   "kode": "408",
+   "nama": "Sekretariat Jenderal Dewan Nasional KEK, Kementerian Koordinator Bidang Perekonomian / Dewan Nasional KEK"
+  },
+  {
+   "kode": "409",
+   "nama": "Deputi Bidang Pengembangan Destinasi dan Infrastruktur, Kementerian Pariwisata"
+  },
+  {
+   "kode": "410",
+   "nama": "Direktorat Jenderal Bina Marga, Kementerian Pekerjaan Umum"
+  },
+  {
+   "kode": "411",
+   "nama": "Direktorat Jenderal Cipta Karya, Kementerian Pekerjaan Umum"
+  },
+  {
+   "kode": "412",
+   "nama": "Direktorat Jenderal Prasarana Strategis, Kementerian Pekerjaan Umum"
+  },
+  {
+   "kode": "413",
+   "nama": "Direktorat Jenderal Sumber Daya Air, Kementerian Pekerjaan Umum"
+  },
+  {
+   "kode": "416",
+   "nama": "Direktorat Jenderal Perhubungan Laut, Kementerian Perhubungan"
+  },
+  {
+   "kode": "417",
+   "nama": "Direktorat Jenderal Perhubungan Udara, Kementerian Perhubungan"
+  },
+  {
+   "kode": "419",
+   "nama": "Direktorat Jenderal Perkeretaapian, Kementerian Perhubungan"
+  },
+  {
+   "kode": "420",
+   "nama": "Direktorat Jenderal Industri Kimia, Farmasi, dan Tekstil (IKFT), Kementerian Perindustrian"
+  },
+  {
+   "kode": "421",
+   "nama": "Direktorat Jenderal Industri Logam, Mesin, Alat Transportasi, dan Elektronika, Kementerian Perindustrian"
+  },
+  {
+   "kode": "422",
+   "nama": "Direktorat Jenderal Ketahanan, Perwilayahan, dan Akses Industri Internasional, Kementerian Perindustrian"
+  },
+  {
+   "kode": "423",
+   "nama": "Sekretariat Jenderal Dewan Nasional KEK, Kementerian Perindustrian"
+  },
+  {
+   "kode": "424",
+   "nama": "Direktorat Jenderal Potensi Pertahanan, Kementerian Pertahanan"
+  },
+  {
+   "kode": "425",
+   "nama": "Direktorat Jenderal Lahan dan Irigasi Pertanian, Kementerian Pertanian"
+  },
+  {
+   "kode": "426",
+   "nama": "Direktur Jenderal Perlindungan dan Jaminan Sosial, Kementerian Sosial"
+  },
+  {
+   "kode": "427",
+   "nama": "PT. Indonesia Weda Bay"
+  },
+  {
+   "kode": "428",
+   "nama": "PT. Indonesia Pomalaa Industry Park"
+  },
+  {
+   "kode": "429",
+   "nama": "PT Kawasan Industri Terpadu Batang"
+  },
+  {
+   "kode": "430",
+   "nama": "PT. LADI KAWASAN INDUSTRI"
+  },
+  {
+   "kode": "432",
+   "nama": "PT. Sumbawa Timur Minning"
+  },
+  {
+   "kode": "433",
+   "nama": "Direktorat Jenderal Industri Agro, Kementerian Perindustrian"
+  },
+  {
+   "kode": "434",
+   "nama": "PT PDAM Semarang"
+  },
+  {
+   "kode": "435",
+   "nama": "Perusahaan Umum Pembangunan Perumahan Nasional"
+  },
+  {
+   "kode": "436",
+   "nama": "Kementerian Perumahan dan Kawasan Permukiman"
+  },
+  {
+   "kode": "437",
+   "nama": "Biro Perencanaan Setjen, Kementerian Pendidikan Dasar dan Menengah"
+  },
+  {
+   "kode": "438",
+   "nama": "PT. Bayan Resource"
+  },
+  {
+   "kode": "439",
+   "nama": "Perkeretaapian Makassar - Pare pare"
+  },
+  {
+   "kode": "440",
+   "nama": "MRT Jakarta"
+  },
+  {
+   "kode": "441",
+   "nama": "Deputi Peningkatan Nilai BUMN, BP BUMN"
+  },
+  {
+   "kode": "442",
+   "nama": "Deputi Fasilitasi dan Sinergi Pembangunan, BP BUMN"
+  },
+  {
+   "kode": "443",
+   "nama": "Deputi Kebijakan dan Strategi BUMN, BP BUMN"
+  },
+  {
+   "kode": "444",
+   "nama": "Biro Perencanaan, Kementerian Perumahan dan Kawasan Permukiman"
+  },
+  {
+   "kode": "445",
+   "nama": "PT Antam"
+  },
+  {
+   "kode": "448",
+   "nama": "PT Bahodopi Nickel Smelting Indonesia dan PT Vale Indonesia Blok Bahodopi"
+  },
+  {
+   "kode": "449",
+   "nama": "PT Kolaka Nikel Indonesia dan Tambang PT Vale Indonesia Blok Pomala"
+  },
+  {
+   "kode": "450",
+   "nama": "PT Aneka Tambang Group, PT Industri Baterai Indonesia, serta mitra teknologi internasional"
+  },
+  {
+   "kode": "451",
+   "nama": "PT Indonesia Asahan Aluminium/Induk PT Borneo Alumina Indonesia serta mitranya"
+  },
+  {
+   "kode": "452",
+   "nama": "PT Well Harvest Winning Alumina"
+  },
+  {
+   "kode": "453",
+   "nama": "PT Alchemist Metal Industry"
+  },
+  {
+   "kode": "454",
+   "nama": "Biro Perencanaan, Badan Informasi Geospasial"
+  },
+  {
+   "kode": "455",
+   "nama": "Biro Perencanaan, Badan Riset dan Inovasi Nasional"
+  },
+  {
+   "kode": "456",
+   "nama": "Biro Perencanaan dan Kerjasama, Badan Karantina"
+  },
+  {
+   "kode": "457",
+   "nama": "Biro Perencanaan, Badan Nasional Pengelola Perbatasan"
+  },
+  {
+   "kode": "458",
+   "nama": "Biro Manajemen, Badan Gizi Nasional"
+  },
+  {
+   "kode": "459",
+   "nama": "Dinas Lingkungan Hidup, DKI"
+  },
+  {
+   "kode": "460",
+   "nama": "Dinas Perhubungan, DKI"
+  },
+  {
+   "kode": "461",
+   "nama": "Dinas Binamarga, DKI"
+  },
+  {
+   "kode": "462",
+   "nama": "Dinas Sumber Daya Air, DKI"
+  },
+  {
+   "kode": "463",
+   "nama": "Dinas Perhubungan (LRT, Transport, Jakpro, Jaklinko), DKI"
+  },
+  {
+   "kode": "464",
+   "nama": "Biro Perencanaan, Organisasi dan Kerja Sama OIKN"
+  },
+  {
+   "kode": "465",
+   "nama": "Puspenpros, Badan Pengusahaan Batam"
+  },
+  {
+   "kode": "466",
+   "nama": "Dit. Ikan Air Laut, KKP"
+  },
+  {
+   "kode": "467",
+   "nama": "Dit. Ikan Air Payau, KKP"
+  },
+  {
+   "kode": "468",
+   "nama": "Dit. Sumber Daya Kelautan dan Dit. P3K, KKP"
+  },
+  {
+   "kode": "469",
+   "nama": "Dit. Hilirisasi Hasil Peternakan, Kementerian Pertanian"
+  },
+  {
+   "kode": "470",
+   "nama": "Dit. Perbibitan dan Produksi Ternak"
+  },
+  {
+   "kode": "471",
+   "nama": "Asisten Deputi Kemitraan, Kementerian Koperasi"
+  },
+  {
+   "kode": "472",
+   "nama": "Deputi Bidang Hilirasi Investasi dan Strategis, Kementeiran Investasi dan Hilirisasi/Kepala BKPM"
+  },
+  {
+   "kode": "473",
+   "nama": "Direktorat Jenderal Bina Pembangunan Daerah, Kemendagri"
+  },
+  {
+   "kode": "474",
+   "nama": "Direktorat Sinkronisasi Urusan Pemerintah Daerah II, Bina Bangda, Kemendagri"
+  },
+  {
+   "kode": "475",
+   "nama": "Direktorat Hilirisasi Minyak dan Gas Bumi, Kementerian Investasi dan Hilirisasi"
+  },
+  {
+   "kode": "476",
+   "nama": "Biro Perencanaan Program dan Anggaran, Kementerian Investasi dan Hilirisasi"
+  },
+  {
+   "kode": "477",
+   "nama": "Deputi Bidang Pengembangan Usaha Koperasi, Kementerian Koperasi"
+  },
+  {
+   "kode": "478",
+   "nama": "Sekretariat Kementerian Koperasi"
+  },
+  {
+   "kode": "479",
+   "nama": "Biro Manajemen Kinerja dan Dukungan Strategis Pimpinan, Kementerian Koperasi"
+  },
+  {
+   "kode": "480",
+   "nama": "Direktorat Infrastruktur BAKTI, KOMDIGI"
+  }
+ ],
+ "PETA": [
+  {
+   "kode": "11",
+   "hc_key": "id-ac"
+  },
+  {
+   "kode": "12",
+   "hc_key": "id-su"
+  },
+  {
+   "kode": "13",
+   "hc_key": "id-sb"
+  },
+  {
+   "kode": "14",
+   "hc_key": "id-ri"
+  },
+  {
+   "kode": "15",
+   "hc_key": "id-ja"
+  },
+  {
+   "kode": "16",
+   "hc_key": "id-sl"
+  },
+  {
+   "kode": "17",
+   "hc_key": "id-be"
+  },
+  {
+   "kode": "18",
+   "hc_key": "id-1024"
+  },
+  {
+   "kode": "19",
+   "hc_key": "id-bb"
+  },
+  {
+   "kode": "21",
+   "hc_key": "id-kr"
+  },
+  {
+   "kode": "31",
+   "hc_key": "id-jk"
+  },
+  {
+   "kode": "32",
+   "hc_key": "id-jr"
+  },
+  {
+   "kode": "33",
+   "hc_key": "id-jt"
+  },
+  {
+   "kode": "34",
+   "hc_key": "id-yo"
+  },
+  {
+   "kode": "35",
+   "hc_key": "id-ji"
+  },
+  {
+   "kode": "36",
+   "hc_key": "id-bt"
+  },
+  {
+   "kode": "51",
+   "hc_key": "id-ba"
+  },
+  {
+   "kode": "52",
+   "hc_key": "id-nb"
+  },
+  {
+   "kode": "53",
+   "hc_key": "id-nt"
+  },
+  {
+   "kode": "61",
+   "hc_key": "id-kb"
+  },
+  {
+   "kode": "62",
+   "hc_key": "id-kt"
+  },
+  {
+   "kode": "63",
+   "hc_key": "id-ks"
+  },
+  {
+   "kode": "64",
+   "hc_key": "id-ki"
+  },
+  {
+   "kode": "65",
+   "hc_key": "id-ku"
+  },
+  {
+   "kode": "71",
+   "hc_key": "id-sw"
+  },
+  {
+   "kode": "72",
+   "hc_key": "id-st"
+  },
+  {
+   "kode": "73",
+   "hc_key": "id-se"
+  },
+  {
+   "kode": "74",
+   "hc_key": "id-sg"
+  },
+  {
+   "kode": "75",
+   "hc_key": "id-go"
+  },
+  {
+   "kode": "76",
+   "hc_key": "id-sr"
+  },
+  {
+   "kode": "81",
+   "hc_key": "id-ma"
+  },
+  {
+   "kode": "82",
+   "hc_key": "id-la"
+  },
+  {
+   "kode": "91",
+   "hc_key": "id-pa"
+  },
+  {
+   "kode": "92",
+   "hc_key": "id-ib"
+  }
+ ],
+ "KRITERIA": [
+  {
+   "legacy_id": 1,
+   "kelompok": "UTAMA",
+   "kode": "KU1",
+   "uraian": "Bagaimana proyek mendukung sasaran RPJMN 2025–2029, terutama program prioritas Presiden dan Program Hasil Terbaik Cepat?",
+   "tipe_nilai": "YA_TIDAK",
+   "kondisional": null,
+   "urutan": 1
+  },
+  {
+   "legacy_id": 2,
+   "kelompok": "UTAMA",
+   "kode": "KU2",
+   "uraian": "Mengapa proyek memerlukan konsentrasi, keterpaduan, dan sinergi sumber daya lintas pemangku kepentingan?",
+   "tipe_nilai": "YA_TIDAK",
+   "kondisional": null,
+   "urutan": 2
+  },
+  {
+   "legacy_id": 3,
+   "kelompok": "UTAMA",
+   "kode": "KU3",
+   "uraian": "Bagian apa yang selesai atau berfungsi pada 2029? Untuk infrastruktur besar, apakah konstruksi dimulai sebelum 2029?",
+   "tipe_nilai": "YA_TIDAK",
+   "kondisional": null,
+   "urutan": 3
+  },
+  {
+   "legacy_id": 4,
+   "kelompok": "PENDUKUNG",
+   "kode": "KP1",
+   "uraian": "Apakah desain proyek menerapkan pendekatan tematik, holistik, integratif, dan spasial?",
+   "tipe_nilai": "SKOR_0_3",
+   "kondisional": null,
+   "urutan": 4
+  },
+  {
+   "legacy_id": 5,
+   "kelompok": "PENDUKUNG",
+   "kode": "KP2",
+   "uraian": "Bagaimana sebaran proyek mempercepat dan memeratakan pembangunan?",
+   "tipe_nilai": "SKOR_0_3",
+   "kondisional": null,
+   "urutan": 5
+  },
+  {
+   "legacy_id": 6,
+   "kelompok": "PENDUKUNG",
+   "kode": "KP3",
+   "uraian": "Apa kontribusi proyek terhadap kualitas SDM, pertumbuhan ekonomi, dan penurunan kemiskinan?",
+   "tipe_nilai": "SKOR_0_3",
+   "kondisional": null,
+   "urutan": 6
+  },
+  {
+   "legacy_id": 7,
+   "kelompok": "PENDUKUNG",
+   "kode": "KP4",
+   "uraian": "Untuk usulan Kementerian atau Lembaga, apakah proyek tercantum dalam Renstra Kementerian atau Lembaga?",
+   "tipe_nilai": "SKOR_0_3",
+   "kondisional": "PENGUSUL_KL",
+   "urutan": 7
+  },
+  {
+   "legacy_id": 8,
+   "kelompok": "PENDUKUNG",
+   "kode": "KP5",
+   "uraian": "Untuk usulan Pemerintah Daerah, apakah proyek tercantum dalam RPJMD, berkontribusi pada RPJMN, dan memerlukan dukungan Pemerintah?",
+   "tipe_nilai": "SKOR_0_3",
+   "kondisional": "PENGUSUL_PEMDA",
+   "urutan": 8
+  },
+  {
+   "legacy_id": 9,
+   "kelompok": "PENDUKUNG",
+   "kode": "KP6",
+   "uraian": "Untuk usulan BUMN atau swasta, apakah proyek tercantum dalam RKAP, berkontribusi pada RPJMN, dan memerlukan dukungan Pemerintah?",
+   "tipe_nilai": "SKOR_0_3",
+   "kondisional": "PENGUSUL_BU",
+   "urutan": 9
+  },
+  {
+   "legacy_id": 10,
+   "kelompok": "KESIAPAN",
+   "kode": "KK1",
+   "uraian": "Apakah jalur kritis, strategi pelaksanaan, rencana pembiayaan, dan profil risiko telah jelas?",
+   "tipe_nilai": "SKOR_0_3",
+   "kondisional": null,
+   "urutan": 10
+  },
+  {
+   "legacy_id": 11,
+   "kelompok": "KESIAPAN",
+   "kode": "KK2",
+   "uraian": "Apakah struktur kelembagaan pelaksana dan kewenangannya telah jelas?",
+   "tipe_nilai": "SKOR_0_3",
+   "kondisional": null,
+   "urutan": 11
+  },
+  {
+   "legacy_id": 12,
+   "kelompok": "KESIAPAN",
+   "kode": "KK3",
+   "uraian": "Untuk infrastruktur ekonomi, apakah kesesuaian tata ruang, master plan, FS atau pra-FS, analisis sosial dan lingkungan, serta manajemen risiko tersedia?",
+   "tipe_nilai": "SKOR_0_3",
+   "kondisional": "INFRASTRUKTUR",
+   "urutan": 12
+  },
+  {
+   "legacy_id": 13,
+   "kelompok": "KESIAPAN",
+   "kode": "KK4",
+   "uraian": "Untuk usulan infrastruktur, apakah rencana pengadaan tanah dan pemukiman kembali memuat lokasi, luas, status umum, serta estimasi nilai?",
+   "tipe_nilai": "SKOR_0_3",
+   "kondisional": "INFRASTRUKTUR",
+   "urutan": 13
+  },
+  {
+   "legacy_id": 14,
+   "kelompok": "KESIAPAN",
+   "kode": "KK5",
+   "uraian": "Apakah analisis dampak mencakup kualitas SDM, penurunan kemiskinan, pertumbuhan atau ketahanan ekonomi, dan pemerataan?",
+   "tipe_nilai": "SKOR_0_3",
+   "kondisional": null,
+   "urutan": 14
+  }
+ ]
+}
