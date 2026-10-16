@@ -11,6 +11,8 @@ import { halamanRisiko } from './risiko';
 
 window.Alpine = Alpine;
 Alpine.store('filter', filterStore());
+// Ringkasan status data dashboard untuk subbar (diisi halamanDashboard).
+Alpine.store('statusDasbor', { tanggal: null, kelengkapan: null, belum: null });
 Alpine.data('multiPilih', multiPilih);
 Alpine.data('halamanDashboard', halamanDashboard);
 Alpine.data('halamanPortofolio', halamanPortofolio);

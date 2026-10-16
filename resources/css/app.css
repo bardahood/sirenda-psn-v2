@@ -16,8 +16,8 @@
     .tombol-primer { @apply tombol bg-primer text-white hover:bg-primer-700; }
     .tombol-garis { @apply tombol border border-slate-300 bg-white text-slate-700 hover:bg-slate-50; }
     /* Kotak filter header (label kecil + nilai). */
-    .kotak-filter { @apply flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-left shadow-sm hover:border-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-aksen; }
-    .kotak-filter-label { @apply block text-[11px] leading-4 text-slate-500; }
+    .kotak-filter { @apply flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1 text-left shadow-sm hover:border-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-aksen; }
+    .kotak-filter-label { @apply block text-[10.5px] leading-[14px] text-slate-500; }
     .kotak-filter-nilai { @apply block max-w-[9.5rem] truncate text-[13px] font-semibold leading-5 text-slate-800; }
     .ikon-tombol { @apply inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-aksen; }
     /* Badge status: label + warna; teks gelap di latar muda agar kontras >= 4,5:1. */

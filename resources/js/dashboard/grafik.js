@@ -250,7 +250,7 @@ export function petaRingkas(prov, pulau, kelas) {
         grid: { left: 8, right: 8, top: 8, bottom: 8 },
         tooltip: { ...dasar.tooltip, trigger: 'item', formatter: (p) => (p.seriesIndex === 0 ? `${p.data.nama}<br/><b>${angka(p.data.jumlah, 0)}</b> PSN<br/><span style="color:#64748b">Klik untuk memfilter</span>` : `${p.data.nama}<br/><b>${angka(p.data.jumlah, 0)}</b> PSN (dihitung sekali per pulau)`) },
         xAxis: { type: 'value', min: 94, max: 142, show: false },
-        yAxis: { type: 'value', min: -12, max: 7, show: false },
+        yAxis: { type: 'value', min: -14.5, max: 7.5, show: false },
         series: [
             {
                 type: 'scatter', cursor: 'pointer', z: 2,

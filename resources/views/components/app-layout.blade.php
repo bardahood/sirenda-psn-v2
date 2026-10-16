@@ -1,2 +1,2 @@
-@props(['judul' => null, 'subjudul' => null])
-@include('layouts.app', ['judul' => $judul, 'subjudul' => $subjudul, 'slot' => $slot, 'filter' => $filter ?? null])
+@props(['judul' => null, 'subjudul' => null, 'layarPenuh' => false])
+@include('layouts.app', ['judul' => $judul, 'subjudul' => $subjudul, 'layarPenuh' => $layarPenuh, 'slot' => $slot, 'filter' => $filter ?? null, 'aksi' => $aksi ?? null])

@@ -31,6 +31,7 @@ Konvensi proyek untuk asisten AI dan pengembang.
 - Status selalu badge berlabel (`badge-{KODE}` + `titik-{KODE}`), tidak pernah warna saja.
 - Kartu KPI: warna identitas tetap per indikator (K1 biru, K2 hijau, K3 oranye, K4 merah) untuk ikon & sparkline.
 - Grafik: satu seri = warna aksen; dua seri memakai palet tervalidasi (#2a78d6, #eb6834); tidak ada grafik dua sumbu Y.
+- Tata letak: topbar navigasi + subbar (judul, filter, slot `aksi`). Dashboard memakai `<x-app-layout :layar-penuh="true">` dan `<x-panel padat>`: harus muat satu layar tanpa gulir pada ≥ 1536×864 (cek dengan Playwright setelah menambah panel).
 - Filter global hidup di query string (`Alpine.store('filter')`). Tautan antarhalaman memakai `$store.filter.tautan(path)` agar filter terbawa.
 
 ## ETL

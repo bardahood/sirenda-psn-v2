@@ -6,6 +6,7 @@
     <div class="mx-auto max-w-5xl space-y-6">
         <section class="kartu" aria-labelledby="h-ind">
             <h2 id="h-ind" class="judul-panel mb-3">Definisi Indikator</h2>
+            <div class="overflow-x-auto">
             <table class="w-full text-left text-isi">
                 <thead class="border-b border-slate-200 text-label text-slate-600"><tr><th class="w-24 py-2 pr-3">Kode</th><th class="py-2 pr-3">Indikator & rumus</th><th class="py-2">Sumber</th></tr></thead>
                 <tbody class="divide-y divide-slate-100">
@@ -14,6 +15,7 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>
         </section>
         <section class="kartu" aria-labelledby="h-ambang">
             <h2 id="h-ambang" class="judul-panel mb-3">Ambang & Bobot yang Berlaku</h2>

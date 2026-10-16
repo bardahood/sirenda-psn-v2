@@ -1,10 +1,11 @@
-@props(['kode', 'judul', 'grafik' => null, 'csv' => true, 'tinggi' => null])
+@props(['kode', 'judul', 'grafik' => null, 'csv' => true, 'tinggi' => null, 'padat' => false])
 {{-- Panel standar: judul, ikon ⓘ (rumus, sumber, cut-off), unduh PNG/CSV. --}}
-<section {{ $attributes->merge(['class' => 'kartu flex flex-col']) }} aria-labelledby="judul-{{ $kode }}">
-    <div class="mb-3 flex items-start gap-2">
+{{-- padat: versi ringkas untuk dashboard satu layar (padding & judul lebih kecil, subjudul satu baris). --}}
+<section {{ $attributes->merge(['class' => 'kartu flex min-h-0 flex-col'.($padat ? ' !p-3 layar:overflow-hidden' : '')]) }} aria-labelledby="judul-{{ $kode }}">
+    <div @class(['flex items-start gap-1', 'mb-3' => ! $padat, 'mb-1.5' => $padat])>
         <div class="mr-auto min-w-0">
-            <h2 id="judul-{{ $kode }}" class="judul-panel">{{ $judul }}</h2>
-            @isset($subjudul)<p class="mt-0.5 text-label font-normal text-slate-500">{{ $subjudul }}</p>@endisset
+            <h2 id="judul-{{ $kode }}" @class(['judul-panel', '!text-[13px] !leading-5 truncate' => $padat]) title="{{ $judul }}">{{ $judul }}</h2>
+            @isset($subjudul)<p @class(['font-normal text-slate-500', 'mt-0.5 text-label' => ! $padat, 'truncate text-[11px] leading-4 [@media(max-height:900px)]:hidden' => $padat])>{{ $subjudul }}</p>@endisset
         </div>
         <div class="relative" x-data="{ buka: false }" @click.outside="buka = false" @keydown.escape="buka = false">
             <button type="button" class="ikon-tombol" @click="buka = !buka" :aria-expanded="buka" aria-label="Informasi indikator {{ $judul }}">
@@ -28,7 +29,7 @@
             </div>
         </div>
     </div>
-    <div class="relative min-h-0 flex-1">
+    <div @class(['relative min-h-0 flex-1', 'layar:overflow-y-auto' => $padat])>
         {{ $slot }}
     </div>
 </section>

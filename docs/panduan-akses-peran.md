@@ -19,7 +19,7 @@ Contoh: halaman Dashboard = `https://<domain-aplikasi>/dashboard`.
 2. Isi **nama pengguna atau surel** dan **kata sandi**, lalu klik **Masuk**.
 3. Pada login pertama atau setelah kata sandi direset, aplikasi mengarahkan ke **`/ganti-password`**. Kata sandi wajib diganti sebelum halaman lain dapat dibuka.
 4. Setelah berhasil, aplikasi membuka **`/dashboard`**. Alamat `/` juga diarahkan ke sana.
-5. Untuk keluar, klik nama Anda di kanan atas, lalu pilih **Keluar**. Menu yang sama berisi **Ganti kata sandi** dan **Kamus indikator**.
+5. Untuk keluar, klik nama/inisial Anda di kanan atas topbar, lalu pilih **Keluar**. Menu yang sama berisi **Ganti kata sandi**.
 
 Catatan:
 - Akun dibuat oleh **Super Admin** di `/pengaturan/pengguna/baru`. Kata sandi sementara diserahkan secara aman dan wajib diganti saat login pertama.
@@ -67,7 +67,7 @@ Arti simbol:
 | Pengaturan: Master Data | `/pengaturan/master` | ✓ | ✗ | ✗ | ✗ | ✗ |
 | Ganti kata sandi | `/ganti-password` | ✓ | ✓ | ✓ | ✓ | ✓ |
 
-Menu di sidebar hanya menampilkan halaman yang boleh dibuka oleh peran pengguna.
+Menu navigasi berada di **topbar** (bagian atas layar; pada layar kecil di balik tombol ☰) dan hanya menampilkan halaman yang boleh dibuka oleh peran pengguna. Menu nama pengguna di kanan atas berisi **Ganti kata sandi** dan **Keluar**.
 
 ## 5. Panduan per peran
 

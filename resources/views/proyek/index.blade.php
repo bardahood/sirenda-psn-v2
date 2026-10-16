@@ -97,7 +97,7 @@
 
             <nav class="mt-4 flex flex-wrap items-center justify-between gap-2" aria-label="Paginasi" x-show="meta?.halaman_terakhir > 1">
                 <span class="label" x-text="'Halaman ' + meta?.halaman + ' dari ' + meta?.halaman_terakhir"></span>
-                <div class="flex gap-2">
+                <div class="flex flex-wrap gap-2">
                     <button type="button" class="tombol-garis py-1.5" @click="ke(1)" :disabled="o.page <= 1">Pertama</button>
                     <button type="button" class="tombol-garis py-1.5" @click="ke(o.page - 1)" :disabled="o.page <= 1">Sebelumnya</button>
                     <button type="button" class="tombol-garis py-1.5" @click="ke(o.page + 1)" :disabled="o.page >= meta?.halaman_terakhir">Berikutnya</button>

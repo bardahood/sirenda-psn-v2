@@ -69,6 +69,10 @@ export function halamanDashboard(kamus, kelasPeta) {
                 }));
                 hasil.forEach(([k, r]) => (this.d[k] = r.data));
                 this.meta = hasil.find(([k]) => k === 'kpi')[1].meta;
+                const sd = this.d.statusData;
+                Object.assign(this.$store.statusDasbor, this.meta?.cutoff && sd
+                    ? { tanggal: this.tanggalCutoff, kelengkapan: `${angka(sd.kelengkapan_persen)}%`, belum: `${angka(sd.belum_terverifikasi, 0)} / ${angka(sd.total_psn, 0)}` }
+                    : { tanggal: null, kelengkapan: null, belum: null });
                 this.$nextTick(() => this.gambar());
             } catch (e) {
                 this.galat = e.response?.data?.message || 'Data dashboard gagal dimuat. Coba muat ulang halaman.';

@@ -320,6 +320,15 @@ Parameter filter: `periode=2026-09`, `prov=31,32`, `klaster=3,7`, `dit=12`, `sta
 - Penyimpangan sadar dari gambar contoh: (1) batang klaster & direktorat memakai satu warna aksen (satu seri, aturan CLAUDE.md), bukan warna berbeda per baris; (2) "Tren Realisasi Anggaran" diganti tren progres fisik karena target anggaran bulanan tidak tersedia; (3) cincin Trisula menampilkan cakupan indikator, bukan capaian, karena metodologi belum ditetapkan (P8); (4) peta tanpa garis pulau karena GeoJSON belum ditetapkan (Q-12).
 - Palet donat komposisi dana divalidasi (lolos uji CVD & normal-vision); warna kartu KPI: K1 biru, K2 hijau, K3 oranye, K4 merah.
 
+### 8.7 Topbar & dashboard satu layar
+
+- Navigasi dipindah dari sidebar ke **topbar** (logo, menu berlabel pendek, menu pengguna); di bawah 1280 px menu dibuka lewat tombol ☰. Di bawahnya **subbar** berisi judul halaman, filter global, dan aksi halaman (slot `aksi`).
+- **Dashboard satu layar**: pada layar ≥ 1280 × 720 px (varian Tailwind `layar`) halaman mengisi tepat satu layar tanpa gulir vertikal — grid 24 kolom: baris KPI + tiga baris panel yang tingginya membagi sisa layar (`grid-rows-[auto_repeat(3,minmax(0,1fr))]`). Panel memakai varian `<x-panel padat>`; grafik mengikuti ukuran panel (ResizeObserver).
+  - Diukur dengan Playwright (data asli): tanpa gulir halaman dan tanpa isi panel terpotong pada 1920×1080, 1920×960, 1600×900, 1536×864, dan 1440×900.
+  - Layar lebih pendek (mis. 1366×768): tetap satu layar; daftar dalam panel yang tidak muat dapat digulir di dalam panelnya (tidak ada data yang disembunyikan). Subjudul panel disembunyikan bila tinggi layar < 900 px (isi tetap pada ⓘ).
+  - Layar < 1280 px atau sangat pendek: kembali ke tata letak bergulir 1–2 kolom.
+- Status data (cut-off, kelengkapan, belum terverifikasi) & tombol PDF pindah ke subbar (`Alpine.store('statusDasbor')`).
+
 ## 9. Hasil impor awal (dump 7 Oktober 2026)
 
 Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan test`): jumlah PSN, lokasi, item profil, regulasi, KP/RO, agregat per provinsi, agregat per klaster, dan total nilai investasi **identik** dengan basis data lama.

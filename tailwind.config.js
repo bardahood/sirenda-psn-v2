@@ -14,6 +14,9 @@ export default {
     safelist: [{ pattern: /^(badge|titik)-(ON_TRACK|BERISIKO|TERLAMBAT|TANPA_DATA|BELUM|DRAFT|DIAJUKAN|DIVERIFIKASI|DIKEMBALIKAN)$/ }],
     theme: {
         extend: {
+            // Mode satu layar dashboard: lebar >= 1280 px dan tinggi >= 720 px.
+            screens: { layar: { raw: '(min-width: 1280px) and (min-height: 720px)' } },
+            gridTemplateColumns: { 24: 'repeat(24, minmax(0, 1fr))' },
             fontFamily: {
                 sans: ['"Plus Jakarta Sans Variable"', ...defaultTheme.fontFamily.sans],
             },
