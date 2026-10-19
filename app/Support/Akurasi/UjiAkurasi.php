@@ -34,6 +34,11 @@ class UjiAkurasi
             'dana=kpbu,lainnya',
             'status=terlambat,tanpa_data',
             $prov && $klaster ? "prov={$prov}&klaster={$klaster}&dana=apbn" : null,
+            // Pilih PSN tertentu: tiga PSN dengan KP/RO terbanyak (dan kombinasi dengan provinsi).
+            ($psn = DB::table('kegiatan')->whereNull('deleted_at')->groupBy('psn_id')->orderByRaw('COUNT(*) DESC')->orderBy('psn_id')->limit(3)->pluck('psn_id')->implode(','))
+                ? "psn={$psn}" : null,
+            ($provPsn = $psn ? DB::table('psn_lokasi')->whereNull('deleted_at')->whereIn('psn_id', explode(',', $psn))->where('provinsi_kode', '<>', '00')->orderBy('provinsi_kode')->value('provinsi_kode') : null)
+                ? "psn={$psn}&prov={$provPsn}" : null,
         ], fn ($v) => $v !== null));
     }
 

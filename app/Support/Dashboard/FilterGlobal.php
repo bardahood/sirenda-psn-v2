@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Validator;
 
 /**
  * Filter global dashboard yang dibawa lewat query string dan berlaku lintas halaman:
- * periode=2026-09&prov=31,32&klaster=3,7&dit=12&status=terlambat&kat=psn&dana=kpbu
+ * periode=2026-09&prov=31,32&klaster=3,7&dit=12&status=terlambat&kat=psn&dana=kpbu&psn=12,40
  */
 final class FilterGlobal
 {
@@ -22,6 +22,7 @@ final class FilterGlobal
      * @param  int[]  $dit  ref_unit_kerja.id
      * @param  string[]  $status  StatusProgres value
      * @param  string[]  $dana  skema (APBN|APBD|KPBU|LAINNYA)
+     * @param  int[]  $psn  psn.id (pilih PSN tertentu)
      */
     public function __construct(
         public readonly ?string $periode = null,
@@ -31,6 +32,7 @@ final class FilterGlobal
         public readonly array $status = [],
         public readonly ?string $kat = null,
         public readonly array $dana = [],
+        public readonly array $psn = [],
     ) {}
 
     public static function fromRequest(Request $request): self
@@ -45,6 +47,7 @@ final class FilterGlobal
             'status' => array_map('strtolower', $daftar('status')),
             'kat' => $request->query('kat') ? strtolower($request->query('kat')) : null,
             'dana' => array_map('strtolower', $daftar('dana')),
+            'psn' => $daftar('psn'),
         ];
 
         Validator::make($input, [
@@ -55,6 +58,8 @@ final class FilterGlobal
             'status.*' => ['in:'.implode(',', array_map(fn ($s) => strtolower($s->value), StatusProgres::cases()))],
             'kat' => ['nullable', 'in:psn,pkpn'],
             'dana.*' => ['in:'.implode(',', self::SKEMA_DANA)],
+            'psn' => ['array', 'max:100'],
+            'psn.*' => ['integer', 'min:1'],
         ], [
             'periode.regex' => 'Format periode harus YYYY-MM.',
             '*.*.regex' => 'Kode provinsi tidak valid.',
@@ -70,13 +75,14 @@ final class FilterGlobal
             array_values(array_unique(array_map('strtoupper', $input['status']))),
             $input['kat'] ? strtoupper($input['kat']) : null,
             array_values(array_unique(array_map('strtoupper', $input['dana']))),
+            array_values(array_unique(array_map('intval', $input['psn']))),
         );
     }
 
     /** Salinan dengan periode berbeda (mis. untuk pembanding cut-off sebelumnya). */
     public function denganPeriode(?string $periode): self
     {
-        return new self($periode, $this->prov, $this->klaster, $this->dit, $this->status, $this->kat, $this->dana);
+        return new self($periode, $this->prov, $this->klaster, $this->dit, $this->status, $this->kat, $this->dana, $this->psn);
     }
 
     /**
@@ -89,7 +95,8 @@ final class FilterGlobal
     {
         $irisan = fn (array $pilihan, array $nilai) => ! $pilihan || array_intersect($pilihan, $nilai);
 
-        return $irisan($this->prov, (array) $row->provinsi_kode)
+        return (! $this->psn || in_array((int) $row->psn_id, $this->psn, true))
+            && $irisan($this->prov, (array) $row->provinsi_kode)
             && (! $this->klaster || in_array((int) $row->klaster_id, $this->klaster, true))
             && $irisan($this->dit, array_map('intval', (array) $row->unit_kerja_id))
             && (! $this->status || in_array($row->status_progres, $this->status, true))
@@ -126,6 +133,7 @@ final class FilterGlobal
         $this->klaster && $q->whereIn("{$t}.klaster_id", $this->klaster);
         $this->status && $q->whereIn("{$t}.status_progres", $this->status);
         $this->kat && $q->where("{$t}.kategori", $this->kat);
+        $this->psn && $q->whereIn("{$t}.psn_id", $this->psn);
     }
 
     /** Bentuk kanonik untuk meta respons dan query string (hanya yang terisi). */
@@ -139,6 +147,7 @@ final class FilterGlobal
             'status' => $this->status ? strtolower(implode(',', $this->status)) : null,
             'kat' => $this->kat ? strtolower($this->kat) : null,
             'dana' => $this->dana ? strtolower(implode(',', $this->dana)) : null,
+            'psn' => $this->psn ? implode(',', $this->psn) : null,
         ]);
     }
 }

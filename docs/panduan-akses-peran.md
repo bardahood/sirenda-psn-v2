@@ -127,6 +127,7 @@ Filter disimpan di alamat halaman. Menyalin URL berarti menyalin tampilan yang s
 | PSN berstatus Terlambat | `/proyek?status=terlambat` |
 | PSN dengan risiko kritis | `/proyek?kritis=1` |
 | PSN tahap Konstruksi | `/proyek?tahap=KONSTRUKSI` |
+| Dashboard untuk dua PSN tertentu | `/dashboard?psn=45,55` |
 | Pengisian yang menunggu verifikasi, Oktober 2026 | `/pengisian?periode=2026-10&status=DIAJUKAN` |
 | Excel register risiko cut-off Agustus 2026 | `/laporan/risiko.xlsx?periode=2026-08` |
 
@@ -138,6 +139,7 @@ Parameter filter global:
 - `status` (`on_track`, `berisiko`, `terlambat`, `tanpa_data`)
 - `kat` (`psn`, `pkpn`)
 - `dana` (`apbn`, `apbd`, `kpbu`, `lainnya`)
+- `psn` (ID PSN; pilih lewat kotak **PSN** di bagian filter, dapat dicari dengan nama atau kode PSN)
 
 Beberapa nilai dipisahkan koma.
 

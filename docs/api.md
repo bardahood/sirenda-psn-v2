@@ -17,6 +17,7 @@ Berlaku untuk semua endpoint dashboard, portofolio, kualitas data, dan peta. Nil
 | `status` | `terlambat,on_track` | `on_track`, `berisiko`, `terlambat`, `tanpa_data` |
 | `kat` | `psn` | `psn` atau `pkpn` |
 | `dana` | `kpbu` | `apbn`, `apbd`, `kpbu`, `lainnya` |
+| `psn` | `45,55` | `psn.id` — hanya PSN tertentu (maks. 100). Opsinya di `GET /filter-opsi` → `data.psn`, mengikuti cakupan akses pengguna |
 
 ## Endpoint
 

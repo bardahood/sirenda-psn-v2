@@ -36,6 +36,9 @@ class KueriAcuan
         if ($this->f->prov) {
             $w[] = 'EXISTS (SELECT 1 FROM psn_lokasi l WHERE l.psn_id = p.id AND l.deleted_at IS NULL AND l.provinsi_kode IN ('.$this->tanda($this->f->prov).'))';
         }
+        if ($this->f->psn) {
+            $w[] = 'p.id IN ('.$this->tanda($this->f->psn).')';
+        }
         if ($this->f->klaster) {
             $w[] = 'p.klaster_id IN ('.$this->tanda($this->f->klaster).')';
         }

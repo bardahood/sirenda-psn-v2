@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Enums\StatusProgres;
 use App\Http\Controllers\Controller;
 use App\Models\PeriodeCutoff;
+use App\Models\Psn;
 use App\Services\DashboardService;
 use App\Support\Dashboard\KamusIndikator;
 use Illuminate\Http\JsonResponse;
@@ -24,6 +25,10 @@ class ReferensiController extends Controller
             'kategori' => [['nilai' => 'psn', 'label' => 'PSN'], ['nilai' => 'pkpn', 'label' => 'PKPN']],
             'status' => collect(StatusProgres::cases())->map(fn ($s) => ['nilai' => strtolower($s->value), 'label' => $s->label()]),
         ]);
+
+        // Daftar PSN mengikuti cakupan akses pengguna (scope model Psn), jadi tidak ikut cache bersama.
+        $opsi['psn'] = Psn::query()->orderBy('nama')->orderBy('id')->get(['id', 'nama', 'kode_psn'])
+            ->map(fn ($p) => ['nilai' => $p->id, 'label' => $p->nama, 'kode' => $p->kode_psn])->values();
 
         $opsi['periode'] = PeriodeCutoff::where('status', 'TERBIT')->orderByDesc('tanggal_cutoff')->get(['kode', 'tanggal_cutoff'])
             ->map(fn ($p) => ['nilai' => $p->kode, 'label' => $p->tanggal_cutoff->translatedFormat('F Y')]);

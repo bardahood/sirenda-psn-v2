@@ -1,5 +1,5 @@
 // Filter global: disimpan di query string (tautan dapat dibagikan) dan berlaku lintas halaman.
-export const MULTI = ['prov', 'klaster', 'dit', 'status', 'dana'];
+export const MULTI = ['psn', 'prov', 'klaster', 'dit', 'status', 'dana'];
 export const TUNGGAL = ['periode', 'kat'];
 
 export function bacaUrl(search = window.location.search) {
@@ -20,7 +20,7 @@ export function keQuery(nilai) {
 export function filterStore() {
     return {
         nilai: bacaUrl(),
-        opsi: { periode: [], provinsi: [], klaster: [], direktorat: [], dana: [], kategori: [], status: [] },
+        opsi: { periode: [], psn: [], provinsi: [], klaster: [], direktorat: [], dana: [], kategori: [], status: [] },
         siap: false,
 
         async muatOpsi() {
@@ -93,7 +93,10 @@ export function multiPilih(kunci, jenisOpsi, judul) {
         judul,
         get daftar() {
             const c = this.cari.toLowerCase();
-            return (this.$store.filter.opsi[this.jenisOpsi] || []).filter((o) => o.label.toLowerCase().includes(c));
+            // Pencarian pada label dan kode (mis. kode PSN); pilihan yang sudah dicentang tampil di atas.
+            const hasil = (this.$store.filter.opsi[this.jenisOpsi] || []).filter((o) => `${o.label} ${o.kode ?? ''}`.toLowerCase().includes(c));
+            const pilih = this.terpilih;
+            return pilih.length ? [...hasil.filter((o) => pilih.includes(String(o.nilai))), ...hasil.filter((o) => !pilih.includes(String(o.nilai)))] : hasil;
         },
         get terpilih() {
             return this.$store.filter.nilai[this.kunci];

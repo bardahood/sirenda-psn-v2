@@ -17,6 +17,19 @@
         {!! $chevron !!}
     </label>
 
+    {{-- PSN tertentu (cari nama/kode; daftar mengikuti cakupan akses pengguna) --}}
+    <div class="relative" x-data="multiPilih('psn', 'psn', 'PSN')" @keydown.escape="buka = false" @click.outside="buka = false">
+        <button type="button" class="kotak-filter" @click="buka = !buka" :aria-expanded="buka" aria-haspopup="listbox" :class="terpilih.length && '!border-aksen'">
+            <span><span class="kotak-filter-label">PSN</span><span class="kotak-filter-nilai" x-text="ringkas === 'Semua' ? 'Semua PSN' : (terpilih.length > 1 ? terpilih.length + ' PSN dipilih' : ringkas)"></span></span>
+            {!! $chevron !!}
+        </button>
+        <div x-show="buka" x-cloak x-transition.opacity class="absolute left-0 z-40 mt-1 w-[26rem] max-w-[90vw] rounded-kartu border border-slate-200 bg-white p-2 shadow-lg">
+            <input type="search" x-model="cari" placeholder="Cari nama atau kode PSN…" class="mb-2 w-full rounded-md border-slate-300 py-1.5 text-isi focus:border-aksen focus:ring-aksen" aria-label="Cari PSN">
+            <p class="mb-1 px-2 text-[11px] text-slate-500" x-text="daftar.length + ' PSN' + (terpilih.length ? ' · ' + terpilih.length + ' dipilih' : '')"></p>
+            @include('components.partials.daftar-pilih')
+        </div>
+    </div>
+
     {{-- Provinsi --}}
     <div class="relative" x-data="multiPilih('prov', 'provinsi', 'Provinsi')" @keydown.escape="buka = false" @click.outside="buka = false">
         <button type="button" class="kotak-filter" @click="buka = !buka" :aria-expanded="buka" aria-haspopup="listbox" :class="terpilih.length && '!border-aksen'">

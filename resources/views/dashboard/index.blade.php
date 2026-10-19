@@ -129,7 +129,7 @@
                     <div class="relative aspect-square h-40 shrink-0 layar:h-full layar:max-h-[11rem]">
                         <div x-ref="dana" class="h-full w-full" role="img" aria-label="Komposisi investasi per kombinasi skema pendanaan"></div>
                         <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                            <span class="angka text-[13px] font-bold text-slate-900" x-text="'Rp ' + angka(totalInvestasi, 0) + ' T'"></span>
+                            <span class="angka text-[13px] font-bold text-slate-900" x-text="'Rp ' + angka(totalInvestasi, totalInvestasi < 100 ? 1 : 0) + ' T'"></span>
                             <span class="text-[10px] text-slate-500">Total investasi</span>
                         </div>
                     </div>
@@ -225,7 +225,7 @@
                         <div class="flex h-full min-h-0 flex-col items-center justify-center text-center" :title="t.judul + ': ' + t.psn + ' PSN, ' + t.indikator + ' indikator'">
                             <svg viewBox="0 0 100 100" class="h-20 w-20 layar:h-auto layar:max-h-[5.5rem] layar:min-h-0 layar:w-auto layar:flex-1" role="img" :aria-label="t.judul + ': ' + angka(t.pct) + '% PSN aktif memiliki indikator'">
                                 <circle cx="50" cy="50" r="42" fill="none" stroke="#eef2f7" stroke-width="11"/>
-                                <circle cx="50" cy="50" r="42" fill="none" :stroke="['#1baf7a', '#eb6834', '#2a78d6'][i]" stroke-width="11" stroke-linecap="round" :stroke-dasharray="t.garis" transform="rotate(-90 50 50)"/>
+                                <circle x-show="t.pct > 0" cx="50" cy="50" r="42" fill="none" :stroke="['#1baf7a', '#eb6834', '#2a78d6'][i]" stroke-width="11" stroke-linecap="round" :stroke-dasharray="t.garis" transform="rotate(-90 50 50)"/>
                                 <text x="50" y="57" text-anchor="middle" font-size="20" font-weight="700" fill="#0f172a" x-text="angka(t.pct, 0) + '%'"></text>
                             </svg>
                             <p class="mt-0.5 line-clamp-2 text-[10.5px] font-semibold leading-tight text-slate-700" x-text="t.judul"></p>
@@ -255,6 +255,7 @@
                                 <span class="w-16 shrink-0 truncate text-[10px] text-slate-600" x-text="labelStatus(p.status)"></span>
                             </li>
                         </template>
+                        <li x-show="!timeline.baris.length" class="py-4 text-center text-[12px] text-slate-500">Tidak ada PSN Klaster Direktif Presiden pada filter ini.</li>
                     </ul>
                 </div>
             </x-panel>

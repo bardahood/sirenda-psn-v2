@@ -81,6 +81,7 @@ class LaporanController extends Controller
             'Direktorat' => $f->dit ? $nama('ref_unit_kerja', 'id', $f->dit) : null,
             'Status' => $f->status ? implode(', ', array_map(fn ($s) => StatusProgres::from($s)->label(), $f->status)) : null,
             'Kategori' => $f->kat,
+            'PSN' => $f->psn ? DB::table('psn')->whereIn('id', $f->psn)->orderBy('nama')->pluck('nama')->implode('; ') : null,
             'Sumber dana' => $f->dana ? implode(', ', array_map(fn ($s) => DashboardService::LABEL_SKEMA[$s] ?? $s, $f->dana)) : null,
         ]);
     }

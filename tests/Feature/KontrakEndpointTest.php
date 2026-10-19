@@ -120,6 +120,24 @@ class KontrakEndpointTest extends TestCase
         $this->assertSame(['Milik Dit 07'], collect($this->getJson('/api/v1/kualitas-data')->json('data.field_kosong'))->pluck('nama')->all());
     }
 
+    public function test_filter_psn_tertentu_dan_opsinya_mengikuti_cakupan(): void
+    {
+        $this->actingAs($this->buatPengguna('Pimpinan'));
+        $k1 = fn (string $qs) => (int) collect($this->getJson("/api/v1/dashboard/kpi?{$qs}")->assertOk()->json('data'))->firstWhere('kode', 'K1')['nilai'];
+        $this->assertSame(2, $k1(''));
+        $this->assertSame(1, $k1("psn={$this->id['psn19']}"));
+        $this->assertSame(2, $k1("psn={$this->id['psn07']},{$this->id['psn19']}"));
+        $this->assertSame(['Milik Dit 19'], collect($this->getJson("/api/v1/proyek?psn={$this->id['psn19']}")->json('data'))->pluck('nama')->all());
+        $this->assertSame("{$this->id['psn19']}", $this->getJson("/api/v1/dashboard/kpi?psn={$this->id['psn19']}")->json('meta.filter.psn'));
+        $this->getJson('/api/v1/dashboard/kpi?psn=abc')->assertUnprocessable();
+        $this->assertEqualsCanonicalizing([$this->id['psn07'], $this->id['psn19']], collect($this->getJson('/api/v1/filter-opsi')->json('data.psn'))->pluck('nilai')->all());
+
+        // Operator: opsi PSN hanya unitnya; memilih PSN unit lain tidak membuka datanya.
+        $this->actingAs($this->buatPengguna('Operator K/L', '07'));
+        $this->assertSame([$this->id['psn07']], collect($this->getJson('/api/v1/filter-opsi')->json('data.psn'))->pluck('nilai')->all());
+        $this->assertSame(0, $k1("psn={$this->id['psn19']}"));
+    }
+
     public function test_pengguna_tanpa_peran_ditolak_di_semua_halaman(): void
     {
         $this->actingAs(User::factory()->create());

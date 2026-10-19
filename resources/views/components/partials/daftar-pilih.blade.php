@@ -4,7 +4,7 @@
         <li>
             <label class="flex cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 hover:bg-slate-50">
                 <input type="checkbox" class="mt-0.5 rounded border-slate-300 text-aksen focus:ring-aksen" :checked="terpilih.includes(String(o.nilai))" @change="pilih(o.nilai)">
-                <span class="text-isi" x-text="o.label"></span>
+                <span class="text-isi"><span x-text="o.label"></span><span x-show="o.kode" class="ml-1 text-[11px] text-slate-500" x-text="o.kode"></span></span>
             </label>
         </li>
     </template>
