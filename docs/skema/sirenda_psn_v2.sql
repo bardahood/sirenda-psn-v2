@@ -122,6 +122,28 @@ CREATE TABLE `indikator_target` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `integrasi_psi_log` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `arah` varchar(10) NOT NULL COMMENT 'MASUK|KELUAR',
+  `aksi` varchar(30) NOT NULL COMMENT 'USULAN|TARIK|AMBIL_HASIL|KIRIM_HASIL',
+  `usulan_id` bigint(20) unsigned DEFAULT NULL,
+  `psi_id` varchar(64) DEFAULT NULL,
+  `status_http` smallint(5) unsigned DEFAULT NULL,
+  `berhasil` tinyint(1) NOT NULL DEFAULT 0,
+  `pesan` text DEFAULT NULL,
+  `payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`payload`)),
+  `respons` text DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `integrasi_psi_log_usulan_id_foreign` (`usulan_id`),
+  KEY `integrasi_psi_log_psi_id_created_at_index` (`psi_id`,`created_at`),
+  KEY `integrasi_psi_log_arah_berhasil_index` (`arah`,`berhasil`),
+  CONSTRAINT `integrasi_psi_log_usulan_id_foreign` FOREIGN KEY (`usulan_id`) REFERENCES `usulan_psn` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `isu` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `legacy_id` int(10) unsigned DEFAULT NULL,
@@ -739,6 +761,60 @@ CREATE TABLE `permissions` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `permissions_name_guard_name_unique` (`name`,`guard_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pleno` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `nama` varchar(255) NOT NULL COMMENT 'mis. Rapat Pleno II Pemutakhiran RKP 2027',
+  `tanggal` date NOT NULL,
+  `tempat` varchar(255) DEFAULT NULL,
+  `pimpinan` varchar(255) DEFAULT NULL,
+  `tahun_rkp` smallint(5) unsigned DEFAULT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'TERJADWAL' COMMENT 'TERJADWAL|SELESAI',
+  `catatan_umum` text DEFAULT NULL,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_by` bigint(20) unsigned DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `pleno_created_by_foreign` (`created_by`),
+  KEY `pleno_updated_by_foreign` (`updated_by`),
+  KEY `pleno_deleted_by_foreign` (`deleted_by`),
+  CONSTRAINT `pleno_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `pleno_deleted_by_foreign` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `pleno_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pleno_usulan` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `pleno_id` bigint(20) unsigned NOT NULL,
+  `usulan_id` bigint(20) unsigned NOT NULL,
+  `penilaian_id` bigint(20) unsigned DEFAULT NULL,
+  `urutan` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `keputusan` varchar(30) DEFAULT NULL COMMENT 'DISETUJUI|DISETUJUI_CATATAN|DITUNDA|DITOLAK',
+  `catatan` text DEFAULT NULL,
+  `tindak_lanjut` text DEFAULT NULL,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `pleno_usulan_pleno_id_usulan_id_unique` (`pleno_id`,`usulan_id`),
+  KEY `pleno_usulan_usulan_id_foreign` (`usulan_id`),
+  KEY `pleno_usulan_penilaian_id_foreign` (`penilaian_id`),
+  KEY `pleno_usulan_created_by_foreign` (`created_by`),
+  KEY `pleno_usulan_updated_by_foreign` (`updated_by`),
+  CONSTRAINT `pleno_usulan_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `pleno_usulan_penilaian_id_foreign` FOREIGN KEY (`penilaian_id`) REFERENCES `penilaian` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `pleno_usulan_pleno_id_foreign` FOREIGN KEY (`pleno_id`) REFERENCES `pleno` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `pleno_usulan_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `pleno_usulan_usulan_id_foreign` FOREIGN KEY (`usulan_id`) REFERENCES `usulan_psn` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -1655,6 +1731,54 @@ CREATE TABLE `users` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `usulan_dokumen` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `usulan_id` bigint(20) unsigned NOT NULL,
+  `jenis` varchar(30) NOT NULL COMMENT 'PDF_USULAN|SURAT_PENGUSULAN|LAMPIRAN',
+  `judul` varchar(255) DEFAULT NULL,
+  `nama_berkas` varchar(255) DEFAULT NULL,
+  `url` varchar(1000) DEFAULT NULL COMMENT 'lokasi berkas di PSI',
+  `ukuran` bigint(20) unsigned DEFAULT NULL,
+  `sha256` varchar(64) DEFAULT NULL,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `usulan_dokumen_created_by_foreign` (`created_by`),
+  KEY `usulan_dokumen_updated_by_foreign` (`updated_by`),
+  KEY `usulan_dokumen_usulan_id_jenis_index` (`usulan_id`,`jenis`),
+  CONSTRAINT `usulan_dokumen_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `usulan_dokumen_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `usulan_dokumen_usulan_id_foreign` FOREIGN KEY (`usulan_id`) REFERENCES `usulan_psn` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `usulan_jalur_kritis` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `usulan_id` bigint(20) unsigned NOT NULL,
+  `urutan` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `kode` varchar(30) NOT NULL COMMENT 'ID langkah dari PSI',
+  `kegiatan` text NOT NULL,
+  `target_selesai` varchar(100) DEFAULT NULL COMMENT 'teks bebas PSI, mis. "Jul–Ags 2025"',
+  `sebelumnya` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'kode langkah pendahulu' CHECK (json_valid(`sebelumnya`)),
+  `is_jalur_kritis` tinyint(1) NOT NULL DEFAULT 0,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `usulan_jalur_kritis_created_by_foreign` (`created_by`),
+  KEY `usulan_jalur_kritis_updated_by_foreign` (`updated_by`),
+  KEY `usulan_jalur_kritis_usulan_id_urutan_index` (`usulan_id`,`urutan`),
+  CONSTRAINT `usulan_jalur_kritis_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `usulan_jalur_kritis_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `usulan_jalur_kritis_usulan_id_foreign` FOREIGN KEY (`usulan_id`) REFERENCES `usulan_psn` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `usulan_lokasi` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `usulan_id` bigint(20) unsigned NOT NULL,
@@ -1667,6 +1791,57 @@ CREATE TABLE `usulan_lokasi` (
   CONSTRAINT `usulan_lokasi_kabupaten_kode_foreign` FOREIGN KEY (`kabupaten_kode`) REFERENCES `ref_wilayah` (`kode`),
   CONSTRAINT `usulan_lokasi_provinsi_kode_foreign` FOREIGN KEY (`provinsi_kode`) REFERENCES `ref_wilayah` (`kode`),
   CONSTRAINT `usulan_lokasi_usulan_id_foreign` FOREIGN KEY (`usulan_id`) REFERENCES `usulan_psn` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `usulan_psi` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `usulan_id` bigint(20) unsigned NOT NULL,
+  `psi_id` varchar(64) NOT NULL COMMENT 'ID usulan di aplikasi PSI',
+  `surat_id` bigint(20) unsigned DEFAULT NULL,
+  `versi` int(10) unsigned NOT NULL DEFAULT 1 COMMENT 'versi isian PSI terakhir yang diterima',
+  `status_psi` varchar(20) NOT NULL DEFAULT 'DIAJUKAN' COMMENT 'DIAJUKAN|DIREVISI|DITARIK (status di aplikasi PSI)',
+  `diajukan_at` timestamp NULL DEFAULT NULL COMMENT 'waktu pengajuan di PSI',
+  `diterima_at` timestamp NULL DEFAULT NULL COMMENT 'pertama kali diterima SIRENDA',
+  `diperbarui_at` timestamp NULL DEFAULT NULL COMMENT 'versi terakhir diterima SIRENDA',
+  `perlu_tinjau_ulang` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'PSI mengirim versi baru setelah penilaian FINAL',
+  `instansi_pengusul` varchar(255) DEFAULT NULL,
+  `jenis_instansi` varchar(100) DEFAULT NULL,
+  `sektor` varchar(255) DEFAULT NULL,
+  `klaster_teks` varchar(255) DEFAULT NULL COMMENT 'klaster sebagaimana dikirim PSI',
+  `jenis_psn` varchar(100) DEFAULT NULL,
+  `kontak` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`kontak`)),
+  `tujuan` text DEFAULT NULL,
+  `sasaran` text DEFAULT NULL,
+  `lingkup_pekerjaan_html` longtext DEFAULT NULL,
+  `rincian_lain` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '[{judul, isi_html}] bagian rincian lain dari PSI' CHECK (json_valid(`rincian_lain`)),
+  `penjelasan_jalur_kritis_html` longtext DEFAULT NULL,
+  `diagram_jalur_kritis_url` varchar(1000) DEFAULT NULL,
+  `kesiapan_lain` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '[{judul, isi_html}]' CHECK (json_valid(`kesiapan_lain`)),
+  `peringatan_impor` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'nilai yang tidak dapat dipetakan ke referensi SIRENDA' CHECK (json_valid(`peringatan_impor`)),
+  `payload_terakhir` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'payload mentah terakhir (audit)' CHECK (json_valid(`payload_terakhir`)),
+  `kirim_status` varchar(20) NOT NULL DEFAULT 'BELUM' COMMENT 'BELUM|TERKIRIM|GAGAL',
+  `kirim_terakhir_at` timestamp NULL DEFAULT NULL,
+  `kirim_percobaan` int(10) unsigned NOT NULL DEFAULT 0,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_by` bigint(20) unsigned DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `usulan_psi_usulan_id_unique` (`usulan_id`),
+  UNIQUE KEY `usulan_psi_psi_id_unique` (`psi_id`),
+  KEY `usulan_psi_surat_id_foreign` (`surat_id`),
+  KEY `usulan_psi_created_by_foreign` (`created_by`),
+  KEY `usulan_psi_updated_by_foreign` (`updated_by`),
+  KEY `usulan_psi_deleted_by_foreign` (`deleted_by`),
+  CONSTRAINT `usulan_psi_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `usulan_psi_deleted_by_foreign` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `usulan_psi_surat_id_foreign` FOREIGN KEY (`surat_id`) REFERENCES `usulan_surat` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `usulan_psi_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `usulan_psi_usulan_id_foreign` FOREIGN KEY (`usulan_id`) REFERENCES `usulan_psn` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -1707,6 +1882,72 @@ CREATE TABLE `usulan_psn` (
   CONSTRAINT `usulan_psn_psn_id_foreign` FOREIGN KEY (`psn_id`) REFERENCES `psn` (`id`) ON DELETE SET NULL,
   CONSTRAINT `usulan_psn_unit_kerja_id_foreign` FOREIGN KEY (`unit_kerja_id`) REFERENCES `ref_unit_kerja` (`id`) ON DELETE SET NULL,
   CONSTRAINT `usulan_psn_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `usulan_rekomendasi` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `usulan_id` bigint(20) unsigned NOT NULL,
+  `penilaian_id` bigint(20) unsigned DEFAULT NULL,
+  `pleno_usulan_id` bigint(20) unsigned DEFAULT NULL,
+  `rekomendasi` varchar(30) NOT NULL COMMENT 'DIREKOMENDASIKAN|DIPERTIMBANGKAN|TIDAK_DIREKOMENDASIKAN|DITOLAK',
+  `catatan` text DEFAULT NULL,
+  `nomor_dokumen` varchar(150) DEFAULT NULL,
+  `tanggal` date NOT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'DRAFT' COMMENT 'DRAFT|FINAL',
+  `ditetapkan_oleh` bigint(20) unsigned DEFAULT NULL,
+  `ditetapkan_at` timestamp NULL DEFAULT NULL,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_by` bigint(20) unsigned DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `usulan_rekomendasi_penilaian_id_foreign` (`penilaian_id`),
+  KEY `usulan_rekomendasi_pleno_usulan_id_foreign` (`pleno_usulan_id`),
+  KEY `usulan_rekomendasi_ditetapkan_oleh_foreign` (`ditetapkan_oleh`),
+  KEY `usulan_rekomendasi_created_by_foreign` (`created_by`),
+  KEY `usulan_rekomendasi_updated_by_foreign` (`updated_by`),
+  KEY `usulan_rekomendasi_deleted_by_foreign` (`deleted_by`),
+  KEY `usulan_rekomendasi_usulan_id_status_index` (`usulan_id`,`status`),
+  CONSTRAINT `usulan_rekomendasi_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `usulan_rekomendasi_deleted_by_foreign` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `usulan_rekomendasi_ditetapkan_oleh_foreign` FOREIGN KEY (`ditetapkan_oleh`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `usulan_rekomendasi_penilaian_id_foreign` FOREIGN KEY (`penilaian_id`) REFERENCES `penilaian` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `usulan_rekomendasi_pleno_usulan_id_foreign` FOREIGN KEY (`pleno_usulan_id`) REFERENCES `pleno_usulan` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `usulan_rekomendasi_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `usulan_rekomendasi_usulan_id_foreign` FOREIGN KEY (`usulan_id`) REFERENCES `usulan_psn` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `usulan_surat` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `psi_surat_id` varchar(64) NOT NULL COMMENT 'ID surat di aplikasi PSI',
+  `nomor` varchar(150) DEFAULT NULL,
+  `sifat` varchar(50) DEFAULT NULL,
+  `lampiran` varchar(150) DEFAULT NULL,
+  `tempat` varchar(100) DEFAULT NULL,
+  `tanggal` date DEFAULT NULL,
+  `ditujukan_kepada` text DEFAULT NULL,
+  `perihal` text DEFAULT NULL,
+  `instansi_pengusul` varchar(255) DEFAULT NULL,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_by` bigint(20) unsigned DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `usulan_surat_psi_surat_id_unique` (`psi_surat_id`),
+  KEY `usulan_surat_created_by_foreign` (`created_by`),
+  KEY `usulan_surat_updated_by_foreign` (`updated_by`),
+  KEY `usulan_surat_deleted_by_foreign` (`deleted_by`),
+  CONSTRAINT `usulan_surat_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `usulan_surat_deleted_by_foreign` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `usulan_surat_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 SET @saved_cs_client     = @@character_set_client;

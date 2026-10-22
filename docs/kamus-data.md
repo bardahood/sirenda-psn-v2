@@ -54,6 +54,23 @@
 | `created_at` | timestamp | ya |  |  |
 | `updated_at` | timestamp | ya |  |  |
 
+## `integrasi_psi_log`
+
+| Kolom | Tipe | Null | Relasi | Keterangan |
+|---|---|---|---|---|
+| `id` | bigint(20) unsigned |  | PK |  |
+| `arah` | varchar(10) |  |  | MASUK\|KELUAR |
+| `aksi` | varchar(30) |  |  | USULAN\|TARIK\|AMBIL_HASIL\|KIRIM_HASIL |
+| `usulan_id` | bigint(20) unsigned | ya | → `usulan_psn.id` |  |
+| `psi_id` | varchar(64) | ya |  |  |
+| `status_http` | smallint(5) unsigned | ya |  |  |
+| `berhasil` | tinyint(1) |  |  |  |
+| `pesan` | text | ya |  |  |
+| `payload` | longtext | ya |  |  |
+| `respons` | text | ya |  |  |
+| `ip_address` | varchar(45) | ya |  |  |
+| `created_at` | timestamp |  |  |  |
+
 ## `isu`
 
 | Kolom | Tipe | Null | Relasi | Keterangan |
@@ -446,6 +463,42 @@
 | `id` | bigint(20) unsigned |  | PK |  |
 | `name` | varchar(255) |  |  |  |
 | `guard_name` | varchar(255) |  |  |  |
+| `created_at` | timestamp | ya |  |  |
+| `updated_at` | timestamp | ya |  |  |
+
+## `pleno`
+
+| Kolom | Tipe | Null | Relasi | Keterangan |
+|---|---|---|---|---|
+| `id` | bigint(20) unsigned |  | PK |  |
+| `nama` | varchar(255) |  |  | mis. Rapat Pleno II Pemutakhiran RKP 2027 |
+| `tanggal` | date |  |  |  |
+| `tempat` | varchar(255) | ya |  |  |
+| `pimpinan` | varchar(255) | ya |  |  |
+| `tahun_rkp` | smallint(5) unsigned | ya |  |  |
+| `status` | varchar(20) |  |  | TERJADWAL\|SELESAI |
+| `catatan_umum` | text | ya |  |  |
+| `created_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `updated_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `created_at` | timestamp | ya |  |  |
+| `updated_at` | timestamp | ya |  |  |
+| `deleted_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `deleted_at` | timestamp | ya |  |  |
+
+## `pleno_usulan`
+
+| Kolom | Tipe | Null | Relasi | Keterangan |
+|---|---|---|---|---|
+| `id` | bigint(20) unsigned |  | PK |  |
+| `pleno_id` | bigint(20) unsigned |  | → `pleno.id` |  |
+| `usulan_id` | bigint(20) unsigned |  | → `usulan_psn.id` |  |
+| `penilaian_id` | bigint(20) unsigned | ya | → `penilaian.id` |  |
+| `urutan` | smallint(5) unsigned |  |  |  |
+| `keputusan` | varchar(30) | ya |  | DISETUJUI\|DISETUJUI_CATATAN\|DITUNDA\|DITOLAK |
+| `catatan` | text | ya |  |  |
+| `tindak_lanjut` | text | ya |  |  |
+| `created_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `updated_by` | bigint(20) unsigned | ya | → `users.id` |  |
 | `created_at` | timestamp | ya |  |  |
 | `updated_at` | timestamp | ya |  |  |
 
@@ -1062,6 +1115,40 @@
 | `created_at` | timestamp | ya |  |  |
 | `updated_at` | timestamp | ya |  |  |
 
+## `usulan_dokumen`
+
+| Kolom | Tipe | Null | Relasi | Keterangan |
+|---|---|---|---|---|
+| `id` | bigint(20) unsigned |  | PK |  |
+| `usulan_id` | bigint(20) unsigned |  | → `usulan_psn.id` |  |
+| `jenis` | varchar(30) |  |  | PDF_USULAN\|SURAT_PENGUSULAN\|LAMPIRAN |
+| `judul` | varchar(255) | ya |  |  |
+| `nama_berkas` | varchar(255) | ya |  |  |
+| `url` | varchar(1000) | ya |  | lokasi berkas di PSI |
+| `ukuran` | bigint(20) unsigned | ya |  |  |
+| `sha256` | varchar(64) | ya |  |  |
+| `created_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `updated_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `created_at` | timestamp | ya |  |  |
+| `updated_at` | timestamp | ya |  |  |
+
+## `usulan_jalur_kritis`
+
+| Kolom | Tipe | Null | Relasi | Keterangan |
+|---|---|---|---|---|
+| `id` | bigint(20) unsigned |  | PK |  |
+| `usulan_id` | bigint(20) unsigned |  | → `usulan_psn.id` |  |
+| `urutan` | smallint(5) unsigned |  |  |  |
+| `kode` | varchar(30) |  |  | ID langkah dari PSI |
+| `kegiatan` | text |  |  |  |
+| `target_selesai` | varchar(100) | ya |  | teks bebas PSI, mis. "Jul–Ags 2025" |
+| `sebelumnya` | longtext | ya |  | kode langkah pendahulu |
+| `is_jalur_kritis` | tinyint(1) |  |  |  |
+| `created_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `updated_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `created_at` | timestamp | ya |  |  |
+| `updated_at` | timestamp | ya |  |  |
+
 ## `usulan_lokasi`
 
 | Kolom | Tipe | Null | Relasi | Keterangan |
@@ -1070,6 +1157,45 @@
 | `usulan_id` | bigint(20) unsigned |  | → `usulan_psn.id` |  |
 | `provinsi_kode` | varchar(13) |  | → `ref_wilayah.kode` |  |
 | `kabupaten_kode` | varchar(13) | ya | → `ref_wilayah.kode` |  |
+
+## `usulan_psi`
+
+| Kolom | Tipe | Null | Relasi | Keterangan |
+|---|---|---|---|---|
+| `id` | bigint(20) unsigned |  | PK |  |
+| `usulan_id` | bigint(20) unsigned |  | → `usulan_psn.id` |  |
+| `psi_id` | varchar(64) |  |  | ID usulan di aplikasi PSI |
+| `surat_id` | bigint(20) unsigned | ya | → `usulan_surat.id` |  |
+| `versi` | int(10) unsigned |  |  | versi isian PSI terakhir yang diterima |
+| `status_psi` | varchar(20) |  |  | DIAJUKAN\|DIREVISI\|DITARIK (status di aplikasi PSI) |
+| `diajukan_at` | timestamp | ya |  | waktu pengajuan di PSI |
+| `diterima_at` | timestamp | ya |  | pertama kali diterima SIRENDA |
+| `diperbarui_at` | timestamp | ya |  | versi terakhir diterima SIRENDA |
+| `perlu_tinjau_ulang` | tinyint(1) |  |  | PSI mengirim versi baru setelah penilaian FINAL |
+| `instansi_pengusul` | varchar(255) | ya |  |  |
+| `jenis_instansi` | varchar(100) | ya |  |  |
+| `sektor` | varchar(255) | ya |  |  |
+| `klaster_teks` | varchar(255) | ya |  | klaster sebagaimana dikirim PSI |
+| `jenis_psn` | varchar(100) | ya |  |  |
+| `kontak` | longtext | ya |  |  |
+| `tujuan` | text | ya |  |  |
+| `sasaran` | text | ya |  |  |
+| `lingkup_pekerjaan_html` | longtext | ya |  |  |
+| `rincian_lain` | longtext | ya |  | [{judul, isi_html}] bagian rincian lain dari PSI |
+| `penjelasan_jalur_kritis_html` | longtext | ya |  |  |
+| `diagram_jalur_kritis_url` | varchar(1000) | ya |  |  |
+| `kesiapan_lain` | longtext | ya |  | [{judul, isi_html}] |
+| `peringatan_impor` | longtext | ya |  | nilai yang tidak dapat dipetakan ke referensi SIRENDA |
+| `payload_terakhir` | longtext | ya |  | payload mentah terakhir (audit) |
+| `kirim_status` | varchar(20) |  |  | BELUM\|TERKIRIM\|GAGAL |
+| `kirim_terakhir_at` | timestamp | ya |  |  |
+| `kirim_percobaan` | int(10) unsigned |  |  |  |
+| `created_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `updated_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `created_at` | timestamp | ya |  |  |
+| `updated_at` | timestamp | ya |  |  |
+| `deleted_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `deleted_at` | timestamp | ya |  |  |
 
 ## `usulan_psn`
 
@@ -1088,6 +1214,49 @@
 | `nilai_investasi_rp` | decimal(24,2) | ya |  |  |
 | `psn_id` | bigint(20) unsigned | ya | → `psn.id` |  |
 | `status` | varchar(20) |  |  | DIAJUKAN\|DINILAI\|DITETAPKAN\|DITOLAK |
+| `created_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `updated_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `created_at` | timestamp | ya |  |  |
+| `updated_at` | timestamp | ya |  |  |
+| `deleted_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `deleted_at` | timestamp | ya |  |  |
+
+## `usulan_rekomendasi`
+
+| Kolom | Tipe | Null | Relasi | Keterangan |
+|---|---|---|---|---|
+| `id` | bigint(20) unsigned |  | PK |  |
+| `usulan_id` | bigint(20) unsigned |  | → `usulan_psn.id` |  |
+| `penilaian_id` | bigint(20) unsigned | ya | → `penilaian.id` |  |
+| `pleno_usulan_id` | bigint(20) unsigned | ya | → `pleno_usulan.id` |  |
+| `rekomendasi` | varchar(30) |  |  | DIREKOMENDASIKAN\|DIPERTIMBANGKAN\|TIDAK_DIREKOMENDASIKAN\|DITOLAK |
+| `catatan` | text | ya |  |  |
+| `nomor_dokumen` | varchar(150) | ya |  |  |
+| `tanggal` | date |  |  |  |
+| `status` | varchar(20) |  |  | DRAFT\|FINAL |
+| `ditetapkan_oleh` | bigint(20) unsigned | ya | → `users.id` |  |
+| `ditetapkan_at` | timestamp | ya |  |  |
+| `created_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `updated_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `created_at` | timestamp | ya |  |  |
+| `updated_at` | timestamp | ya |  |  |
+| `deleted_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `deleted_at` | timestamp | ya |  |  |
+
+## `usulan_surat`
+
+| Kolom | Tipe | Null | Relasi | Keterangan |
+|---|---|---|---|---|
+| `id` | bigint(20) unsigned |  | PK |  |
+| `psi_surat_id` | varchar(64) |  |  | ID surat di aplikasi PSI |
+| `nomor` | varchar(150) | ya |  |  |
+| `sifat` | varchar(50) | ya |  |  |
+| `lampiran` | varchar(150) | ya |  |  |
+| `tempat` | varchar(100) | ya |  |  |
+| `tanggal` | date | ya |  |  |
+| `ditujukan_kepada` | text | ya |  |  |
+| `perihal` | text | ya |  |  |
+| `instansi_pengusul` | varchar(255) | ya |  |  |
 | `created_by` | bigint(20) unsigned | ya | → `users.id` |  |
 | `updated_by` | bigint(20) unsigned | ya | → `users.id` |  |
 | `created_at` | timestamp | ya |  |  |

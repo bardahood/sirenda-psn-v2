@@ -51,6 +51,8 @@ Arti simbol:
 | Detail proyek | `/proyek/{id}` (`?tab=profil\|kpro\|progres\|dokumen`) | ✓ | ✓ | ✓ | ✓ | ✓¹ |
 | Perencanaan (daftar & detail usulan) | `/perencanaan`, `/perencanaan/{id}` | ✓ | ✓ | ✓ | ✓ | ✓¹ |
 | Usulan baru | `/perencanaan/baru` | ✓ | ✗ | ✓ | ✓ | ✓ |
+| Sidang Pleno (lihat agenda & keputusan) | `/perencanaan/pleno`, `/perencanaan/pleno/{id}` | ✓ | ✓ | ✓ | ✓ | ✓¹ |
+| Jadwalkan pleno, catat keputusan, rekomendasi resmi, kirim ke PSI, tetapkan direktorat pengampu | `/perencanaan/pleno`, `/perencanaan/{id}?tab=umum\|rekomendasi` | ✓ | ✗ | ✓ | ✗ | ✗ |
 | Pengisian & Verifikasi | `/pengisian` | ✓ | ✗ | ✗ | ✓ | ✓¹ |
 | Formulir pengisian | `/pengisian/{YYYY-MM}/{id_psn}` | ✓ | ✗ | ✗ | ✓ (ubah ✓¹) | ✓¹ |
 | Risiko, Isu & Regulasi | `/risiko` | ✓ | ✓ | ✓ | ✓ | ✓¹ |
@@ -92,7 +94,17 @@ Menu navigasi berada di **topbar** (bagian atas layar; pada layar kecil di balik
 1. Semua akses lihat seperti Pimpinan.
 2. **Perencanaan:**
    - Buat usulan di `/perencanaan/baru`.
-   - Nilai usulan di `/perencanaan/{id}`: isi skor sub-kriteria, lalu **Finalisasi**. Hanya PMO dan Super Admin yang dapat membuka kembali penilaian final.
+   - Nilai usulan di `/perencanaan/{id}?tab=penilaian`: isi skor sub-kriteria, lalu **Finalisasi**. Hanya PMO dan Super Admin yang dapat membuka kembali penilaian final.
+   - **Usulan dari aplikasi PSI** (badge *PSI*):
+     - Tetapkan **Direktorat pengampu**, klaster, dan jenis pengusul di tab *Data Umum*, agar Direktorat Sektor dapat menilai.
+     - Periksa peringatan pemetaan di tab yang sama.
+   - **Sidang Pleno** (`/perencanaan/pleno`):
+     - Jadwalkan sidang, lalu tambahkan usulan berpenilaian FINAL ke agenda.
+     - Catat keputusan dan catatan per usulan; catatan wajib diisi selain "Disetujui".
+     - **Tandai sidang selesai** untuk mengunci keputusan.
+   - **Rekomendasi & Kirim** (tab di detail usulan):
+     - Simpan draf, lalu **Tetapkan FINAL**.
+     - Klik **Kirim ke PSI**; status kiriman tampil di tab yang sama dan di tab *Riwayat*.
 3. Laporan arsip di `/laporan`.
 
 ### 5.4 Direktorat Sektor

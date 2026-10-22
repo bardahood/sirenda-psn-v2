@@ -14,7 +14,9 @@ use App\Http\Controllers\Pengaturan\PenggunaController;
 use App\Http\Controllers\PengisianController;
 use App\Http\Controllers\PerencanaanController;
 use App\Http\Controllers\PetaController;
+use App\Http\Controllers\PlenoController;
 use App\Http\Controllers\ProyekController;
+use App\Http\Controllers\RekomendasiController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -67,6 +69,21 @@ Route::middleware(['auth', 'akun.aktif'])->group(function () {
     });
 
     // Perencanaan & penilaian usulan; otorisasi rinci di UsulanPsnPolicy.
+    // Sidang pleno & rekomendasi resmi (integrasi alur usulan PSI).
+    Route::prefix('perencanaan/pleno')->name('perencanaan.pleno.')->controller(PlenoController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{pleno}', 'show')->whereNumber('pleno')->name('show');
+        Route::put('/{pleno}', 'update')->whereNumber('pleno')->name('update');
+        Route::post('/{pleno}/agenda', 'tambahAgenda')->whereNumber('pleno')->name('agenda');
+        Route::delete('/{pleno}/agenda/{agenda}', 'hapusAgenda')->whereNumber(['pleno', 'agenda'])->name('agenda.hapus');
+        Route::put('/{pleno}/keputusan', 'keputusan')->whereNumber('pleno')->name('keputusan');
+        Route::post('/{pleno}/selesai', 'selesai')->whereNumber('pleno')->name('selesai');
+    });
+    Route::post('/perencanaan/{usulan}/rekomendasi', [RekomendasiController::class, 'simpan'])->whereNumber('usulan')->name('perencanaan.rekomendasi');
+    Route::post('/perencanaan/{usulan}/kirim-psi', [RekomendasiController::class, 'kirim'])->whereNumber('usulan')->name('perencanaan.kirim-psi');
+    Route::put('/perencanaan/{usulan}/pemetaan', [PerencanaanController::class, 'ubahPemetaan'])->whereNumber('usulan')->name('perencanaan.pemetaan');
+
     Route::prefix('perencanaan')->name('perencanaan.')->controller(PerencanaanController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/baru', 'create')->name('create');

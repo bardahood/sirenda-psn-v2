@@ -69,4 +69,36 @@ class UsulanPsn extends Model
     {
         return $this->hasOne(Penilaian::class, 'usulan_id')->latestOfMany('id');
     }
+
+    /** Data integrasi PSI (null untuk usulan yang diinput langsung di SIRENDA). */
+    public function psi(): HasOne
+    {
+        return $this->hasOne(UsulanPsi::class, 'usulan_id');
+    }
+
+    public function jalurKritis(): HasMany
+    {
+        return $this->hasMany(UsulanJalurKritis::class, 'usulan_id')->orderBy('urutan')->orderBy('id');
+    }
+
+    public function dokumen(): HasMany
+    {
+        return $this->hasMany(UsulanDokumen::class, 'usulan_id')->orderBy('id');
+    }
+
+    public function plenoUsulan(): HasMany
+    {
+        return $this->hasMany(PlenoUsulan::class, 'usulan_id')->orderByDesc('id');
+    }
+
+    public function rekomendasiResmi(): HasMany
+    {
+        return $this->hasMany(UsulanRekomendasi::class, 'usulan_id')->orderByDesc('id');
+    }
+
+    /** Rekomendasi resmi FINAL terbaru. */
+    public function rekomendasiFinal(): HasOne
+    {
+        return $this->hasOne(UsulanRekomendasi::class, 'usulan_id')->ofMany(['id' => 'max'], fn ($q) => $q->where('status', 'FINAL'));
+    }
 }

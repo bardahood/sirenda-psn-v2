@@ -329,6 +329,34 @@ Parameter filter: `periode=2026-09`, `prov=31,32`, `klaster=3,7`, `dit=12`, `sta
   - Layar < 1280 px atau sangat pendek: kembali ke tata letak bergulir 1–2 kolom.
 - Status data (cut-off, kelengkapan, belum terverifikasi) & tombol PDF pindah ke subbar (`Alpine.store('statusDasbor')`).
 
+### 8.8 Integrasi usulan PSN dengan aplikasi Dit. PSI (Fase 8)
+
+Kontrak lengkap: `docs/integrasi-psi.md`.
+
+- **Alur:**
+  1. PSI mengirim usulan lewat `POST /api/integrasi/psi/v1/usulan` (token Bearer, idempoten per `psi_id` + `versi`).
+  2. Usulan tampil di `/perencanaan`.
+  3. Usulan dinilai.
+  4. Usulan dibahas di sidang pleno (`/perencanaan/pleno`).
+  5. Rekomendasi resmi ditetapkan FINAL.
+  6. Hasil dikirim ke PSI (push `PSI_API_URL`) atau diambil PSI (pull `GET …/usulan/{psi_id}/hasil`).
+- **Tabel baru (aditif):**
+  - `usulan_surat`, `usulan_psi` (1:1 dengan `usulan_psn`), `usulan_jalur_kritis`, `usulan_dokumen`;
+  - `pleno`, `pleno_usulan`, `usulan_rekomendasi`, `integrasi_psi_log`.
+  - Tabel inti `usulan_psn`/`penilaian` tidak diubah; usulan PSI memakai `ScoringService` yang sama dengan usulan manual.
+- **Tahap alur** (`DITERIMA → PENILAIAN → DINILAI → PLENO → REKOMENDASI → TERKIRIM`, plus `DITARIK`) diturunkan dari data (`App\Services\AlurUsulan`), tidak disimpan.
+- **Rekomendasi:**
+  - Rekomendasi sistem (hitungan skor) dibedakan dari rekomendasi resmi pasca pleno.
+  - Rekomendasi resmi mensyaratkan penilaian FINAL dan keputusan pleno (`psi.wajib_pleno_sebelum_rekomendasi`).
+  - Penetapan ulang mengganti rekomendasi FINAL lama (`DIGANTI`).
+- **Keamanan:**
+  - HTML dari PSI disaring daftar putih (`App\Support\HtmlAman`).
+  - Impor dibungkus satu transaksi dengan satu entri `audit_log` (`sumber = INTEGRASI_PSI`); setiap panggilan juga dicatat di `integrasi_psi_log`.
+  - Agenda pleno mengikuti cakupan unit kerja pengguna.
+- **Uji:**
+  - Data contoh: `php artisan psi:contoh` (hapus dengan `--hapus`).
+  - Tes: `tests/Feature/IntegrasiPsiTest.php`.
+
 ## 9. Hasil impor awal (dump 7 Oktober 2026)
 
 Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan test`): jumlah PSN, lokasi, item profil, regulasi, KP/RO, agregat per provinsi, agregat per klaster, dan total nilai investasi **identik** dengan basis data lama.
@@ -375,6 +403,7 @@ Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan
 | Q-14 | Status pengguna lama `0` dan `H` | Hanya `A` dianggap aktif |
 | Q-15 | Apakah snapshot cut-off hanya memakai isian berstatus Diverifikasi? | Belum: snapshot memakai isian terakhir apa pun statusnya; status verifikasi dipantau di Kualitas Data dan rekap pengisian |
 | Q-16 | 90 risiko lama hanya berlabel level (tanpa skala 1–5) | Tidak dikonversi otomatis; tidak tampil di matriks 5×5 harapan; matriks aktual terisi setelah dinilai melalui Pengisian |
+| Q-17 – Q-22 | Integrasi PSI: format klaster/jenis instansi, akses berkas, push vs pull, hasil sementara, penentu direktorat pengampu | Lihat `docs/integrasi-psi.md` §8 |
 
 ## 11. Rencana fase
 
@@ -389,4 +418,5 @@ Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan
 | 5 | Feature test endpoint, uji akurasi K1–K4/P1–P7 terhadap query acuan, uji hak akses, profil kinerja | **Selesai**; lihat `docs/kriteria-selesai-v1.md` |
 | 6 | Pengaturan (pengguna & peran, cut-off & snapshot, master data), halaman Kamus Indikator, halaman Risiko, Isu & Regulasi | **Selesai** |
 | 7 | Pengisian & verifikasi (progres/anggaran KP/RO, pemantauan risiko, isu), `/laporan` per cut-off, Content-Security-Policy | **Selesai, menunggu review** |
-| 8 (usulan) | Notifikasi (surel/dalam aplikasi) tenggat pengisian & hasil verifikasi, impor massal realisasi dari Excel, pengisian profil/gambaran umum PSN, opsi snapshot hanya data terverifikasi (Q-15) | Belum dimulai |
+| 8 | Integrasi usulan PSN dengan aplikasi Dit. PSI: API masuk & hasil, tampilan usulan per tab (surat, data umum, rincian, kesiapan/jalur kritis, dokumen), sidang pleno, rekomendasi resmi, kirim ke PSI | **Selesai, menunggu review** |
+| 9 (usulan) | Notifikasi (surel/dalam aplikasi) tenggat pengisian & hasil verifikasi, impor massal realisasi dari Excel, pengisian profil/gambaran umum PSN, opsi snapshot hanya data terverifikasi (Q-15) | Belum dimulai |

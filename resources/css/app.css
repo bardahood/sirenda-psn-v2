@@ -41,4 +41,30 @@
     .titik-DIAJUKAN { @apply h-2 w-2 rounded-full bg-amber-600; }
     .titik-DIVERIFIKASI { @apply h-2 w-2 rounded-full bg-green-600; }
     .titik-DIKEMBALIKAN { @apply h-2 w-2 rounded-full bg-red-600; }
+    /* Isi HTML dari editor PSI (sudah disaring HtmlAman). */
+    .isi-kaya { @apply text-isi leading-relaxed text-slate-800; }
+    .isi-kaya p { @apply mb-2 last:mb-0; }
+    .isi-kaya ul { @apply mb-2 ml-5 list-disc; }
+    .isi-kaya ol { @apply mb-2 ml-5 list-decimal; }
+    .isi-kaya h1, .isi-kaya h2, .isi-kaya h3, .isi-kaya h4 { @apply mb-1 mt-3 font-semibold text-slate-900; }
+    .isi-kaya a { @apply text-aksen-700 underline; }
+    .isi-kaya table { @apply my-2 w-full border-collapse text-label; }
+    .isi-kaya th, .isi-kaya td { @apply border border-slate-300 px-2 py-1 align-top; }
+    .isi-kaya img { @apply my-2 h-auto max-w-full rounded; }
+    .isi-kaya blockquote { @apply border-l-4 border-slate-300 pl-3 italic text-slate-600; }
+    /* Tahap alur usulan PSN (Perencanaan). */
+    .badge-ALUR_DITERIMA { @apply badge bg-slate-100 text-slate-700 ring-slate-500/40; }
+    .badge-ALUR_PENILAIAN { @apply badge bg-sky-50 text-sky-900 ring-sky-600/40; }
+    .badge-ALUR_DINILAI { @apply badge bg-indigo-50 text-indigo-900 ring-indigo-600/40; }
+    .badge-ALUR_PLENO { @apply badge bg-amber-50 text-amber-900 ring-amber-600/40; }
+    .badge-ALUR_REKOMENDASI { @apply badge bg-green-50 text-green-800 ring-green-600/40; }
+    .badge-ALUR_TERKIRIM { @apply badge bg-emerald-100 text-emerald-900 ring-emerald-700/40; }
+    .badge-ALUR_DITARIK { @apply badge bg-red-50 text-red-800 ring-red-600/40; }
+    .titik-ALUR_DITERIMA { @apply h-2 w-2 rounded-full bg-slate-500; }
+    .titik-ALUR_PENILAIAN { @apply h-2 w-2 rounded-full bg-sky-600; }
+    .titik-ALUR_DINILAI { @apply h-2 w-2 rounded-full bg-indigo-600; }
+    .titik-ALUR_PLENO { @apply h-2 w-2 rounded-full bg-amber-600; }
+    .titik-ALUR_REKOMENDASI { @apply h-2 w-2 rounded-full bg-green-600; }
+    .titik-ALUR_TERKIRIM { @apply h-2 w-2 rounded-full bg-emerald-700; }
+    .titik-ALUR_DITARIK { @apply h-2 w-2 rounded-full bg-red-600; }
 }

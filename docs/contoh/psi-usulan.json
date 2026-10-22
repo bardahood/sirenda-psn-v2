@@ -1,0 +1,54 @@
+{
+  "psi_id": "CONTOH-USL-2026-0001",
+  "versi": 1,
+  "status": "DIAJUKAN",
+  "diajukan_at": "2026-10-13T09:15:00+07:00",
+  "tahun_rkp": 2027,
+  "surat": {
+    "psi_surat_id": "CONTOH-SRT-2026-0001",
+    "nomor": "001/DC/IX/2026",
+    "sifat": "Penting",
+    "lampiran": "2 (dua) berkas",
+    "tempat": "Jakarta",
+    "tanggal": "2026-10-13",
+    "ditujukan_kepada": "Menteri Perencanaan Pembangunan Nasional/Kepala Badan Perencanaan Pembangunan Nasional",
+    "perihal": "Usulan Proyek Strategis Nasional"
+  },
+  "pengusul": {
+    "instansi": "Kementerian Pekerjaan Umum (CONTOH)",
+    "jenis_instansi": "Kementerian/Lembaga",
+    "kontak": { "nama": "Nama Narahubung", "jabatan": "Direktur", "email": "narahubung@contoh.go.id", "telepon": "021-0000000" }
+  },
+  "data_umum": {
+    "nama": "CONTOH — Pembangunan Jalan Tol Lingkar Kota A",
+    "sektor": "Jalan dan Jembatan",
+    "klaster": "Konektivitas dan Infrastruktur Logistik Jalan",
+    "klaster_kode": null,
+    "jenis_psn": "Infrastruktur",
+    "nilai_investasi_rp": 12500000000000,
+    "lokasi": [ { "provinsi_kode": "32", "kabupaten_kode": null } ]
+  },
+  "rincian": {
+    "tujuan": "Meningkatkan konektivitas dan menurunkan waktu tempuh logistik di wilayah metropolitan Kota A.",
+    "sasaran": "Terbangunnya jalan tol sepanjang 45 km dengan 6 simpang susun pada tahun 2029.",
+    "lingkup_pekerjaan_html": "<ul><li>Pengadaan tanah 320 ha</li><li>Konstruksi jalan tol 45 km</li><li>Pembangunan 6 simpang susun</li></ul>",
+    "bagian_lain": [ { "judul": "Manfaat", "isi_html": "<p>Penurunan biaya logistik dan kemacetan perkotaan.</p>" } ]
+  },
+  "kesiapan": {
+    "jalur_kritis": [
+      { "kode": "K1", "kegiatan": "Penyusunan studi kelayakan", "target_selesai": "Jul–Ags 2025", "sebelumnya": [], "jalur_kritis": true },
+      { "kode": "K2", "kegiatan": "Penyusunan AMDAL", "target_selesai": "Sep–Des 2025", "sebelumnya": ["K1"], "jalur_kritis": true },
+      { "kode": "K3", "kegiatan": "Penetapan lokasi", "target_selesai": "Okt 2025", "sebelumnya": ["K1"], "jalur_kritis": false },
+      { "kode": "K4", "kegiatan": "Pengadaan tanah", "target_selesai": "2026", "sebelumnya": ["K2", "K3"], "jalur_kritis": true },
+      { "kode": "K5", "kegiatan": "Konstruksi", "target_selesai": "2027–2029", "sebelumnya": ["K4"], "jalur_kritis": true }
+    ],
+    "penjelasan_html": "<p>Jalur kritis ditentukan oleh penyelesaian AMDAL dan pengadaan tanah.</p>",
+    "diagram_url": null,
+    "bagian_lain": []
+  },
+  "dokumen": [
+    { "jenis": "PDF_USULAN", "judul": "Dokumen PDF Usulan", "nama_berkas": "usulan.pdf", "url": "https://psi.contoh.go.id/berkas/usulan.pdf", "ukuran": 512000 },
+    { "jenis": "SURAT_PENGUSULAN", "judul": "Surat Pengusulan PSN", "nama_berkas": "surat.pdf", "url": "https://psi.contoh.go.id/berkas/surat.pdf" },
+    { "jenis": "LAMPIRAN", "judul": "Studi Kelayakan", "nama_berkas": "fs.pdf", "url": "https://psi.contoh.go.id/berkas/fs.pdf" }
+  ]
+}

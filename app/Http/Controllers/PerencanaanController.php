@@ -4,12 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Enums\Rekomendasi;
 use App\Models\AuditLog;
+use App\Models\IntegrasiPsiLog;
 use App\Models\Penilaian;
 use App\Models\PenilaianSkor;
 use App\Models\PeriodeCutoff;
+use App\Models\Pleno;
 use App\Models\UsulanPsn;
+use App\Services\AlurUsulan;
+use App\Services\PsiHasilService;
 use App\Services\ScoringService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -20,7 +25,7 @@ use Illuminate\Validation\Rule;
  */
 class PerencanaanController extends Controller
 {
-    public function __construct(protected ScoringService $scoring) {}
+    public function __construct(protected ScoringService $scoring, protected AlurUsulan $alur) {}
 
     public function index(Request $r)
     {
@@ -32,27 +37,39 @@ class PerencanaanController extends Controller
             'rekomendasi' => ['nullable', Rule::in(array_column(Rekomendasi::cases(), 'value'))],
             'tahun' => ['nullable', 'integer', 'min:2020', 'max:2100'],
             'q' => ['nullable', 'string', 'max:100'],
+            'sumber' => ['nullable', Rule::in(['PSI', 'MANUAL'])],
+            'tahap' => ['nullable', Rule::in(array_keys(AlurUsulan::TAHAP))],
         ]);
 
         // Penilaian terakhir per usulan untuk pengurutan berdasarkan nilai akhir.
         $terakhir = DB::table('penilaian')->whereNull('deleted_at')->selectRaw('usulan_id, MAX(id) AS id')->groupBy('usulan_id');
 
-        $usulan = UsulanPsn::query()
-            ->with(['klaster', 'unitKerja', 'pengusulInstansi', 'lokasi.provinsi'])
+        $dasar = UsulanPsn::query()
+            ->with(['klaster', 'unitKerja', 'pengusulInstansi', 'lokasi.provinsi', 'rekomendasiFinal'])
             ->leftJoinSub($terakhir, 'pt', 'pt.usulan_id', '=', 'usulan_psn.id')
             ->leftJoin('penilaian as p', 'p.id', '=', 'pt.id')
-            ->select('usulan_psn.*', 'p.id as penilaian_id', 'p.status as penilaian_status', 'p.nilai_akhir', 'p.rekomendasi', 'p.gate_lulus')
+            ->leftJoin('usulan_psi as ps', fn ($j) => $j->on('ps.usulan_id', '=', 'usulan_psn.id')->whereNull('ps.deleted_at'))
+            ->select('usulan_psn.*', 'p.id as penilaian_id', 'p.status as penilaian_status', 'p.nilai_akhir', 'p.rekomendasi', 'p.gate_lulus',
+                'ps.psi_id', 'ps.status_psi', 'ps.perlu_tinjau_ulang', 'ps.diterima_at')
+            ->selectRaw(AlurUsulan::sql().' AS tahap')
             ->when($f['instansi'] ?? null, fn ($q, $v) => $q->where('usulan_psn.pengusul_instansi_id', $v))
             ->when($f['klaster'] ?? null, fn ($q, $v) => $q->where('usulan_psn.klaster_id', $v))
             ->when($f['tahun'] ?? null, fn ($q, $v) => $q->where('usulan_psn.tahun_rkp', $v))
             ->when($f['rekomendasi'] ?? null, fn ($q, $v) => $q->where('p.rekomendasi', $v))
             ->when($f['q'] ?? null, fn ($q, $v) => $q->where('usulan_psn.nama', 'like', "%{$v}%"))
             ->when($f['status'] ?? null, fn ($q, $v) => $v === 'BELUM_DINILAI' ? $q->whereNull('p.id') : $q->where('p.status', $v))
+            ->when($f['sumber'] ?? null, fn ($q, $v) => $v === 'PSI' ? $q->whereNotNull('ps.id') : $q->whereNull('ps.id'));
+
+        // Rekap per tahap alur dihitung sebelum filter tahap, agar kartu alur tetap menunjukkan seluruh sebaran.
+        $rekap = $this->alur->rekap($dasar);
+        $usulan = $dasar->when($f['tahap'] ?? null, fn ($q, $v) => $q->whereRaw(AlurUsulan::sql().' = ?', [$v]))
             ->orderByRaw('p.nilai_akhir IS NULL')->orderByDesc('p.nilai_akhir')->orderBy('usulan_psn.nama')
             ->paginate(25)->withQueryString();
 
         return view('perencanaan.index', [
             'usulan' => $usulan,
+            'rekap' => $rekap,
+            'jumlahPsi' => UsulanPsn::query()->whereHas('psi')->count(),
             'filter' => $f,
             'opsi' => [
                 'instansi' => DB::table('ref_instansi')->whereIn('id', UsulanPsn::query()->whereNotNull('pengusul_instansi_id')->select('pengusul_instansi_id'))->orderBy('nama')->pluck('nama', 'id'),
@@ -86,27 +103,105 @@ class PerencanaanController extends Controller
         return redirect()->route('perencanaan.show', $usulan)->with('status', 'Usulan berhasil ditambahkan.');
     }
 
+    public const TAB = ['surat' => 'Surat Pengusulan', 'umum' => 'Data Umum', 'rincian' => 'Rincian Usulan', 'kesiapan' => 'Kesiapan Proyek',
+        'dokumen' => 'PDF & Lampiran', 'penilaian' => 'Penilaian', 'pleno' => 'Pleno', 'rekomendasi' => 'Rekomendasi & Kirim', 'riwayat' => 'Riwayat'];
+
     public function show(Request $r, UsulanPsn $usulan)
     {
         Gate::authorize('view', $usulan);
-        $usulan->load(['klaster', 'unitKerja', 'pengusulInstansi', 'lokasi.provinsi', 'penilaian' => fn ($q) => $q->latest('id')->with('penilai')]);
+        $usulan->load(['klaster', 'unitKerja', 'pengusulInstansi', 'lokasi.provinsi', 'lokasi.kabupaten', 'psi.surat', 'jalurKritis', 'dokumen',
+            'plenoUsulan.pleno', 'plenoUsulan.penilaian', 'rekomendasiResmi.penetap', 'rekomendasiFinal',
+            'penilaian' => fn ($q) => $q->latest('id')->with('penilai')]);
+
+        $dariPsi = $usulan->psi !== null;
+        $tabTersedia = $dariPsi ? self::TAB : array_diff_key(self::TAB, array_flip(['surat', 'rincian', 'kesiapan', 'dokumen']));
+        $tab = array_key_exists($r->query('tab'), $tabTersedia) ? $r->query('tab') : ($dariPsi ? 'umum' : 'penilaian');
 
         $penilaian = $r->query('penilaian')
             ? $usulan->penilaian->firstWhere('id', (int) $r->query('penilaian')) ?? abort(404)
             : $usulan->penilaian->first();
-
         $hasil = $penilaian ? $this->scoring->hitungPenilaian($penilaian, simpan: false) : null;
-        $temuan = $penilaian ? DB::table('penilaian_skor')->where('penilaian_id', $penilaian->id)->pluck('temuan', 'kriteria_id') : collect();
+        $tahap = $this->alur->tahap($usulan);
+        $penilaianFinal = $usulan->penilaian->firstWhere('status', 'FINAL');
 
-        return view('perencanaan.show', [
-            'usulan' => $usulan,
-            'penilaian' => $penilaian,
-            'hasil' => $hasil,
-            'temuan' => $temuan,
-            'berlaku' => $hasil ? collect($hasil['kriteria'])->mapWithKeys(fn ($k) => [$k['id'] => $this->scoring->berlaku($k, ['jenis_pengusul' => $usulan->jenis_pengusul, 'is_infrastruktur' => $usulan->is_infrastruktur])]) : collect(),
-            'petaUsulan' => $this->petaUsulan($usulan),
-            'perbandingan' => $this->perbandingan($usulan),
-        ]);
+        $data = [
+            'usulan' => $usulan, 'dariPsi' => $dariPsi, 'tab' => $tab, 'tabTersedia' => $tabTersedia,
+            'tahap' => $tahap, 'langkah' => $this->alur->langkah($tahap, $dariPsi),
+            'penilaian' => $penilaian, 'hasil' => $hasil, 'penilaianFinal' => $penilaianFinal,
+            'hasilFinal' => $penilaianFinal ? ($penilaianFinal->is($penilaian) ? $hasil : $this->scoring->hitungPenilaian($penilaianFinal, simpan: false)) : null,
+        ];
+
+        if ($tab === 'penilaian') {
+            $data += [
+                'temuan' => $penilaian ? DB::table('penilaian_skor')->where('penilaian_id', $penilaian->id)->pluck('temuan', 'kriteria_id') : collect(),
+                'berlaku' => $hasil ? collect($hasil['kriteria'])->mapWithKeys(fn ($k) => [$k['id'] => $this->scoring->berlaku($k, ['jenis_pengusul' => $usulan->jenis_pengusul, 'is_infrastruktur' => $usulan->is_infrastruktur])]) : collect(),
+                'petaUsulan' => $this->petaUsulan($usulan),
+                'perbandingan' => $this->perbandingan($usulan),
+            ];
+        }
+        if ($tab === 'kesiapan') {
+            $data['tingkatJalur'] = $this->tingkatJalurKritis($usulan->jalurKritis);
+        }
+        if ($tab === 'pleno') {
+            $data['plenoTerbuka'] = Pleno::where('status', 'TERJADWAL')->orderBy('tanggal')->get();
+        }
+        if ($tab === 'rekomendasi') {
+            $data['pushAktif'] = app(PsiHasilService::class)->pushAktif();
+            $data['wajibPleno'] = config('psn_dashboard.psi.wajib_pleno_sebelum_rekomendasi');
+        }
+        if ($tab === 'riwayat') {
+            $data['logIntegrasi'] = IntegrasiPsiLog::where('usulan_id', $usulan->id)->latest('id')->limit(50)->get();
+            $data['jejak'] = DB::table('audit_log')->where(fn ($q) => $q->where(fn ($w) => $w->where('tabel', 'usulan_psn')->where('record_id', $usulan->id))
+                ->orWhere(fn ($w) => $w->where('tabel', 'penilaian')->whereIn('record_id', $usulan->penilaian->pluck('id')))
+                ->orWhere(fn ($w) => $w->where('tabel', 'usulan_rekomendasi')->whereIn('record_id', $usulan->rekomendasiResmi->pluck('id')))
+                ->orWhere(fn ($w) => $w->where('tabel', 'usulan_psi')->where('record_id', $usulan->psi?->id ?? 0)))
+                ->orderByDesc('id')->limit(50)->get();
+        }
+
+        return view('perencanaan.show', $data);
+    }
+
+    /** Tetapkan direktorat pengampu & koreksi pemetaan (klaster, jenis pengusul, infrastruktur) usulan. */
+    public function ubahPemetaan(Request $r, UsulanPsn $usulan)
+    {
+        Gate::authorize('kelola', UsulanPsn::class);
+        $data = $r->validate([
+            'unit_kerja_id' => ['nullable', Rule::exists('ref_unit_kerja', 'id')->where('jenis', 'DIREKTORAT')],
+            'klaster_id' => ['nullable', 'exists:ref_klaster,id'],
+            'jenis_pengusul' => ['nullable', Rule::in(array_keys(UsulanPsn::JENIS_PENGUSUL))],
+            'is_infrastruktur' => ['boolean'],
+        ], [], ['unit_kerja_id' => 'direktorat pengampu', 'jenis_pengusul' => 'jenis pengusul']);
+        $data['is_infrastruktur'] = $r->boolean('is_infrastruktur');
+        $usulan->update($data);
+
+        return back()->with('status', 'Direktorat pengampu dan pemetaan usulan diperbarui.');
+    }
+
+    /**
+     * Kolom diagram jalur kritis: tingkat = 1 + tingkat maksimum pendahulu (aman terhadap siklus).
+     *
+     * @return array<int, Collection> tingkat => langkah
+     */
+    protected function tingkatJalurKritis($langkah): array
+    {
+        $per = $langkah->keyBy('kode');
+        $memo = [];
+        $tingkat = function ($kode, $jejak = []) use (&$tingkat, &$memo, $per) {
+            if (isset($memo[$kode])) {
+                return $memo[$kode];
+            }
+            if (in_array($kode, $jejak, true) || ! isset($per[$kode])) {
+                return 0;
+            }
+            $maks = 0;
+            foreach ($per[$kode]->sebelumnya ?? [] as $p) {
+                $maks = max($maks, $tingkat($p, [...$jejak, $kode]));
+            }
+
+            return $memo[$kode] = $maks + 1;
+        };
+
+        return $langkah->groupBy(fn ($l) => $tingkat($l->kode))->sortKeys()->all();
     }
 
     public function storePenilaian(Request $r, UsulanPsn $usulan)

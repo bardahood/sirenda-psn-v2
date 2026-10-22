@@ -139,6 +139,34 @@ return [
     // Jumlah baris panel ringkas dashboard.
     'dashboard_top' => ['direktorat' => 5, 'dp_proyek' => 6],
 
+    // Integrasi usulan PSN dengan aplikasi permohonan Dit. PSI (Fase 8). Lihat docs/integrasi-psi.md.
+    'psi' => [
+        // Token yang wajib dikirim PSI (Authorization: Bearer ...) ke API masuk SIRENDA. Kosong = API masuk nonaktif.
+        'token_masuk' => env('PSI_TOKEN_MASUK'),
+        // Pembatasan alamat IP pemanggil (pisahkan dengan koma); kosong = tidak dibatasi.
+        'ip_diizinkan' => array_filter(array_map('trim', explode(',', (string) env('PSI_IP_DIIZINKAN', '')))),
+        // Endpoint PSI untuk menerima hasil: {url_api}/usulan/{psi_id}/hasil-penilaian. Kosong = PSI mengambil sendiri (GET hasil).
+        'url_api' => env('PSI_API_URL'),
+        'token_keluar' => env('PSI_API_TOKEN'),
+        'timeout_detik' => 20,
+        // Rekomendasi resmi hanya dapat ditetapkan setelah keputusan pleno dicatat.
+        'wajib_pleno_sebelum_rekomendasi' => true,
+        // Pemetaan "Jenis Instansi" PSI -> usulan_psn.jenis_pengusul (pencocokan teks tanpa beda huruf besar/kecil).
+        'jenis_instansi' => [
+            'kementerian/lembaga' => 'KL', 'kementerian' => 'KL', 'lembaga' => 'KL', 'kl' => 'KL',
+            'pemerintah daerah' => 'PEMDA', 'pemda' => 'PEMDA', 'provinsi' => 'PEMDA', 'kabupaten/kota' => 'PEMDA',
+            'bumn' => 'BUMN_SWASTA', 'bumd' => 'BUMN_SWASTA', 'badan usaha' => 'BUMN_SWASTA', 'swasta' => 'BUMN_SWASTA', 'bumn/swasta' => 'BUMN_SWASTA',
+        ],
+        // "Jenis PSN" PSI yang dianggap infrastruktur (sub-kriteria KK3-KK4 berlaku).
+        'jenis_psn_infrastruktur' => ['infrastruktur', 'psn infrastruktur'],
+        'keputusan_pleno' => [
+            'DISETUJUI' => 'Disetujui untuk direkomendasikan',
+            'DISETUJUI_CATATAN' => 'Disetujui dengan catatan',
+            'DITUNDA' => 'Ditunda / perlu kelengkapan',
+            'DITOLAK' => 'Tidak disetujui',
+        ],
+    ],
+
     // Keamanan HTTP. CSP dapat dimatikan sementara (CSP_AKTIF=false) bila mengganggu integrasi.
     'keamanan' => [
         'csp' => (bool) env('CSP_AKTIF', true),

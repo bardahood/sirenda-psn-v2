@@ -36,6 +36,15 @@ php artisan serve        # buka http://127.0.0.1:8000, login dengan akun admin d
 
 Halaman yang sudah tersedia: `/login`, `/dashboard` (Ringkasan Eksekutif), `/proyek` (Portofolio PSN), `/proyek/{id}` (Detail Proyek), `/kualitas-data`, `/perencanaan` (Penilaian Usulan), `/peta`, `/laporan/ringkasan.pdf`, dan `/ganti-password`. Halaman lain menyusul per fase (lihat `docs/rancangan-aplikasi.md` §11).
 
+## Integrasi aplikasi Dit. PSI
+
+Usulan PSN dari aplikasi permohonan Dit. PSI masuk lewat API `/api/integrasi/psi/v1`, lalu dinilai, dibahas di pleno, dan direkomendasikan di menu Perencanaan. Hasilnya dikirim balik ke PSI. Atur `PSI_TOKEN_MASUK` (wajib agar API aktif), `PSI_IP_DIIZINKAN`, `PSI_API_URL`, dan `PSI_API_TOKEN` di `.env`. Kontrak dan contoh `curl` ada di `docs/integrasi-psi.md`.
+
+```bash
+php artisan psi:contoh           # 4 usulan contoh (CONTOH-…) untuk mencoba tampilan
+php artisan psi:contoh --hapus   # hapus data contoh
+```
+
 ## Impor data dari basis data lama
 
 1. Pulihkan dump lama ke server basis data.

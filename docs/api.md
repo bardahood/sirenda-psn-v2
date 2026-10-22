@@ -49,6 +49,17 @@ Berlaku untuk semua endpoint dashboard, portofolio, kualitas data, dan peta. Nil
 
 Cache dashboard dibatalkan otomatis saat snapshot cut-off diterbitkan (`DashboardCache::flush`).
 
+## Integrasi aplikasi Dit. PSI (`/api/integrasi/psi/v1`)
+
+Mesin-ke-mesin; **tanpa sesi**. Autentikasi memakai `Authorization: Bearer <PSI_TOKEN_MASUK>`, dengan opsi allowlist IP `PSI_IP_DIIZINKAN` dan batas 120 permintaan/menit. Kontrak lengkap ada di `docs/integrasi-psi.md`.
+
+| Metode & rute | Isi |
+|---|---|
+| `GET /referensi` | Kode klaster, provinsi, jenis instansi, jenis dokumen, keputusan pleno |
+| `POST /usulan` | Terima/perbarui usulan (`psi.usulan.v1`): 201 `DITERIMA`, 200 `DIPERBARUI`/`DIABAIKAN_VERSI_LAMA`, 422 |
+| `POST /usulan/{psi_id}/tarik` | Pengusul menarik usulan |
+| `GET /usulan/{psi_id}/hasil` | Hasil penilaian FINAL, keputusan pleno, rekomendasi resmi (`sirenda.hasil.v1`) |
+
 ## Halaman dan unduhan (non-API)
 
 | Rute | Keterangan |
@@ -63,5 +74,9 @@ Cache dashboard dibatalkan otomatis saat snapshot cut-off diterbitkan (`Dashboar
 | `GET /dashboard`, `/proyek`, `/proyek/{id}?tab=`, `/perencanaan`, `/perencanaan/{id}`, `/peta`, `/kualitas-data`, `/risiko`, `/kamus-indikator` | Halaman aplikasi |
 | `GET /pengaturan/{pengguna,cutoff,master}`, `POST /pengaturan/pengguna`, `PUT /pengaturan/pengguna/{id}`, `POST /pengaturan/pengguna/{id}/reset-sandi`, `POST /pengaturan/cutoff`, `PUT /pengaturan/master/{klaster,sub-klaster,unit}/{id}` | Pengaturan (izin `pengaturan.kelola`, tercatat di jejak audit) |
 | `POST /perencanaan`, `POST /perencanaan/{id}/penilaian`, `PUT /perencanaan/penilaian/{id}/skor`, `POST /perencanaan/penilaian/{id}/final`, `POST /perencanaan/penilaian/{id}/buka` | Aksi penilaian usulan (diotorisasi `UsulanPsnPolicy`, tercatat di jejak audit) |
+
+| `GET /perencanaan?sumber=PSI\|MANUAL&tahap=`, `GET /perencanaan/{id}?tab=surat\|umum\|rincian\|kesiapan\|dokumen\|penilaian\|pleno\|rekomendasi\|riwayat` | Daftar usulan per tahap alur dan detail per tab |
+| `PUT /perencanaan/{id}/pemetaan`, `POST /perencanaan/{id}/rekomendasi` (`tetapkan=1` → FINAL), `POST /perencanaan/{id}/kirim-psi` | Penetapan direktorat/klaster, rekomendasi resmi, kirim hasil ke PSI (`perencanaan.kelola`) |
+| `GET /perencanaan/pleno`, `GET /perencanaan/pleno/{id}`; `POST /perencanaan/pleno`, `PUT /perencanaan/pleno/{id}`, `POST …/{id}/agenda`, `DELETE …/{id}/agenda/{agenda}`, `PUT …/{id}/keputusan`, `POST …/{id}/selesai` | Sidang pleno (lihat: `perencanaan.lihat`; ubah: `perencanaan.kelola`) |
 
 Kontrak seluruh endpoint GET diuji di `tests/Feature/KontrakEndpointTest.php`.

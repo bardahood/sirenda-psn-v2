@@ -17,4 +17,9 @@ class UsulanLokasi extends Model
     {
         return $this->belongsTo(RefWilayah::class, 'provinsi_kode');
     }
+
+    public function kabupaten(): BelongsTo
+    {
+        return $this->belongsTo(RefWilayah::class, 'kabupaten_kode');
+    }
 }
