@@ -141,7 +141,14 @@ return [
 
     // Integrasi usulan PSN dengan aplikasi permohonan Dit. PSI (Fase 8). Lihat docs/integrasi-psi.md.
     'psi' => [
-        // Token yang wajib dikirim PSI (Authorization: Bearer ...) ke API masuk SIRENDA. Kosong = API masuk nonaktif.
+        // Autentikasi utama: JWT RS256 ditandatangani kunci privat klien PSI, diverifikasi dengan kunci publiknya.
+        // PSI_KUNCI_PUBLIK = path berkas PEM (relatif terhadap root proyek atau absolut), mis. storage/app/private/kunci/psi-public.pem.
+        'client_id' => env('PSI_CLIENT_ID'),
+        'kunci_publik' => env('PSI_KUNCI_PUBLIK'),
+        'jwt_audiens' => env('PSI_JWT_AUDIENS'),   // bila diisi dan token membawa "aud", nilainya harus sama
+        'jwt_umur_maks_detik' => 300,              // exp - iat maksimum
+        'jwt_toleransi_detik' => 60,               // toleransi selisih jam server
+        // Alternatif/transisi: token statis (Authorization: Bearer ...). Keduanya kosong = API masuk nonaktif (503).
         'token_masuk' => env('PSI_TOKEN_MASUK'),
         // Pembatasan alamat IP pemanggil (pisahkan dengan koma); kosong = tidak dibatasi.
         'ip_diizinkan' => array_filter(array_map('trim', explode(',', (string) env('PSI_IP_DIIZINKAN', '')))),

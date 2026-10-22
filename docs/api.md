@@ -51,7 +51,7 @@ Cache dashboard dibatalkan otomatis saat snapshot cut-off diterbitkan (`Dashboar
 
 ## Integrasi aplikasi Dit. PSI (`/api/integrasi/psi/v1`)
 
-Mesin-ke-mesin; **tanpa sesi**. Autentikasi memakai `Authorization: Bearer <PSI_TOKEN_MASUK>`, dengan opsi allowlist IP `PSI_IP_DIIZINKAN` dan batas 120 permintaan/menit. Kontrak lengkap ada di `docs/integrasi-psi.md`.
+Mesin-ke-mesin; **tanpa sesi**. Autentikasi memakai `Authorization: Bearer <JWT RS256>`: ditandatangani kunci privat klien PSI, `iss`/`sub` = `PSI_CLIENT_ID`, `jti` sekali pakai. Token statis `PSI_TOKEN_MASUK` diterima sebagai alternatif. Tersedia opsi allowlist IP `PSI_IP_DIIZINKAN`, dengan batas 120 permintaan/menit. Kontrak lengkap ada di `docs/integrasi-psi.md`.
 
 | Metode & rute | Isi |
 |---|---|

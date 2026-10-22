@@ -38,7 +38,7 @@ Halaman yang sudah tersedia: `/login`, `/dashboard` (Ringkasan Eksekutif), `/pro
 
 ## Integrasi aplikasi Dit. PSI
 
-Usulan PSN dari aplikasi permohonan Dit. PSI masuk lewat API `/api/integrasi/psi/v1`, lalu dinilai, dibahas di pleno, dan direkomendasikan di menu Perencanaan. Hasilnya dikirim balik ke PSI. Atur `PSI_TOKEN_MASUK` (wajib agar API aktif), `PSI_IP_DIIZINKAN`, `PSI_API_URL`, dan `PSI_API_TOKEN` di `.env`. Kontrak dan contoh `curl` ada di `docs/integrasi-psi.md`.
+Usulan PSN dari aplikasi permohonan Dit. PSI masuk lewat API `/api/integrasi/psi/v1`, lalu dinilai, dibahas di pleno, dan direkomendasikan di menu Perencanaan. Hasilnya dikirim balik ke PSI. Autentikasi memakai JWT RS256 dari PSI. Atur `PSI_CLIENT_ID` dan `PSI_KUNCI_PUBLIK` (path kunci publik `.pem` di `storage/app/private/kunci/`, jangan di-commit), serta opsi `PSI_IP_DIIZINKAN`, `PSI_API_URL`, dan `PSI_API_TOKEN` di `.env`. Untuk uji coba, `php artisan psi:token-uji <kunci-privat.pem>` mencetak token. Kontrak dan contoh `curl` ada di `docs/integrasi-psi.md`.
 
 ```bash
 php artisan psi:contoh           # 4 usulan contoh (CONTOH-…) untuk mencoba tampilan

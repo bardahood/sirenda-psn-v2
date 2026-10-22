@@ -8,12 +8,14 @@ use App\Models\PlenoUsulan;
 use App\Models\UsulanPsi;
 use App\Models\UsulanPsn;
 use App\Models\UsulanRekomendasi;
+use App\Support\JwtRs256;
 use Database\Seeders\PeranSeeder;
 use Database\Seeders\ReferensiSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request as HttpRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Tests\Support\BuatDataPsn;
 use Tests\TestCase;
 
@@ -67,6 +69,37 @@ class IntegrasiPsiTest extends TestCase
         config(['psn_dashboard.psi.token_masuk' => null]);
         $this->kirim($this->payload())->assertStatus(503);
         $this->assertSame(0, UsulanPsn::withoutGlobalScopes()->count());
+    }
+
+    public function test_api_masuk_dengan_jwt_rs256_client_id(): void
+    {
+        $kunci = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
+        openssl_pkey_export($kunci, $privat);
+        $publik = tempnam(sys_get_temp_dir(), 'psi').'.pem';
+        file_put_contents($publik, openssl_pkey_get_details($kunci)['key']);
+        config(['psn_dashboard.psi.token_masuk' => null, 'psn_dashboard.psi.kunci_publik' => $publik, 'psn_dashboard.psi.client_id' => 'konsultan-psn-uji']);
+
+        $kini = time();
+        $klaim = fn (array $timpa = []) => $timpa + ['iss' => 'konsultan-psn-uji', 'iat' => $kini, 'exp' => $kini + 120, 'jti' => (string) Str::uuid()];
+        $jwt = JwtRs256::buat($klaim(), $privat);
+
+        $this->kirim($this->payload(), $jwt)->assertCreated();
+        $this->kirim($this->payload(), $jwt)->assertUnauthorized()->assertJsonFragment(['message' => 'Token integrasi tidak valid: token sudah pernah dipakai (jti).']);
+        $this->kirim($this->payload(), JwtRs256::buat($klaim(['iss' => 'klien-lain']), $privat))->assertUnauthorized();
+        $this->kirim($this->payload(), JwtRs256::buat($klaim(['exp' => $kini - 600, 'iat' => $kini - 700]), $privat))->assertUnauthorized();
+        $this->kirim($this->payload(), JwtRs256::buat($klaim(['exp' => $kini + 86400]), $privat))->assertUnauthorized();
+        $this->kirim($this->payload(), JwtRs256::buat(array_diff_key($klaim(), ['jti' => 1]), $privat))->assertUnauthorized();
+
+        // Ditandatangani kunci lain, atau alg diganti (HS256/none) -> ditolak.
+        openssl_pkey_export(openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]), $privatLain);
+        $this->kirim($this->payload(), JwtRs256::buat($klaim(), $privatLain))->assertUnauthorized();
+        [, $p, $sig] = explode('.', JwtRs256::buat($klaim(), $privat));
+        $this->kirim($this->payload(), rtrim(strtr(base64_encode('{"alg":"none","typ":"JWT"}'), '+/', '-_'), '=').'.'.$p.'.'.$sig)->assertUnauthorized();
+
+        // Kunci publik tidak terbaca dan token statis kosong -> API nonaktif.
+        config(['psn_dashboard.psi.kunci_publik' => '/tidak/ada.pem']);
+        $this->kirim($this->payload(), JwtRs256::buat($klaim(), $privat))->assertStatus(503);
+        @unlink($publik);
     }
 
     public function test_terima_usulan_idempoten_versi_dan_validasi(): void

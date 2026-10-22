@@ -403,7 +403,7 @@ Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan
 | Q-14 | Status pengguna lama `0` dan `H` | Hanya `A` dianggap aktif |
 | Q-15 | Apakah snapshot cut-off hanya memakai isian berstatus Diverifikasi? | Belum: snapshot memakai isian terakhir apa pun statusnya; status verifikasi dipantau di Kualitas Data dan rekap pengisian |
 | Q-16 | 90 risiko lama hanya berlabel level (tanpa skala 1–5) | Tidak dikonversi otomatis; tidak tampil di matriks 5×5 harapan; matriks aktual terisi setelah dinilai melalui Pengisian |
-| Q-17 – Q-22 | Integrasi PSI: format klaster/jenis instansi, akses berkas, push vs pull, hasil sementara, penentu direktorat pengampu | Lihat `docs/integrasi-psi.md` §8 |
+| Q-17 – Q-23 | Integrasi PSI: format klaster/jenis instansi, akses berkas, push vs pull, hasil sementara, penentu direktorat pengampu | Lihat `docs/integrasi-psi.md` §8 |
 
 ## 11. Rencana fase
 

@@ -28,10 +28,26 @@ Tahap alur diturunkan dari data dan tidak disimpan (`App\Services\AlurUsulan`):
 
 ## 2. Autentikasi dan keamanan
 
-- Setiap panggilan ke API masuk SIRENDA wajib membawa header `Authorization: Bearer <PSI_TOKEN_MASUK>`. Token dibandingkan dengan `hash_equals`.
+Setiap panggilan ke API masuk SIRENDA wajib membawa header `Authorization: Bearer <token>`. Ada dua jenis token yang diterima.
+
+**a. JWT RS256 (utama).** PSI membuat JWT baru untuk **setiap permintaan** dan menandatanganinya dengan kunci privat klien. SIRENDA memverifikasinya dengan kunci publik pasangannya (`PSI_KUNCI_PUBLIK`).
+
+| Bagian | Ketentuan |
+|---|---|
+| Header | `{"alg":"RS256","typ":"JWT"}`. Algoritme lain (`none`, `HS256`, dst.) ditolak. |
+| `iss` atau `sub` | Client ID yang terdaftar (`PSI_CLIENT_ID`), mis. `konsultan-psn-snkv93` |
+| `iat`, `exp` | Wajib, dalam detik Unix. `exp − iat` ≤ 300 detik. Toleransi selisih jam server 60 detik. |
+| `jti` | Wajib, unik per permintaan (mis. UUID). Token dengan `jti` yang sama ditolak (anti-replay). |
+| `aud` | Opsional. Bila dikirim dan `PSI_JWT_AUDIENS` diisi, nilainya harus sama. |
+
+Contoh klaim: `{"iss":"konsultan-psn-snkv93","iat":1792656000,"exp":1792656120,"jti":"6f1c…"}`.
+
+**b. Token statis `PSI_TOKEN_MASUK` (alternatif/transisi).** Dibandingkan dengan `hash_equals`. Kosongkan bila hanya JWT yang dipakai.
+
+- SIRENDA **hanya memerlukan kunci publik**. Kunci privat disimpan di server PSI dan tidak boleh berada di server SIRENDA maupun di repo (`*.pem` sudah diabaikan git).
 - Kode respons autentikasi:
-  - `503`: `PSI_TOKEN_MASUK` belum diatur, sehingga API nonaktif.
-  - `401`: token salah atau tidak ada.
+  - `503`: kunci publik tidak terbaca dan `PSI_TOKEN_MASUK` kosong, sehingga API nonaktif.
+  - `401`: token salah, tidak ada, kedaluwarsa, client ID tidak dikenal, atau `jti` dipakai ulang. Alasannya disebutkan di `message`.
   - `403`: IP pemanggil tidak ada di `PSI_IP_DIIZINKAN`, bila daftar ini diisi.
 - API tanpa sesi dan tanpa CSRF. Batas laju 120 permintaan/menit.
 - Isian HTML dari PSI (lingkup pekerjaan, penjelasan, bagian lain) disaring dengan daftar putih (`App\Support\HtmlAman`):
@@ -43,7 +59,10 @@ Variabel lingkungan (`.env`):
 
 | Variabel | Keterangan |
 |---|---|
-| `PSI_TOKEN_MASUK` | Token yang dikirim PSI ke SIRENDA. Kosong = API masuk nonaktif (503). |
+| `PSI_CLIENT_ID` | Client ID PSI yang diizinkan, mis. `konsultan-psn-snkv93` |
+| `PSI_KUNCI_PUBLIK` | Path berkas kunci publik PEM, relatif terhadap root proyek atau absolut. Rekomendasi: `storage/app/private/kunci/psi-public.pem` |
+| `PSI_JWT_AUDIENS` | Opsional, nilai `aud` yang diharapkan |
+| `PSI_TOKEN_MASUK` | Opsional, token statis alternatif. Bila kunci publik dan token sama-sama kosong, API masuk nonaktif (503). |
 | `PSI_IP_DIIZINKAN` | Daftar IP server PSI, dipisahkan koma. Kosong = tidak dibatasi. |
 | `PSI_API_URL` | Alamat dasar API PSI untuk push hasil, mis. `https://psi.bappenas.go.id/api/v1`. Kosong = push nonaktif; PSI mengambil hasil sendiri (pull). |
 | `PSI_API_TOKEN` | Token Bearer yang dikirim SIRENDA ke PSI saat push. |
@@ -182,11 +201,15 @@ php artisan migrate
 php artisan psi:contoh           # 4 usulan CONTOH-… lewat jalur impor yang sama dengan API
 php artisan psi:contoh --hapus   # bersihkan data contoh
 
-# API (atur PSI_TOKEN_MASUK di .env lalu php artisan config:clear)
+# API dengan JWT (atur PSI_CLIENT_ID & PSI_KUNCI_PUBLIK di .env lalu php artisan config:clear).
+# psi:token-uji meniru PSI: menandatangani JWT dengan kunci privat (berkas lokal, jangan di-commit).
+# Token sekali pakai: buat token baru untuk setiap permintaan.
+T=$(php artisan psi:token-uji /path/ke/konsultan-psn-private.pem)
 curl -X POST http://localhost:8000/api/integrasi/psi/v1/usulan \
-  -H "Authorization: Bearer $PSI_TOKEN_MASUK" -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $T" -H "Content-Type: application/json" \
   --data @docs/contoh/psi-usulan.json
-curl -H "Authorization: Bearer $PSI_TOKEN_MASUK" \
+T=$(php artisan psi:token-uji /path/ke/konsultan-psn-private.pem)
+curl -H "Authorization: Bearer $T" \
   http://localhost:8000/api/integrasi/psi/v1/usulan/CONTOH-USL-2026-0001/hasil
 ```
 
@@ -202,3 +225,4 @@ Tes: `php artisan test --filter=IntegrasiPsiTest`.
 | Q-20 | Mekanisme penerimaan hasil di PSI: push, pull, atau keduanya? Siapa pemicu kirim? | Keduanya tersedia; push dipicu manual oleh PMO |
 | Q-21 | Apakah PSI perlu menerima hasil sementara, mis. penilaian FINAL sebelum pleno? | Tidak; push hanya setelah rekomendasi FINAL. Pull selalu mengembalikan keadaan terkini. |
 | Q-22 | Direktorat pengampu: ditentukan PSI atau PMO SIRENDA? | Ditetapkan PMO di SIRENDA |
+| Q-23 | Skema autentikasi JWT RS256 (klaim `iss`/`sub` = client ID, `iat`/`exp` ≤ 5 menit, `jti` unik) sesuai dengan sisi PSI? Kunci privat sebaiknya dibuat ulang oleh PSI dan tidak dibagikan ke pihak lain. | Ya, sesuai §2 |
