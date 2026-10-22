@@ -29,7 +29,7 @@
             <p class="rounded-lg bg-amber-50 p-3 text-[12px] text-amber-900">Penilaian harus ditetapkan FINAL sebelum usulan dapat dibahas di pleno.</p>
         @elseif (Gate::allows('kelola', UsulanPsn::class))
             @if ($plenoTerbuka->isEmpty())
-                <p class="text-[12px] text-slate-600">Belum ada sidang pleno terjadwal. <a href="{{ route('perencanaan.pleno.index') }}" class="text-aksen-700 hover:underline">Jadwalkan sidang pleno</a>.</p>
+                <p class="text-[12px] text-slate-600">{{ $usulan->plenoUsulan->isNotEmpty() ? 'Usulan ini sudah masuk agenda semua sidang pleno yang terjadwal. Untuk membahasnya lagi,' : 'Belum ada sidang pleno terjadwal.' }} <a href="{{ route('perencanaan.pleno.index') }}" class="text-aksen-700 hover:underline">{{ $usulan->plenoUsulan->isNotEmpty() ? 'jadwalkan sidang baru' : 'Jadwalkan sidang pleno' }}</a>.</p>
             @else
                 <form method="POST" x-data="{ pleno: '{{ $plenoTerbuka->first()->id }}' }" :action="'{{ url('/perencanaan/pleno') }}/' + pleno + '/agenda'" class="space-y-3">
                     @csrf <input type="hidden" name="usulan_id[]" value="{{ $usulan->id }}">

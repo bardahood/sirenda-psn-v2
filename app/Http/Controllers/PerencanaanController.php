@@ -143,7 +143,8 @@ class PerencanaanController extends Controller
             $data['tingkatJalur'] = $this->tingkatJalurKritis($usulan->jalurKritis);
         }
         if ($tab === 'pleno') {
-            $data['plenoTerbuka'] = Pleno::where('status', 'TERJADWAL')->orderBy('tanggal')->get();
+            // Sidang terjadwal yang belum memuat usulan ini.
+            $data['plenoTerbuka'] = Pleno::where('status', 'TERJADWAL')->whereDoesntHave('agenda', fn ($q) => $q->where('usulan_id', $usulan->id))->orderBy('tanggal')->get();
         }
         if ($tab === 'rekomendasi') {
             $data['pushAktif'] = app(PsiHasilService::class)->pushAktif();

@@ -249,6 +249,9 @@ class IntegrasiPsiTest extends TestCase
         PlenoUsulan::create(['pleno_id' => $pleno->id, 'usulan_id' => $u->id, 'urutan' => 1]);
         $this->actingAs($this->buatPengguna('Operator K/L', '07'));
         $this->get("/perencanaan/{$u->id}")->assertNotFound();
+        $this->actingAs($this->buatPengguna('Tim Koordinasi/PMO'));
+        $this->get("/perencanaan/{$u->id}?tab=pleno")->assertOk()->assertDontSee('Tambahkan ke agenda');
+        $this->actingAs($this->buatPengguna('Operator K/L', '07'));
         $this->get(route('perencanaan.pleno.show', $pleno))->assertOk()->assertDontSee('CONTOH — Pembangunan Jalan Tol');
         $this->actingAs($this->buatPengguna('Pimpinan'));
         $this->get(route('perencanaan.pleno.show', $pleno))->assertOk()->assertSee('CONTOH — Pembangunan Jalan Tol');
