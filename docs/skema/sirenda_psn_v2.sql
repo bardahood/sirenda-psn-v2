@@ -1593,6 +1593,7 @@ CREATE TABLE `snapshot_psn` (
   `status_psn_id` bigint(20) unsigned DEFAULT NULL,
   `tahap` varchar(20) DEFAULT NULL,
   `kategori` varchar(10) DEFAULT NULL COMMENT 'PSN|PKPN',
+  `tahun_selesai` smallint(5) unsigned DEFAULT NULL COMMENT 'psn.tahun_selesai pada cut-off',
   `provinsi_kode` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`provinsi_kode`)),
   `unit_kerja_id` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`unit_kerja_id`)),
   `sumber_dana_id` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`sumber_dana_id`)),
@@ -1617,6 +1618,7 @@ CREATE TABLE `snapshot_psn` (
   KEY `snapshot_psn_psn_id_foreign` (`psn_id`),
   KEY `snapshot_psn_periode_cutoff_id_klaster_id_index` (`periode_cutoff_id`,`klaster_id`),
   KEY `snapshot_psn_periode_cutoff_id_status_progres_index` (`periode_cutoff_id`,`status_progres`),
+  KEY `snapshot_psn_periode_cutoff_id_tahun_selesai_index` (`periode_cutoff_id`,`tahun_selesai`),
   CONSTRAINT `snapshot_psn_periode_cutoff_id_foreign` FOREIGN KEY (`periode_cutoff_id`) REFERENCES `periode_cutoff` (`id`) ON DELETE CASCADE,
   CONSTRAINT `snapshot_psn_psn_id_foreign` FOREIGN KEY (`psn_id`) REFERENCES `psn` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

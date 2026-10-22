@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Psn;
 use App\Models\User;
 use App\Models\UsulanPsn;
 use App\Services\SnapshotService;
@@ -136,6 +137,47 @@ class KontrakEndpointTest extends TestCase
         $this->actingAs($this->buatPengguna('Operator K/L', '07'));
         $this->assertSame([$this->id['psn07']], collect($this->getJson('/api/v1/filter-opsi')->json('data.psn'))->pluck('nilai')->all());
         $this->assertSame(0, $k1("psn={$this->id['psn19']}"));
+    }
+
+    public function test_filter_kementerian_dan_tahun_selesai(): void
+    {
+        $unit = fn (string $kode, string $nama, string $jenis = 'KL') => DB::table('ref_unit_kerja')->insertGetId(['kode' => $kode, 'nama' => $nama, 'jenis' => $jenis]);
+        $unit('UJ1', 'Menteri Perhubungan');
+        $djka = $unit('UJ2', 'Direktorat Jenderal Perkeretaapian, Kementerian Perhubungan');
+        $bbws = $unit('UJ3', 'BBWS Brantas');
+        $dishub = $unit('UJ4', 'Dinas Perhubungan, DKI', 'LAINNYA');
+        $pengampu = fn (Psn $p, int $u) => DB::table('psn_unit_pengampu')->insert(['psn_id' => $p->id, 'unit_kerja_id' => $u]);
+        $pengampu($this->buatPsn(['nama' => 'Kereta Uji', 'tahun_selesai' => 2029], ['07']), $djka);
+        $pengampu($this->buatPsn(['nama' => 'Bendungan Uji', 'tahun_selesai' => 2030], []), $bbws);
+        $pengampu($this->buatPsn(['nama' => 'LRT Pemda Uji', 'tahun_selesai' => 2029], []), $dishub);
+        app(SnapshotService::class)->buat('2026-10', terbit: true);
+
+        $this->actingAs($this->buatPengguna('Pimpinan'));
+        $k1 = fn (string $qs) => (int) collect($this->getJson("/api/v1/dashboard/kpi?periode=2026-10&{$qs}")->assertOk()->json('data'))->firstWhere('kode', 'K1')['nilai'];
+        $this->assertSame(5, $k1(''));
+        // Ditjen di bawah Kementerian Perhubungan ikut; dinas perhubungan pemda (bukan K/L) tidak.
+        $this->assertSame(1, $k1('kl=kementerian-perhubungan'));
+        $this->assertSame(1, $k1('kl=kementerian-pekerjaan-umum'));
+        $this->assertSame(2, $k1('kl=kementerian-perhubungan,kementerian-pekerjaan-umum'));
+        $this->assertSame(2, $k1('thn=2029'));
+        $this->assertSame(3, $k1('thn=2029,2030'));
+        $this->assertSame(0, $k1('kl=kementerian-perhubungan&thn=2030'));
+        $this->assertSame(0, $k1('kl=tidak-dikenal'));
+        $this->assertSame(['Kereta Uji'], collect($this->getJson('/api/v1/proyek?periode=2026-10&kl=kementerian-perhubungan')->json('data'))->pluck('nama')->all());
+        $this->assertSame(['Bendungan Uji'], collect($this->getJson('/api/v1/proyek?periode=2026-10&thn=2030')->json('data'))->pluck('nama')->all());
+        $this->assertSame('kementerian-perhubungan', $this->getJson('/api/v1/dashboard/kpi?kl=Kementerian-Perhubungan')->json('meta.filter.kl'));
+        $this->getJson('/api/v1/dashboard/kpi?kl=bukan_slug!')->assertUnprocessable();
+        $this->getJson('/api/v1/dashboard/kpi?thn=abc')->assertUnprocessable();
+        $this->getJson('/api/v1/dashboard/kpi?thn=1800')->assertUnprocessable();
+
+        // Opsi: hanya K/L yang mengampu PSN, satu entri per induk; tahun dari data PSN.
+        $opsi = $this->getJson('/api/v1/filter-opsi')->json('data');
+        $this->assertSame(['Kementerian Pekerjaan Umum', 'Kementerian Perhubungan'], collect($opsi['kementerian'])->pluck('label')->all());
+        $this->assertSame(['2029', '2030'], collect($opsi['tahun'])->pluck('nilai')->all());
+
+        // Operator: filter K/L tidak membuka PSN di luar unitnya.
+        $this->actingAs($this->buatPengguna('Operator K/L', '19'));
+        $this->assertSame(0, $k1('kl=kementerian-perhubungan'));
     }
 
     public function test_pengguna_tanpa_peran_ditolak_di_semua_halaman(): void

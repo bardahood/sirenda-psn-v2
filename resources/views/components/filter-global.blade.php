@@ -1,9 +1,9 @@
 {{-- Filter global: semua nilai di query string (Alpine.store('filter')), opsi dari tabel referensi. --}}
 @php($chevron = '<svg class="h-4 w-4 shrink-0 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>')
-<div class="flex flex-wrap items-center gap-2" role="group" aria-label="Filter global">
+<div class="flex flex-wrap items-center gap-1.5 min-[1700px]:gap-2" role="group" aria-label="Filter global">
     {{-- Periode data (cut-off) --}}
     <label class="kotak-filter cursor-pointer">
-        <svg class="h-5 w-5 shrink-0 text-primer" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
+        <svg class="hidden h-5 w-5 shrink-0 text-primer min-[1700px]:block" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
         <span>
             <span class="kotak-filter-label">Periode Data</span>
             <select class="kotak-filter-nilai -ml-0.5 cursor-pointer appearance-none border-0 bg-none p-0 pr-1 focus:ring-0"
@@ -26,6 +26,31 @@
         <div x-show="buka" x-cloak x-transition.opacity class="absolute left-0 z-40 mt-1 w-[26rem] max-w-[90vw] rounded-kartu border border-slate-200 bg-white p-2 shadow-lg">
             <input type="search" x-model="cari" placeholder="Cari nama atau kode PSN…" class="mb-2 w-full rounded-md border-slate-300 py-1.5 text-isi focus:border-aksen focus:ring-aksen" aria-label="Cari PSN">
             <p class="mb-1 px-2 text-[11px] text-slate-500" x-text="daftar.length + ' PSN' + (terpilih.length ? ' · ' + terpilih.length + ' dipilih' : '')"></p>
+            @include('components.partials.daftar-pilih')
+        </div>
+    </div>
+
+    {{-- Kementerian/Lembaga induk unit pengampu --}}
+    <div class="relative" x-data="multiPilih('kl', 'kementerian', 'Kementerian/Lembaga')" @keydown.escape="buka = false" @click.outside="buka = false">
+        <button type="button" class="kotak-filter" @click="buka = !buka" :aria-expanded="buka" aria-haspopup="listbox" :class="terpilih.length && '!border-aksen'">
+            <span><span class="kotak-filter-label">Kementerian/Lembaga</span><span class="kotak-filter-nilai block max-w-[11rem] truncate" x-text="ringkas === 'Semua' ? 'Semua K/L' : ringkas" :title="ringkas"></span></span>
+            {!! $chevron !!}
+        </button>
+        <div x-show="buka" x-cloak x-transition.opacity class="absolute left-0 z-40 mt-1 w-[24rem] max-w-[90vw] rounded-kartu border border-slate-200 bg-white p-2 shadow-lg">
+            <input type="search" x-model="cari" placeholder="Cari kementerian/lembaga…" class="mb-2 w-full rounded-md border-slate-300 py-1.5 text-isi focus:border-aksen focus:ring-aksen" aria-label="Cari kementerian atau lembaga">
+            @include('components.partials.daftar-pilih')
+            <p class="mt-1 px-2 text-[11px] text-slate-500">Mencakup seluruh unit (Ditjen, BBWS, dll.) di bawah K/L tersebut.</p>
+        </div>
+    </div>
+
+    {{-- Tahun target selesai PSN --}}
+    <div class="relative" x-data="multiPilih('thn', 'tahun', 'Tahun selesai')" @keydown.escape="buka = false" @click.outside="buka = false">
+        <button type="button" class="kotak-filter" @click="buka = !buka" :aria-expanded="buka" aria-haspopup="listbox" :class="terpilih.length && '!border-aksen'">
+            <span><span class="kotak-filter-label">Tahun Selesai</span><span class="kotak-filter-nilai" x-text="ringkas === 'Semua' ? 'Semua Tahun' : (terpilih.length > 1 ? [...terpilih].sort().join(', ') : ringkas)"></span></span>
+            {!! $chevron !!}
+        </button>
+        <div x-show="buka" x-cloak x-transition.opacity class="absolute right-0 z-40 mt-1 w-48 rounded-kartu border border-slate-200 bg-white p-2 shadow-lg">
+            <p class="mb-1 px-2 text-[11px] text-slate-500">Tahun target selesai PSN</p>
             @include('components.partials.daftar-pilih')
         </div>
     </div>

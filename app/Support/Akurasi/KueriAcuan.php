@@ -4,7 +4,9 @@ namespace App\Support\Akurasi;
 
 use App\Models\PeriodeCutoff;
 use App\Support\Dashboard\FilterGlobal;
+use App\Support\Referensi\Kementerian;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Query SQL acuan yang ditulis manual untuk uji akurasi K1-K4 dan P1-P7.
@@ -44,6 +46,15 @@ class KueriAcuan
         }
         if ($this->f->dit) {
             $w[] = 'EXISTS (SELECT 1 FROM psn_unit_pengampu u WHERE u.psn_id = p.id AND u.unit_kerja_id IN ('.$this->tanda($this->f->dit).'))';
+        }
+        if ($this->f->kl) {
+            // Acuan menerjemahkan kementerian ke unit secara mandiri (dari nama unit), bukan dari FilterGlobal::$klUnit.
+            $unit = DB::table('ref_unit_kerja')->whereIn('jenis', config('psn_dashboard.kementerian.jenis_unit'))->get(['id', 'nama'])
+                ->filter(fn ($u) => in_array(Str::slug(Kementerian::induk($u->nama)), $this->f->kl, true))->pluck('id')->all();
+            $w[] = $unit ? 'EXISTS (SELECT 1 FROM psn_unit_pengampu u WHERE u.psn_id = p.id AND u.unit_kerja_id IN ('.$this->tanda($unit).'))' : '1 = 0';
+        }
+        if ($this->f->thn) {
+            $w[] = 'p.tahun_selesai IN ('.$this->tanda($this->f->thn).')';
         }
         if ($this->f->kat) {
             $w[] = $this->f->kat === 'PKPN' ? 'p.klaster_pkpn_id IS NOT NULL' : 'p.klaster_pkpn_id IS NULL';

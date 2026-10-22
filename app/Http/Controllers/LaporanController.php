@@ -9,6 +9,7 @@ use App\Models\PeriodeCutoff;
 use App\Services\DashboardService;
 use App\Support\Dashboard\FilterGlobal;
 use App\Support\Dashboard\KamusIndikator;
+use App\Support\Referensi\Kementerian;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -79,6 +80,8 @@ class LaporanController extends Controller
             'Provinsi' => $f->prov ? $nama('ref_wilayah', 'kode', $f->prov) : null,
             'Klaster' => $f->klaster ? $nama('ref_klaster', 'id', $f->klaster) : null,
             'Direktorat' => $f->dit ? $nama('ref_unit_kerja', 'id', $f->dit) : null,
+            'Kementerian/Lembaga' => $f->kl ? collect($f->kl)->map(fn ($s) => Kementerian::daftar()[$s]['label'] ?? $s)->implode(', ') : null,
+            'Tahun target selesai' => $f->thn ? implode(', ', $f->thn) : null,
             'Status' => $f->status ? implode(', ', array_map(fn ($s) => StatusProgres::from($s)->label(), $f->status)) : null,
             'Kategori' => $f->kat,
             'PSN' => $f->psn ? DB::table('psn')->whereIn('id', $f->psn)->orderBy('nama')->pluck('nama')->implode('; ') : null,

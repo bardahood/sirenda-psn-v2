@@ -140,6 +140,20 @@ return [
     'dashboard_top' => ['direktorat' => 5, 'dp_proyek' => 6],
 
     // Integrasi usulan PSN dengan aplikasi permohonan Dit. PSI (Fase 8). Lihat docs/integrasi-psi.md.
+    // Filter "Kementerian/Lembaga": unit pengampu berjenis berikut dikelompokkan ke kementerian/lembaga induknya.
+    // Nama induk diturunkan dari nama unit (bagian setelah koma terakhir bila berupa nama K/L; "Menteri X" -> "Kementerian X";
+    // awalan "Kepala " dibuang), lalu disatukan dengan aturan regex di bawah (dicek pada nama unit, lalu nama turunan).
+    'kementerian' => [
+        'jenis_unit' => ['KL'],
+        'aturan' => [
+            '/^B?BWS\b/i' => 'Kementerian Pekerjaan Umum',
+            '/\bBP BUMN\b|^Badan Pengaturan BUMN/i' => 'Badan Pengaturan BUMN',
+            '/^Kement(erian|eiran) Investasi dan Hilirisasi/i' => 'Kementerian Investasi dan Hilirisasi/BKPM',
+            '/^Kementerian Koordinator Bidang Perekonomian/i' => 'Kementerian Koordinator Bidang Perekonomian',
+            '/^Kementerian Lingkungan Hidup/i' => 'Kementerian Lingkungan Hidup',
+            '/^Kemendagri$/i' => 'Kementerian Dalam Negeri',
+        ],
+    ],
     'psi' => [
         // Autentikasi utama: JWT RS256 ditandatangani kunci privat klien PSI, diverifikasi dengan kunci publiknya.
         // PSI_KUNCI_PUBLIK = path berkas PEM (relatif terhadap root proyek atau absolut), mis. storage/app/private/kunci/psi-public.pem.

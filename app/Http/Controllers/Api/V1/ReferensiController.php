@@ -8,6 +8,7 @@ use App\Models\PeriodeCutoff;
 use App\Models\Psn;
 use App\Services\DashboardService;
 use App\Support\Dashboard\KamusIndikator;
+use App\Support\Referensi\Kementerian;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +25,15 @@ class ReferensiController extends Controller
             'dana' => collect(DashboardService::LABEL_SKEMA)->map(fn ($l, $k) => ['nilai' => strtolower($k), 'label' => $l])->values(),
             'kategori' => [['nilai' => 'psn', 'label' => 'PSN'], ['nilai' => 'pkpn', 'label' => 'PKPN']],
             'status' => collect(StatusProgres::cases())->map(fn ($s) => ['nilai' => strtolower($s->value), 'label' => $s->label()]),
+            // Kementerian/lembaga induk yang mengampu minimal satu PSN (urut nama).
+            'kementerian' => (function () {
+                $dipakai = DB::table('psn_unit_pengampu')->distinct()->pluck('unit_kerja_id')->map(fn ($id) => (int) $id)->all();
+
+                return collect(Kementerian::daftar())->filter(fn ($k) => array_intersect($k['unit'], $dipakai))
+                    ->map(fn ($k, $slug) => ['nilai' => $slug, 'label' => $k['label']])->values();
+            })(),
+            'tahun' => DB::table('psn')->whereNull('deleted_at')->whereNotNull('tahun_selesai')->distinct()->orderBy('tahun_selesai')
+                ->pluck('tahun_selesai')->map(fn ($t) => ['nilai' => (string) $t, 'label' => (string) $t])->values(),
         ]);
 
         // Daftar PSN mengikuti cakupan akses pengguna (scope model Psn), jadi tidak ikut cache bersama.

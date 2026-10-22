@@ -360,6 +360,7 @@ class SnapshotService
                 'status_psn_id' => $p->status_psn_id,
                 'tahap' => $p->tahap,
                 'kategori' => $this->cfg['kategori_pkpn_dari_klaster_pkpn'] && $p->klaster_pkpn_id ? 'PKPN' : 'PSN',
+                'tahun_selesai' => $p->tahun_selesai,
                 'provinsi_kode' => json_encode($p->provinsi),
                 'unit_kerja_id' => json_encode($p->unit),
                 'sumber_dana_id' => json_encode($p->dana),

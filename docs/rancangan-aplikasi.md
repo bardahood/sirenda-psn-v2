@@ -357,6 +357,24 @@ Kontrak lengkap: `docs/integrasi-psi.md`.
   - Data contoh: `php artisan psi:contoh` (hapus dengan `--hapus`).
   - Tes: `tests/Feature/IntegrasiPsiTest.php`.
 
+### 8.9 Filter Kementerian/Lembaga & Tahun Selesai
+
+- **`kl` (Kementerian/Lembaga):**
+  - Master unit belum memiliki hierarki (`ref_unit_kerja.induk_id` kosong) dan mencampur kementerian, Ditjen, dan balai. Karena itu unit berjenis `KL` dikelompokkan ke K/L induk berdasarkan nama unit (`App\Support\Referensi\Kementerian`):
+    - bagian setelah koma terakhir bila berupa nama K/L;
+    - "Menteri X" → "Kementerian X";
+    - awalan "Kepala" dibuang;
+    - aturan regex di `config/psn_dashboard.php` → `kementerian.aturan`, mis. BBWS/BWS → Kementerian PU, BP BUMN → Badan Pengaturan BUMN.
+  - Kunci URL adalah slug nama induk. Filter diterapkan pada `snapshot_psn.unit_kerja_id`.
+  - Unit pemda, BU, dan "lainnya" (mis. Dinas Perhubungan DKI) tidak termasuk.
+  - Dengan data 7 Okt 2026 terbentuk 31 K/L pengampu PSN. Kementerian PU memiliki 33 unit dan 141 PSN.
+- **`thn` (Tahun target selesai):**
+  - Kolom baru (aditif) `snapshot_psn.tahun_selesai` diisi saat snapshot dibangun.
+  - Snapshot lama diisi dari `psn.tahun_selesai` saat migrasi (nilai historis tidak tersedia).
+  - `psn.rkp_tahun` tidak dipakai karena seluruh PSN bernilai 2026.
+- **Tampilan:** di bawah 1700 px, kotak filter dipadatkan (ikon kalender disembunyikan, padding lebih kecil) agar judul dan 8 filter tetap satu baris. Dashboard tetap satu layar tanpa panel terpotong pada 1920×1080, 1600×900, 1536×864, dan 1440×900.
+- **Uji akurasi:** kombinasi `kl`, `thn`, dan `kl+thn` ditambahkan (165/165 cocok).
+
 ## 9. Hasil impor awal (dump 7 Oktober 2026)
 
 Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan test`): jumlah PSN, lokasi, item profil, regulasi, KP/RO, agregat per provinsi, agregat per klaster, dan total nilai investasi **identik** dengan basis data lama.
@@ -404,6 +422,7 @@ Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan
 | Q-15 | Apakah snapshot cut-off hanya memakai isian berstatus Diverifikasi? | Belum: snapshot memakai isian terakhir apa pun statusnya; status verifikasi dipantau di Kualitas Data dan rekap pengisian |
 | Q-16 | 90 risiko lama hanya berlabel level (tanpa skala 1–5) | Tidak dikonversi otomatis; tidak tampil di matriks 5×5 harapan; matriks aktual terisi setelah dinilai melalui Pengisian |
 | Q-17 – Q-23 | Integrasi PSI: format klaster/jenis instansi, akses berkas, push vs pull, hasil sementara, penentu direktorat pengampu | Lihat `docs/integrasi-psi.md` §8 |
+| Q-24 | Hierarki unit pengampu → kementerian/lembaga (`ref_unit_kerja.induk_id`) | Diturunkan dari nama unit + aturan di config (§8.9); sebaiknya dikurasi di master data |
 
 ## 11. Rencana fase
 

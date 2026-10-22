@@ -3,6 +3,7 @@
 namespace App\Support\Dashboard;
 
 use App\Enums\StatusProgres;
+use App\Support\Referensi\Kementerian;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
@@ -11,6 +12,7 @@ use Illuminate\Support\Facades\Validator;
 /**
  * Filter global dashboard yang dibawa lewat query string dan berlaku lintas halaman:
  * periode=2026-09&prov=31,32&klaster=3,7&dit=12&status=terlambat&kat=psn&dana=kpbu&psn=12,40
+ * &kl=kementerian-perhubungan&thn=2029,2030
  */
 final class FilterGlobal
 {
@@ -23,6 +25,9 @@ final class FilterGlobal
      * @param  string[]  $status  StatusProgres value
      * @param  string[]  $dana  skema (APBN|APBD|KPBU|LAINNYA)
      * @param  int[]  $psn  psn.id (pilih PSN tertentu)
+     * @param  string[]  $kl  slug kementerian/lembaga induk (App\Support\Referensi\Kementerian)
+     * @param  int[]  $klUnit  ref_unit_kerja.id anggota $kl (hasil ekspansi)
+     * @param  int[]  $thn  tahun target selesai
      */
     public function __construct(
         public readonly ?string $periode = null,
@@ -33,6 +38,9 @@ final class FilterGlobal
         public readonly ?string $kat = null,
         public readonly array $dana = [],
         public readonly array $psn = [],
+        public readonly array $kl = [],
+        public readonly array $klUnit = [],
+        public readonly array $thn = [],
     ) {}
 
     public static function fromRequest(Request $request): self
@@ -48,6 +56,8 @@ final class FilterGlobal
             'kat' => $request->query('kat') ? strtolower($request->query('kat')) : null,
             'dana' => array_map('strtolower', $daftar('dana')),
             'psn' => $daftar('psn'),
+            'kl' => array_map('strtolower', $daftar('kl')),
+            'thn' => $daftar('thn'),
         ];
 
         Validator::make($input, [
@@ -60,11 +70,16 @@ final class FilterGlobal
             'dana.*' => ['in:'.implode(',', self::SKEMA_DANA)],
             'psn' => ['array', 'max:100'],
             'psn.*' => ['integer', 'min:1'],
+            'kl' => ['array', 'max:50'],
+            'kl.*' => ['regex:/^[a-z0-9-]{1,120}$/'],
+            'thn' => ['array', 'max:50'],
+            'thn.*' => ['integer', 'between:1900,2100'],
         ], [
             'periode.regex' => 'Format periode harus YYYY-MM.',
             '*.*.regex' => 'Kode provinsi tidak valid.',
             '*.*.in' => 'Nilai filter tidak dikenal.',
             '*.*.integer' => 'Nilai filter harus berupa angka.',
+            'thn.*.between' => 'Tahun tidak valid.',
         ])->validate();
 
         return new self(
@@ -76,13 +91,16 @@ final class FilterGlobal
             $input['kat'] ? strtoupper($input['kat']) : null,
             array_values(array_unique(array_map('strtoupper', $input['dana']))),
             array_values(array_unique(array_map('intval', $input['psn']))),
+            $kl = array_values(array_unique($input['kl'])),
+            Kementerian::unit($kl),
+            array_values(array_unique(array_map('intval', $input['thn']))),
         );
     }
 
     /** Salinan dengan periode berbeda (mis. untuk pembanding cut-off sebelumnya). */
     public function denganPeriode(?string $periode): self
     {
-        return new self($periode, $this->prov, $this->klaster, $this->dit, $this->status, $this->kat, $this->dana, $this->psn);
+        return new self($periode, $this->prov, $this->klaster, $this->dit, $this->status, $this->kat, $this->dana, $this->psn, $this->kl, $this->klUnit, $this->thn);
     }
 
     /**
@@ -99,6 +117,8 @@ final class FilterGlobal
             && $irisan($this->prov, (array) $row->provinsi_kode)
             && (! $this->klaster || in_array((int) $row->klaster_id, $this->klaster, true))
             && $irisan($this->dit, array_map('intval', (array) $row->unit_kerja_id))
+            && (! $this->kl || array_intersect($this->klUnit, array_map('intval', (array) $row->unit_kerja_id)))
+            && (! $this->thn || in_array((int) $row->tahun_selesai, $this->thn, true))
             && (! $this->status || in_array($row->status_progres, $this->status, true))
             && (! $this->kat || $row->kategori === $this->kat)
             && $irisan($this->dana, array_map(fn ($id) => $skemaPerDanaId[$id] ?? 'LAINNYA', (array) $row->sumber_dana_id));
@@ -125,6 +145,9 @@ final class FilterGlobal
 
         $jsonSalahSatu('provinsi_kode', $this->prov, true);
         $jsonSalahSatu('unit_kerja_id', $this->dit, false);
+        if ($this->kl) {
+            $this->klUnit ? $jsonSalahSatu('unit_kerja_id', $this->klUnit, false) : $q->whereRaw('1 = 0');
+        }
         $jsonSalahSatu('sumber_dana_id', array_keys(array_filter($skemaPerDanaId, fn ($s) => in_array($s, $this->dana, true))), false);
         if ($this->dana && ! array_intersect($this->dana, $skemaPerDanaId)) {
             $q->whereRaw('1 = 0');
@@ -134,6 +157,7 @@ final class FilterGlobal
         $this->status && $q->whereIn("{$t}.status_progres", $this->status);
         $this->kat && $q->where("{$t}.kategori", $this->kat);
         $this->psn && $q->whereIn("{$t}.psn_id", $this->psn);
+        $this->thn && $q->whereIn("{$t}.tahun_selesai", $this->thn);
     }
 
     /** Bentuk kanonik untuk meta respons dan query string (hanya yang terisi). */
@@ -148,6 +172,8 @@ final class FilterGlobal
             'kat' => $this->kat ? strtolower($this->kat) : null,
             'dana' => $this->dana ? strtolower(implode(',', $this->dana)) : null,
             'psn' => $this->psn ? implode(',', $this->psn) : null,
+            'kl' => $this->kl ? implode(',', $this->kl) : null,
+            'thn' => $this->thn ? implode(',', $this->thn) : null,
         ]);
     }
 }

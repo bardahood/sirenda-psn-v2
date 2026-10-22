@@ -5,6 +5,7 @@ namespace App\Support\Akurasi;
 use App\Models\PeriodeCutoff;
 use App\Services\DashboardService;
 use App\Support\Dashboard\FilterGlobal;
+use App\Support\Referensi\Kementerian;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -39,7 +40,19 @@ class UjiAkurasi
                 ? "psn={$psn}" : null,
             ($provPsn = $psn ? DB::table('psn_lokasi')->whereNull('deleted_at')->whereIn('psn_id', explode(',', $psn))->where('provinsi_kode', '<>', '00')->orderBy('provinsi_kode')->value('provinsi_kode') : null)
                 ? "psn={$psn}&prov={$provPsn}" : null,
+            // Kementerian/lembaga induk dengan PSN terbanyak dan tahun target selesai terbanyak (sendiri & gabungan).
+            ($kl = $this->klTerbanyak()) ? "kl={$kl}" : null,
+            ($thn = DB::table('psn')->whereNull('deleted_at')->whereNotNull('tahun_selesai')->groupBy('tahun_selesai')->orderByRaw('COUNT(*) DESC')->orderBy('tahun_selesai')->value('tahun_selesai'))
+                ? "thn={$thn}" : null,
+            $kl && $thn ? "kl={$kl}&thn={$thn},".($thn + 1) : null,
         ], fn ($v) => $v !== null));
+    }
+
+    protected function klTerbanyak(): ?string
+    {
+        $jumlah = collect(Kementerian::daftar())->map(fn ($k) => DB::table('psn_unit_pengampu')->whereIn('unit_kerja_id', $k['unit'])->distinct()->count('psn_id'));
+
+        return $jumlah->filter()->sortDesc()->keys()->first();
     }
 
     /**

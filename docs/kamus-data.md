@@ -1018,6 +1018,7 @@
 | `status_psn_id` | bigint(20) unsigned | ya |  |  |
 | `tahap` | varchar(20) | ya |  |  |
 | `kategori` | varchar(10) | ya |  | PSN\|PKPN |
+| `tahun_selesai` | smallint(5) unsigned | ya |  | psn.tahun_selesai pada cut-off |
 | `provinsi_kode` | longtext | ya |  |  |
 | `unit_kerja_id` | longtext | ya |  |  |
 | `sumber_dana_id` | longtext | ya |  |  |
