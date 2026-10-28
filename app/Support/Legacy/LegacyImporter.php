@@ -35,6 +35,9 @@ class LegacyImporter
         'psn_sdgs', 'psn_sumber_dana', 'psn_lokasi', 'psn_unit_pengampu', 'psn_kelembagaan', 'psn',
     ];
 
+    /** Tabel di TABEL_DATA yang tidak di-truncate oleh kosongkan() (dibersihkan selektif). */
+    public const TABEL_DIPERTAHANKAN = ['audit_log', 'penilaian_skor', 'penilaian', 'usulan_lokasi', 'usulan_psn'];
+
     protected Connection $legacy;
 
     /** @var array<string, array<string,int>> peta kode -> id per tabel referensi */
@@ -62,15 +65,23 @@ class LegacyImporter
         return $this;
     }
 
+    /**
+     * Kosongkan data hasil impor sebelum impor ulang. Data yang lahir di v2 dipertahankan:
+     * usulan dari aplikasi PSI/input manual beserta penilaian, pleno, dan rekomendasinya;
+     * akun pengguna (kata sandi & peran yang sudah diatur di v2); dan jejak audit aksi aplikasi
+     * di luar tabel data PSN.
+     */
     public function kosongkan(): void
     {
+        // Usulan hasil impor (psn_2027): hapus dengan FK aktif agar penilaian/pleno terkait ikut terhapus (cascade).
+        DB::table('usulan_psn')->whereNotNull('legacy_id')->delete();
+        DB::table('audit_log')->where(fn ($q) => $q->where('sumber', 'IMPOR_LEGACY')
+            ->orWhereIn('tabel', array_diff(self::TABEL_DATA, self::TABEL_DIPERTAHANKAN)))->delete();
+
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
-        foreach (self::TABEL_DATA as $tabel) {
+        foreach (array_diff(self::TABEL_DATA, self::TABEL_DIPERTAHANKAN) as $tabel) {
             DB::table($tabel)->truncate();
         }
-        $legacyUsers = DB::table('users')->whereNotNull('legacy_grup')->pluck('id');
-        DB::table('model_has_roles')->where('model_type', 'App\\Models\\User')->whereIn('model_id', $legacyUsers)->delete();
-        DB::table('users')->whereIn('id', $legacyUsers)->delete();
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
     }
 
@@ -121,12 +132,20 @@ class LegacyImporter
             'user' => 'Direktorat Sektor',
             'kementerian' => 'Operator K/L',
         ];
+        $dilihat = [];
         $emailDipakai = DB::table('users')->pluck('email')->map(fn ($e) => Str::lower($e))->flip()->all();
 
         foreach ($this->legacy->table('users')->orderBy('username')->get() as $u) {
             $username = Str::lower(trim($u->username));
-            if ($username === '' || DB::table('users')->where('username', $username)->exists()) {
+            if ($username === '' || isset($dilihat[$username])) {
                 $this->peringatan('pengguna', "username kosong/duplikat dilewati: {$u->username}");
+
+                continue;
+            }
+            $dilihat[$username] = true;
+            // Akun yang sudah ada (impor sebelumnya) dipertahankan: kata sandi & peran yang diatur di v2 tidak ditimpa.
+            if (DB::table('users')->where('username', $username)->exists()) {
+                $this->hitung('users_sudah_ada');
 
                 continue;
             }
@@ -412,12 +431,19 @@ class LegacyImporter
             if ($r->kegiatan_id && ! $parent) {
                 $this->peringatan('kegiatan_cp', "cp#{$r->id}: induk psn_kegiatan#{$r->kegiatan_id} tidak ditemukan");
             }
+            // Sejak Okt 2026 tabel lama memakai jadwal bulanan (tahun, bulan_mulai/akhir, target_1..12 & realisasi_1..11
+            // bertanda 0/1) menggantikan kolom per tahun. Tanda jadwal bukan persentase progres: dicatat di keterangan.
+            $jadwal = property_exists($r, 'bulan_mulai') ? $this->jadwalCp($r) : null;
+            if ($jadwal) {
+                $this->peringatan('kegiatan_cp', "cp#{$r->id}: format jadwal bulanan; tanda bulan disimpan di keterangan, bukan sebagai progres");
+            }
             $id = DB::table('kegiatan')->insertGetId([
                 'legacy_ref' => "psn_kegiatan_cp:{$r->id}", 'psn_id' => $psn, 'parent_id' => $parent,
-                'nama' => $this->teks($r->kegiatan) ?? '(critical path tanpa nama)', 'lokasi' => $this->teks($r->lokasi),
-                'target_akhir_1' => $this->angka($r->target_akhir1), 'target_akhir_2' => $this->angka($r->target_akhir2),
-                'is_critical_path' => true, 'sumber_dana_id' => $this->kode('ref_sumber_dana', $r->pendanaan),
-                'status_teks' => $this->potong($r->status, 100), 'keterangan' => $this->teks($r->keterangan),
+                'nama' => $this->teks($r->kegiatan) ?? '(critical path tanpa nama)', 'lokasi' => $this->teks($r->lokasi ?? null),
+                'target_akhir_1' => $this->angka($r->target_akhir1 ?? null), 'target_akhir_2' => $this->angka($r->target_akhir2 ?? null),
+                'is_critical_path' => true, 'sumber_dana_id' => $this->kode('ref_sumber_dana', $r->pendanaan ?? null),
+                'status_teks' => $this->potong($r->status ?? null, 100),
+                'keterangan' => implode("\n", array_filter([$this->teks($r->keterangan), $jadwal])) ?: null,
             ] + $this->jejak($r));
             $this->peta['kegiatan_cp'][$r->id] = $id;
             $this->hitung('kegiatan');
@@ -431,6 +457,10 @@ class LegacyImporter
                     $this->peringatan('kegiatan_detil', "{$tabel}#{$r->id}: kegiatan/tahun tidak valid");
 
                     continue;
+                }
+                if ($koreksi = config('psn_dashboard.legacy.koreksi_tahun_kegiatan_detil')[$th] ?? null) {
+                    $this->peringatan('koreksi_tahun', "{$tabel}#{$r->id}: tahun {$th} dibaca sebagai {$koreksi}");
+                    $th = $koreksi;
                 }
                 foreach (range(1, 12) as $m) {
                     $v = [
@@ -739,10 +769,10 @@ class LegacyImporter
     {
         foreach ([2026, 2027, 2028, 2029] as $th) {
             $v = [
-                'target_1' => $this->angka($r->{"target_1_{$th}"}), 'target_2' => $this->angka($r->{"target_2_{$th}"}),
-                'pagu_rp' => $this->angka($r->{"anggaran_{$th}"}),
-                'realisasi_1' => $this->angka($r->{"realisasi_target_1_{$th}"}), 'realisasi_2' => $this->angka($r->{"realisasi_target_2_{$th}"}),
-                'realisasi_anggaran_rp' => $this->angka($r->{"realisasi_anggaran_{$th}"}),
+                'target_1' => $this->angka($r->{"target_1_{$th}"} ?? null), 'target_2' => $this->angka($r->{"target_2_{$th}"} ?? null),
+                'pagu_rp' => $this->angka($r->{"anggaran_{$th}"} ?? null),
+                'realisasi_1' => $this->angka($r->{"realisasi_target_1_{$th}"} ?? null), 'realisasi_2' => $this->angka($r->{"realisasi_target_2_{$th}"} ?? null),
+                'realisasi_anggaran_rp' => $this->angka($r->{"realisasi_anggaran_{$th}"} ?? null),
             ];
             if ($this->kosongSemua(...array_values($v))) {
                 continue;
@@ -752,6 +782,20 @@ class LegacyImporter
                 'dilaporkan_at' => $adaRealisasi ? $this->waktu($r->updated_at) : null] + $v + $this->jejak($r, false));
             $this->hitung('kegiatan_target');
         }
+    }
+
+    /** Ringkasan jadwal critical path format bulanan, mis. "Jadwal 2026: 2026-01 s.d. 2026-02; rencana bulan 1, 2; terealisasi bulan -". */
+    protected function jadwalCp(object $r): ?string
+    {
+        $bulan = fn (string $awalan, int $n) => implode(', ', array_filter(range(1, $n), fn ($m) => (int) ($r->{"{$awalan}_{$m}"} ?? 0) === 1));
+        $rencana = $bulan('target', 12);
+        $realisasi = $bulan('realisasi', 12);
+        if (! $r->tahun && ! $r->bulan_mulai && $rencana === '' && $realisasi === '') {
+            return null;
+        }
+
+        return sprintf('Jadwal %s: %s s.d. %s; rencana bulan %s; terealisasi bulan %s',
+            $r->tahun ?: '?', $r->bulan_mulai ?: '?', $r->bulan_akhir ?: '?', $rencana ?: '-', $realisasi ?: '-');
     }
 
     // ------------------------------------------------------------------ bantu: peta & referensi

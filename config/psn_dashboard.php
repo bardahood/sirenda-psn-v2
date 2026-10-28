@@ -59,6 +59,7 @@ return [
         'C' => 'LAINNYA', // BUMN
         'D' => 'KPBU',    // Badan Usaha/Swasta -- asumsi sementara
         'E' => 'LAINNYA',
+        'F' => 'LAINNYA', // Danantara -- muncul di dump 28 Okt 2026; disamakan dengan BUMN (Q-03)
     ],
 
     // Kategori PSN/PKPN: PSN dianggap PKPN bila klaster_pkpn terisi (asumsi, TODO konfirmasi).
@@ -140,6 +141,14 @@ return [
     'dashboard_top' => ['direktorat' => 5, 'dp_proyek' => 6],
 
     // Integrasi usulan PSN dengan aplikasi permohonan Dit. PSI (Fase 8). Lihat docs/integrasi-psi.md.
+    // ETL dari SIRENDA lama (legacy:import).
+    'legacy' => [
+        // Koreksi tahun realisasi bulanan KP/RO (psn_kegiatan_detil). Aplikasi lama menyimpan seluruh baris
+        // dengan tahun 2029 (dump 7 & 28 Okt 2026), padahal isiannya realisasi 2026 (dibuat Sep-Okt 2026,
+        // terisi s.d. bulan berjalan). Setiap baris yang dikoreksi dicatat di laporan ETL. Kosongkan [] untuk mematikan.
+        'koreksi_tahun_kegiatan_detil' => [2029 => 2026],
+    ],
+
     // Filter "Kementerian/Lembaga": unit pengampu berjenis berikut dikelompokkan ke kementerian/lembaga induknya.
     // Nama induk diturunkan dari nama unit (bagian setelah koma terakhir bila berupa nama K/L; "Menteri X" -> "Kementerian X";
     // awalan "Kepala " dibuang), lalu disatukan dengan aturan regex di bawah (dicek pada nama unit, lalu nama turunan).

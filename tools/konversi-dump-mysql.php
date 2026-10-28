@@ -1,17 +1,30 @@
 <?php
 
 /**
- * Mengonversi dump SIRENDA lama (phpMyAdmin, MariaDB 10.x) agar dapat diimpor ke MySQL 8:
+ * Mengonversi dump SIRENDA lama (phpMyAdmin/HeidiSQL, MariaDB 10.x) agar dapat diimpor ke MySQL 8:
  *  1. `DEFAULT uuid()`  -> `DEFAULT (uuid())`   (MySQL mewajibkan default ekspresi dalam kurung)
  *  2. `DEFINER=`user`@`host` SQL SECURITY DEFINER` -> `SQL SECURITY INVOKER` (pengguna server lama tidak ada)
- *  3. Tabel pengganti view yang kosong (`CREATE TABLE x (\n);`) dihapus.
+ *  3. Tabel pengganti view yang kosong (`CREATE TABLE x (\n);`, gaya HeidiSQL `CREATE TABLE x \n) ENGINE=..;`) dihapus.
+ *  4. Opsi --database=NAMA: `CREATE DATABASE`/`USE` diarahkan ke basis data NAMA. Penting untuk dump HeidiSQL
+ *     (`CREATE TABLE IF NOT EXISTS` + `INSERT IGNORE`): bila dimuat ke basis data lama yang sudah berisi,
+ *     tabel tidak dibuat ulang dan baris ber-id sama diabaikan diam-diam, sehingga data TIDAK diperbarui.
  * View yang memang rusak di server asal tetap gagal dibuat; tidak dipakai ETL.
  *
- * Pemakaian: php tools/konversi-dump-mysql.php <dump-asli.sql> [keluaran.sql]
+ * Pemakaian: php tools/konversi-dump-mysql.php <dump-asli.sql> [keluaran.sql] [--database=NAMA]
  */
-[$_, $masuk, $keluar] = $argv + [null, null, null];
+$opsi = array_values(array_filter(array_slice($argv, 1), fn ($a) => str_starts_with($a, '--')));
+[$masuk, $keluar] = array_values(array_filter(array_slice($argv, 1), fn ($a) => ! str_starts_with($a, '--'))) + [null, null];
+$basisData = null;
+foreach ($opsi as $o) {
+    if (preg_match('/^--database=([A-Za-z0-9_]+)$/', $o, $m)) {
+        $basisData = $m[1];
+    } else {
+        fwrite(STDERR, "Opsi tidak dikenal: {$o}\n");
+        exit(1);
+    }
+}
 if (! $masuk || ! is_file($masuk)) {
-    fwrite(STDERR, "Pemakaian: php tools/konversi-dump-mysql.php <dump-asli.sql> [keluaran.sql]\n");
+    fwrite(STDERR, "Pemakaian: php tools/konversi-dump-mysql.php <dump-asli.sql> [keluaran.sql] [--database=NAMA]\n");
     exit(1);
 }
 $keluar ??= preg_replace('/\.sql$/i', '', $masuk).'_mysql8.sql';
@@ -21,6 +34,22 @@ $sql = str_replace("\r\n", "\n", $sql);
 $sql = preg_replace('/DEFAULT uuid\(\)/i', 'DEFAULT (uuid())', $sql, -1, $nUuid);
 $sql = preg_replace('/ DEFINER=`[^`]+`@`[^`]+` SQL SECURITY DEFINER/', ' SQL SECURITY INVOKER', $sql, -1, $nDefiner);
 $sql = preg_replace('/CREATE TABLE `[^`]+` \(\n\);\n/', '', $sql, -1, $nStub);
+$sql = preg_replace('/CREATE TABLE `[^`]+` \n\) ENGINE=\w+;\n/', '', $sql, -1, $nStubHeidi); // gaya HeidiSQL
+$nStub += $nStubHeidi;
+$nDb = 0;
+if ($basisData) {
+    if (preg_match('/^USE `([^`]+)`/m', $sql, $m)) {
+        // Rujukan view yang menyebut nama basis data asal secara eksplisit (`asal`.`tabel`).
+        $sql = str_replace("`{$m[1]}`.`", "`{$basisData}`.`", $sql);
+    }
+    $sql = preg_replace('/^(CREATE DATABASE IF NOT EXISTS|CREATE DATABASE|USE) `[^`]+`/m', "$1 `{$basisData}`", $sql, -1, $nDb);
+}
 file_put_contents($keluar, $sql);
 
 echo "Selesai: {$keluar}\n- default uuid(): {$nUuid}\n- definer view: {$nDefiner}\n- tabel stub kosong dihapus: {$nStub}\n";
+if ($basisData) {
+    echo "- CREATE DATABASE/USE diarahkan ke `{$basisData}`: {$nDb}\n";
+} elseif (preg_match('/^USE `([^`]+)`/m', $sql, $m)) {
+    echo "\nPERHATIAN: dump memuat `USE {$m[1]}`. Bila basis data itu sudah berisi data lama, gunakan --database=NAMA_BARU\n"
+        ."agar data baru tidak diabaikan oleh INSERT IGNORE / CREATE TABLE IF NOT EXISTS.\n";
+}

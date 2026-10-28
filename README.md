@@ -66,6 +66,30 @@ php artisan legacy:import --only=risiko,monev  # langkah tertentu saja
 
 Ringkasan jumlah baris dan peringatan (kode tidak dikenal, investasi anomali, baris yatim) dicetak di konsol. Laporan lengkap disimpan di `storage/app/private/etl/laporan-*.json`.
 
+### Memperbarui data dari dump terbaru (contoh: cut-off 28 Oktober 2026)
+
+Dump hasil HeidiSQL memakai `CREATE TABLE IF NOT EXISTS` dan `INSERT IGNORE` ke basis data `sirendapsn_bappenas`. Jika dimuat ke basis data lama yang sudah berisi, tabel tidak dibuat ulang dan baris dengan id yang sama **diabaikan diam-diam**, sehingga data tidak benar-benar diperbarui. Karena itu, muat dump ke basis data **baru**:
+
+```bash
+# 1. Konversi + arahkan ke basis data baru (juga memperbaiki DEFAULT uuid() untuk MySQL 8)
+php tools/konversi-dump-mysql.php sirendapsn_bappenas_cutoff_28102026.sql dump_28102026.sql --database=sirendapsn_bappenas_20261028
+mysql -u root --force < dump_28102026.sql          # 3 view rusak dari server asal boleh diabaikan
+
+# 2. Arahkan .env ke basis data baru: LEGACY_DB_DATABASE=sirendapsn_bappenas_20261028, lalu
+php artisan config:clear
+php artisan migrate
+php artisan legacy:import --fresh
+
+# 3. Bangun ulang snapshot (--fresh mengosongkan snapshot); cut-off terbaru memakai tanggal dump
+php artisan psn:snapshot 2026-08 --terbit --paksa
+php artisan psn:snapshot 2026-09 --terbit --paksa
+php artisan psn:snapshot 2026-10 --tanggal=2026-10-28 --terbit --paksa
+php artisan cache:clear
+php artisan psn:uji-akurasi 2026-10                # harus 0 selisih
+```
+
+`legacy:import --fresh` hanya mengosongkan data hasil impor. Usulan dari aplikasi PSI atau input manual beserta penilaian, pleno, dan rekomendasinya, akun pengguna (kata sandi dan peran yang sudah diatur), serta jejak audit aksi aplikasi dipertahankan. Hanya pengguna baru dari aplikasi lama yang ditambahkan. Snapshot cut-off lama dibangun ulang dari data terbaru, sehingga angkanya mencerminkan laporan yang masuk sampai tanggal dump.
+
 **Data pribadi:** hash kata sandi lama tidak dibawa. Semua akun hasil impor mendapat kata sandi acak dan wajib reset. Dump lama dan laporan ETL **jangan** di-commit ke repo.
 
 ## Snapshot per cut-off

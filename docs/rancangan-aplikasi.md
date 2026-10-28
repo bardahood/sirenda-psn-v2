@@ -401,6 +401,28 @@ Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan
 5. **Progres fisik terstruktur hampir kosong:** realisasi bulanan hanya untuk 7 periode, dan progres proyek masih berupa teks bebas (`status_teks`, mis. "99,7 %"). K3, P2, dan P5 belum bisa menghasilkan angka bermakna sampai pelaporan berjalan di v2.
 6. **Master UNIT mencampur direktorat Bappenas, unit K/L, pemda, BUMN, dan nama proyek.** `ref_unit_kerja.jenis` hanya klasifikasi heuristik dan perlu dikurasi.
 
+### 9.1 Impor ulang dump 28 Oktober 2026
+
+Dump HeidiSQL (MariaDB 10.11) dimuat ke basis data terpisah `sirendapsn_bappenas_20261028`, lalu diimpor dengan `legacy:import --fresh`. Hasilnya diuji dengan `LegacyImportAkurasiTest` (MariaDB & MySQL 8) dan `psn:uji-akurasi` (165/165 cocok untuk cut-off 2026-08, 2026-09, dan 2026-10 tanggal 28 Okt).
+
+| Entitas | 7 Okt | 28 Okt | Catatan |
+|---|---|---|---|
+| PSN | 380 | 381 (377 aktif) | 1 PSN dihapus 26 Okt (Green Refinery RU IV Cilacap) |
+| KP/RO + critical path | 169 | 340 | |
+| Target/realisasi KP/RO | 134 | 511 | 37 baris realisasi bulanan (25 PSN) |
+| Risiko | 90 | 346 | |
+| Isu | 356 | 443 | |
+| Item profil | 1.848 | 2.958 | |
+| Pengguna | 222 | 422 | 201 akun baru; akun lama dipertahankan |
+
+**Perubahan struktur dan temuan pada dump 28 Okt:**
+
+1. **`psn_kegiatan_cp` berganti format**: kolom per tahun 2026–2029 diganti `tahun`, `bulan_mulai/akhir`, dan tanda jadwal 0/1 `target_1..12`/`realisasi_1..11`. ETL kini membaca kedua format. Tanda jadwal bukan persentase progres, jadi dicatat di `kegiatan.keterangan` (Q-25). Saat ini tabel hanya berisi 1 baris uji ("test").
+2. **Seluruh realisasi bulanan (`psn_kegiatan_detil`) bertahun 2029.** Baris ini dibuat pada Sep–Okt 2026 dan terisi sampai bulan berjalan, sehingga dibaca sebagai 2026 lewat `config('psn_dashboard.legacy.koreksi_tahun_kegiatan_detil')`. Setiap baris yang dikoreksi dicatat di laporan ETL (Q-26). Tanpa koreksi ini, hanya 1 PSN yang memiliki progres pada cut-off 2026.
+3. **Kode sumber dana baru `F` (Danantara, 6 PSN)** dipetakan ke skema Lainnya, setara BUMN (Q-03, Q-27).
+4. Tabel baru `psn_status`/`psn_status_log` masih kosong dan belum dipetakan.
+5. Masih ada data uji di KP/RO (mis. "ghgc", "test") yang tampil di panel RO Critical Path.
+
 ## 10. Keputusan terbuka
 
 | No | Pertanyaan | Asumsi sementara |
@@ -423,6 +445,9 @@ Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan
 | Q-16 | 90 risiko lama hanya berlabel level (tanpa skala 1–5) | Tidak dikonversi otomatis; tidak tampil di matriks 5×5 harapan; matriks aktual terisi setelah dinilai melalui Pengisian |
 | Q-17 – Q-23 | Integrasi PSI: format klaster/jenis instansi, akses berkas, push vs pull, hasil sementara, penentu direktorat pengampu | Lihat `docs/integrasi-psi.md` §8 |
 | Q-24 | Hierarki unit pengampu → kementerian/lembaga (`ref_unit_kerja.induk_id`) | Diturunkan dari nama unit + aturan di config (§8.9); sebaiknya dikurasi di master data |
+| Q-25 | Arti tanda jadwal bulanan `psn_kegiatan_cp` (format baru Okt 2026) dan cara memakainya untuk progres critical path | Disimpan sebagai keterangan, belum memengaruhi progres |
+| Q-26 | Tahun 2029 pada seluruh `psn_kegiatan_detil` lama: kekeliruan aplikasi lama atau memang 2029? | Dibaca sebagai 2026 (config `legacy.koreksi_tahun_kegiatan_detil`); konfirmasi ke pengelola aplikasi lama |
+| Q-27 | Skema dana untuk kode `F` Danantara | Lainnya |
 
 ## 11. Rencana fase
 

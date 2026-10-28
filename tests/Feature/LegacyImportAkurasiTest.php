@@ -50,7 +50,8 @@ class LegacyImportAkurasiTest extends TestCase
         $baru = DB::table('psn_lokasi')->groupBy('provinsi_kode')->pluck(DB::raw('count(distinct psn_id)'), 'provinsi_kode')->map(fn ($n) => (int) $n)->sortKeys()->all();
         $this->assertSame($lama, $baru);
 
-        $lama = $legacy->table('psn')->where('klaster', '<>', '')->groupBy('klaster')->pluck(DB::raw('count(*)'), 'klaster')->map(fn ($n) => (int) $n)->sortKeys()->all();
+        // PSN yang sudah dihapus di aplikasi lama juga terhapus (soft delete) di v2 dan tidak dihitung view.
+        $lama = $legacy->table('psn')->whereNull('deleted_at')->where('klaster', '<>', '')->groupBy('klaster')->pluck(DB::raw('count(*)'), 'klaster')->map(fn ($n) => (int) $n)->sortKeys()->all();
         $baru = DB::table('v_psn_ringkas')->whereNotNull('klaster_kode')->groupBy('klaster_kode')->pluck(DB::raw('count(*)'), 'klaster_kode')->map(fn ($n) => (int) $n)->sortKeys()->all();
         $this->assertSame($lama, $baru);
     }
