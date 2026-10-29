@@ -375,6 +375,22 @@ Kontrak lengkap: `docs/integrasi-psi.md`.
 - **Tampilan:** di bawah 1700 px, kotak filter dipadatkan (ikon kalender disembunyikan, padding lebih kecil) agar judul dan 8 filter tetap satu baris. Dashboard tetap satu layar tanpa panel terpotong pada 1920×1080, 1600×900, 1536×864, dan 1440×900.
 - **Uji akurasi:** kombinasi `kl`, `thn`, dan `kl+thn` ditambahkan (165/165 cocok).
 
+### 8.10 Integrasi API SIF (Portal PSN dan KPBU, Dit. PSI)
+
+Dit. PSI menyerahkan *Dokumen Integrasi API Usulan PSN untuk PMO* v1.3 dan *Tata Cara Penggunaan API Client*. Dokumen ini menetapkan bahwa **SIF menyediakan seluruh API**, sedangkan SIRENDA (PMO) mengambil usulan dan mengirim hasil penilaian. Rinciannya ada di `docs/integrasi-psi.md`.
+
+- **Klien** (`App\Services\SifClient`):
+  - setiap request membawa header `X-API-Key`, `X-Client-Id`, dan `X-Session-Key`;
+  - kunci sesi AES-256 dibungkus RSA-OAEP-SHA256 (`App\Support\Integrasi\SifKripto`, diverifikasi silang dengan OpenSSL dan `cryptography` Python);
+  - body dan respons dienkripsi AES-256-GCM.
+- **Pengambilan** (`SifSinkronService`, `psi:sinkron`, tombol di Perencanaan, penjadwal opsional tiap jam):
+  - model data SIF dipetakan ke tabel usulan Fase 8 lewat jalur impor yang sama;
+  - idempoten dengan sidik jari isi, dan versi naik bila isi berubah.
+- **Pengiriman**: `POST /{kode}/penilaian` berisi `skor_pmo` (nilai akhir FINAL) dan `catatan_pmo` (rekomendasi, keputusan pleno, komponen, temuan).
+- **Berkas** dari SIF diunduh server SIRENDA lalu diteruskan ke pengguna yang berhak, karena berkas dilindungi `X-API-Key`.
+- API masuk Fase 8 (`/api/integrasi/psi/v1`) dipertahankan sebagai jalur opsional, tetapi tidak dipakai SIF. Konfigurasi push lama (`PSI_API_URL`, `PSI_API_TOKEN`) dihapus.
+- **Belum dapat diuji ke server SIF sungguhan**, karena host dan `X-API-Key` belum diterima (Q-31). Pengujian memakai server tiruan yang menerapkan enkripsi yang sama.
+
 ## 9. Hasil impor awal (dump 7 Oktober 2026)
 
 Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan test`): jumlah PSN, lokasi, item profil, regulasi, KP/RO, agregat per provinsi, agregat per klaster, dan total nilai investasi **identik** dengan basis data lama.
@@ -448,6 +464,7 @@ Dump HeidiSQL (MariaDB 10.11) dimuat ke basis data terpisah `sirendapsn_bappenas
 | Q-25 | Arti tanda jadwal bulanan `psn_kegiatan_cp` (format baru Okt 2026) dan cara memakainya untuk progres critical path | Disimpan sebagai keterangan, belum memengaruhi progres |
 | Q-26 | Tahun 2029 pada seluruh `psn_kegiatan_detil` lama: kekeliruan aplikasi lama atau memang 2029? | Dibaca sebagai 2026 (config `legacy.koreksi_tahun_kegiatan_detil`); konfirmasi ke pengelola aplikasi lama |
 | Q-27 | Skema dana untuk kode `F` Danantara | Lainnya |
+| Q-28 – Q-32 | Integrasi SIF: tahun RKP, `field_notes`, kunci publik server vs client, host & API key, rotasi kunci privat | Lihat `docs/integrasi-psi.md` §7 |
 
 ## 11. Rencana fase
 

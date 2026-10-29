@@ -51,7 +51,9 @@ Berlaku untuk semua endpoint dashboard, portofolio, kualitas data, dan peta. Nil
 
 Cache dashboard dibatalkan otomatis saat snapshot cut-off diterbitkan (`DashboardCache::flush`).
 
-## Integrasi aplikasi Dit. PSI (`/api/integrasi/psi/v1`)
+## API masuk untuk aplikasi Dit. PSI (`/api/integrasi/psi/v1`, opsional)
+
+Integrasi utama dengan SIF berjalan ke arah sebaliknya: SIRENDA memanggil API SIF (`psi:sinkron`, `POST /perencanaan/sinkron-psi`; lihat `docs/integrasi-psi.md`). API masuk di bawah ini tetap tersedia tetapi tidak dipakai SIF.
 
 Mesin-ke-mesin; **tanpa sesi**. Autentikasi memakai `Authorization: Bearer <JWT RS256>`: ditandatangani kunci privat klien PSI, `iss`/`sub` = `PSI_CLIENT_ID`, `jti` sekali pakai. Token statis `PSI_TOKEN_MASUK` diterima sebagai alternatif. Tersedia opsi allowlist IP `PSI_IP_DIIZINKAN`, dengan batas 120 permintaan/menit. Kontrak lengkap ada di `docs/integrasi-psi.md`.
 
@@ -78,6 +80,8 @@ Mesin-ke-mesin; **tanpa sesi**. Autentikasi memakai `Authorization: Bearer <JWT 
 | `POST /perencanaan`, `POST /perencanaan/{id}/penilaian`, `PUT /perencanaan/penilaian/{id}/skor`, `POST /perencanaan/penilaian/{id}/final`, `POST /perencanaan/penilaian/{id}/buka` | Aksi penilaian usulan (diotorisasi `UsulanPsnPolicy`, tercatat di jejak audit) |
 
 | `GET /perencanaan?sumber=PSI\|MANUAL&tahap=`, `GET /perencanaan/{id}?tab=surat\|umum\|rincian\|kesiapan\|dokumen\|penilaian\|pleno\|rekomendasi\|riwayat` | Daftar usulan per tahap alur dan detail per tab |
+| `POST /perencanaan/sinkron-psi` | Ambil usulan dari API SIF (`perencanaan.kelola`) |
+| `GET /perencanaan/{id}/dokumen/{dokumen}` | Unduh berkas usulan dari SIF melalui server SIRENDA (`UsulanPsnPolicy::view`) |
 | `PUT /perencanaan/{id}/pemetaan`, `POST /perencanaan/{id}/rekomendasi` (`tetapkan=1` → FINAL), `POST /perencanaan/{id}/kirim-psi` | Penetapan direktorat/klaster, rekomendasi resmi, kirim hasil ke PSI (`perencanaan.kelola`) |
 | `GET /perencanaan/pleno`, `GET /perencanaan/pleno/{id}`; `POST /perencanaan/pleno`, `PUT /perencanaan/pleno/{id}`, `POST …/{id}/agenda`, `DELETE …/{id}/agenda/{agenda}`, `PUT …/{id}/keputusan`, `POST …/{id}/selesai` | Sidang pleno (lihat: `perencanaan.lihat`; ubah: `perencanaan.kelola`) |
 

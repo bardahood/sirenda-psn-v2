@@ -9,7 +9,7 @@
                         @forelse ($logIntegrasi as $l)
                             <tr class="align-top"><td class="whitespace-nowrap py-1.5 pr-2">{{ $l->created_at?->format('d/m/Y H:i') }}</td>
                                 <td class="py-1.5 pr-2">{{ $l->arah === 'MASUK' ? 'PSI → SIRENDA' : 'SIRENDA → PSI' }}</td>
-                                <td class="py-1.5 pr-2">{{ ['USULAN' => 'Kirim usulan', 'TARIK' => 'Tarik usulan', 'AMBIL_HASIL' => 'Ambil hasil', 'KIRIM_HASIL' => 'Kirim hasil'][$l->aksi] ?? $l->aksi }}</td>
+                                <td class="py-1.5 pr-2">{{ ['USULAN' => 'Data usulan', 'AMBIL_USULAN' => 'Ambil usulan', 'TARIK' => 'Tarik usulan', 'AMBIL_HASIL' => 'Ambil hasil', 'KIRIM_HASIL' => 'Kirim hasil'][$l->aksi] ?? $l->aksi }}</td>
                                 <td class="py-1.5 pr-2"><span @class(['badge', 'bg-green-50 text-green-800 ring-green-600/40' => $l->berhasil, 'bg-red-50 text-red-800 ring-red-600/40' => ! $l->berhasil])>{{ $l->status_http ?? '–' }} {{ $l->berhasil ? 'Berhasil' : 'Gagal' }}</span></td>
                                 <td class="py-1.5">{{ $l->pesan }}</td></tr>
                         @empty

@@ -7,3 +7,9 @@ use Illuminate\Support\Facades\Schedule;
 Schedule::command('psn:snapshot'.(config('psn_dashboard.snapshot.terbit_otomatis') ? ' --terbit' : ''))
     ->monthlyOn(1, '02:00')
     ->withoutOverlapping();
+
+// Ambil usulan PSN dari API SIF (Dit. PSI) setiap jam bila SIF_SINKRON_OTOMATIS=true.
+Schedule::command('psi:sinkron')
+    ->hourly()
+    ->withoutOverlapping()
+    ->when(fn () => config('psn_dashboard.psi.sif.sinkron_otomatis'));

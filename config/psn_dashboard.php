@@ -175,16 +175,40 @@ return [
         'token_masuk' => env('PSI_TOKEN_MASUK'),
         // Pembatasan alamat IP pemanggil (pisahkan dengan koma); kosong = tidak dibatasi.
         'ip_diizinkan' => array_filter(array_map('trim', explode(',', (string) env('PSI_IP_DIIZINKAN', '')))),
-        // Endpoint PSI untuk menerima hasil: {url_api}/usulan/{psi_id}/hasil-penilaian. Kosong = PSI mengambil sendiri (GET hasil).
-        'url_api' => env('PSI_API_URL'),
-        'token_keluar' => env('PSI_API_TOKEN'),
-        'timeout_detik' => 20,
+        // API SIF (Portal PSN dan KPBU, Dit. PSI): SIRENDA (PMO) MENGAMBIL usulan dan MENGIRIM hasil penilaian.
+        // Spesifikasi: "Dokumen Integrasi API Usulan PSN untuk PMO" v1.3 (13 Okt 2026). Lihat docs/integrasi-psi.md.
+        'sif' => [
+            'url' => env('SIF_BASE_URL'),          // https://<host-sif>/api/v1/external/usulan-psn
+            'api_key' => env('SIF_API_KEY'),       // header X-API-Key
+            'client_id' => env('SIF_CLIENT_ID'),   // header X-Client-Id
+            // Kunci publik RSA untuk membungkus kunci sesi (X-Session-Key). Kunci privat TIDAK diperlukan SIRENDA.
+            'kunci_publik' => env('SIF_KUNCI_PUBLIK', 'storage/app/private/kunci/sif-public.pem'),
+            'timeout_detik' => 30,
+            'per_halaman' => 100,                  // maks. 100 menurut SIF
+            // Tahun RKP usulan (SIF tidak mengirimkannya). Kosong = tahun submitted_at + 1.
+            'tahun_rkp' => env('SIF_TAHUN_RKP'),
+            // Ambil usulan otomatis setiap jam (scheduler). Bisa juga manual: php artisan psi:sinkron.
+            'sinkron_otomatis' => (bool) env('SIF_SINKRON_OTOMATIS', false),
+            // Jenis lampiran SIF -> jenis dokumen SIRENDA + judul.
+            'jenis_lampiran' => [
+                'surat_persetujuan_menteri' => ['SURAT_PENGUSULAN', 'Surat Persetujuan Menteri'],
+                'surat_rekomendasi' => ['SURAT_PENGUSULAN', 'Surat Rekomendasi'],
+                'studi_kelayakan' => ['LAMPIRAN', 'Studi Kelayakan'],
+                'prastudi_kelayakan' => ['LAMPIRAN', 'Prastudi Kelayakan'],
+                'amdal' => ['LAMPIRAN', 'AMDAL'],
+                'ded' => ['LAMPIRAN', 'DED'],
+                'andalalin' => ['LAMPIRAN', 'Andalalin'],
+                'dokumen_teknis' => ['LAMPIRAN', 'Dokumen Teknis'],
+                'surat_komitmen' => ['LAMPIRAN', 'Surat Komitmen'],
+                'lainnya' => ['LAMPIRAN', 'Lampiran Lainnya'],
+            ],
+        ],
         // Rekomendasi resmi hanya dapat ditetapkan setelah keputusan pleno dicatat.
         'wajib_pleno_sebelum_rekomendasi' => true,
         // Pemetaan "Jenis Instansi" PSI -> usulan_psn.jenis_pengusul (pencocokan teks tanpa beda huruf besar/kecil).
         'jenis_instansi' => [
-            'kementerian/lembaga' => 'KL', 'kementerian' => 'KL', 'lembaga' => 'KL', 'kl' => 'KL',
-            'pemerintah daerah' => 'PEMDA', 'pemda' => 'PEMDA', 'provinsi' => 'PEMDA', 'kabupaten/kota' => 'PEMDA',
+            'kementerian/lembaga' => 'KL', 'kementerian' => 'KL', 'lembaga' => 'KL', 'kl' => 'KL', 'kementerian_lembaga' => 'KL',
+            'pemerintah daerah' => 'PEMDA', 'pemerintah_daerah' => 'PEMDA', 'pemda' => 'PEMDA', 'provinsi' => 'PEMDA', 'kabupaten/kota' => 'PEMDA',
             'bumn' => 'BUMN_SWASTA', 'bumd' => 'BUMN_SWASTA', 'badan usaha' => 'BUMN_SWASTA', 'swasta' => 'BUMN_SWASTA', 'bumn/swasta' => 'BUMN_SWASTA',
         ],
         // "Jenis PSN" PSI yang dianggap infrastruktur (sub-kriteria KK3-KK4 berlaku).

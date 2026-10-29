@@ -19,7 +19,7 @@
                             <span class="block truncate text-isi font-semibold text-slate-900">{{ $d->judul ?: $d->nama_berkas }}</span>
                             <span class="block text-[11px] text-slate-500">{{ $d->nama_berkas }}{{ $d->ukuran ? ' · '.number_format($d->ukuran / 1024, 0, ',', '.').' KB' : '' }}</span>
                         </span>
-                        @if ($d->url)<a href="{{ $d->url }}" target="_blank" rel="noopener noreferrer" class="tombol-garis px-2.5 py-1 text-label">Buka ↗</a>@endif
+                        @if ($d->url)<a href="{{ route('perencanaan.dokumen', [$usulan, $d]) }}" target="_blank" rel="noopener noreferrer" class="tombol-garis px-2.5 py-1 text-label">Buka ↗</a>@endif
                     </li>
                 @empty
                     <li class="rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-[12px] text-amber-900">Belum ada {{ strtolower($judul) }}.</li>
@@ -28,4 +28,4 @@
         </section>
     @endforeach
 </div>
-<p class="mt-3 text-label text-slate-500">Berkas tersimpan di aplikasi PSI; tautan dibuka langsung dari server PSI (mungkin memerlukan akses jaringan/akun PSI).</p>
+<p class="mt-3 text-label text-slate-500">Berkas tersimpan di aplikasi PSI (SIF) dan diambil oleh server SIRENDA saat dibuka, sehingga tidak memerlukan akun PSI.</p>

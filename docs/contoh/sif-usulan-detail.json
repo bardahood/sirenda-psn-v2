@@ -1,0 +1,42 @@
+{
+  "kode_usulan": "USL-20261012-0001",
+  "template_type": "kl",
+  "template_variant": "tunggal",
+  "status": "submitted",
+  "proposer": { "nama": "Budi Contoh", "email": "budi@contoh.go.id", "instansi": "Kementerian Perhubungan (CONTOH)", "jenis_instansi": "kementerian_lembaga" },
+  "surat": { "nomor": "UM.001/1/2/KEMENHUB-2026", "sifat": "Segera", "tempat": "Jakarta", "tanggal": "2026-10-12", "ditujukan_kepada": "Menteri PPN/Kepala Bappenas" },
+  "proyek": { "nama": "Jalur Kereta Api Contoh", "lokasi": "Provinsi Jawa Barat dan DKI Jakarta", "tujuan": "Konektivitas", "pemilik": "Kemenhub", "lingkup": "Pembangunan jalur ganda", "indikasi_jadwal": "2027-2029" },
+  "proyek_list": [ { "nama_proyek": "Jalur Kereta Api Contoh", "lokasi_proyek": "Jawa Barat", "tujuan_proyek": "Konektivitas", "pemilik_proyek": "Kemenhub", "lingkup_proyek": "Jalur ganda", "indikasi_jadwal": "2027-2029" } ],
+  "data_umum": { "instansi_pengusul": "Kementerian Perhubungan (CONTOH)", "jenis_instansi": "kementerian_lembaga", "nama_usulan_psn": "CONTOH SIF Jalur Kereta Api Ganda Lintas Barat", "jenis_psn": "Infrastruktur", "klaster": "Konektivitas dan Infrastruktur Logistik Non-Jalan", "klaster_lainnya": "", "sektor": "Perkeretaapian" },
+  "rincian_usulan": {
+    "profil_proyek": { "tujuan": "Meningkatkan kapasitas angkutan kereta.", "sasaran": "Jalur ganda 120 km pada 2029.", "rangkuman_lingkup": "Pembangunan jalur ganda\nPembangunan 6 stasiun", "lokasi": "Jawa Barat" },
+    "kriteria_utama": {
+      "rpjmn_17": [ { "no": 1, "label": "Sasaran 1", "ya_tidak": "ya", "alasan": "Mendukung konektivitas" } ],
+      "hasil_cepat_8": [ { "no": 1, "label": "PHTC 1", "ya_tidak": "tidak", "alasan": "" } ],
+      "konsentrasi_sinergi": "Lintas K/L dan BUMN", "selesai_2029": "Tahap 1 beroperasi 2029"
+    },
+    "kriteria_pendukung": { "tematik_holistik": "Ya", "persebaran_kegiatan": "Dua provinsi", "multi_kontribusi": [ { "no": 1, "label": "Pertumbuhan ekonomi", "ya_tidak": true, "alasan": "Logistik" } ], "rpjmn_rpjmd_rkap": "Renstra Kemenhub 2025-2029" },
+    "kriteria_kesiapan": { "rencana_pembiayaan": { "sumber_skema": "APBN dan KPBU", "opex_dipertimbangkan": "Ya" }, "infrastruktur_ekonomi_applicable": true, "infrastruktur_ekonomi": { "rtrw": "Sesuai", "studi_kelayakan": "Ada" }, "pengadaan_lahan": { "luas_tanah": "80 ha" } }
+  },
+  "rincian_tambahan": { "capex": "Rp 12.500.000.000.000", "opex": "Rp 50 miliar/tahun", "target_penyelesaian": "2029" },
+  "kesiapan": {
+    "jalur_kritis": [
+      { "id": 1, "periode": "2026", "kegiatan": "Studi kelayakan", "kritis": true, "pendahulu": [], "strategi": "Konsultan independen" },
+      { "id": 2, "periode": "2027", "kegiatan": "Pengadaan tanah", "kritis": true, "pendahulu": [1], "strategi": "" },
+      { "id": 3, "periode": "2027-2029", "kegiatan": "Konstruksi", "kritis": false, "pendahulu": [2, 99], "strategi": "" }
+    ],
+    "struktur_kelembagaan": { "pihak": [ { "id": "a", "nama": "Kemenhub", "kategori": "pemerintah", "tingkat": 1 }, { "id": "b", "nama": "PT KAI", "kategori": "badan_usaha", "tingkat": 2 } ], "relasi": [ { "id": "r1", "dari": "a", "ke": "b", "label": "Penugasan", "dua_arah": false } ] },
+    "manajemen_risiko": [ { "risiko": "Keterlambatan lahan", "kode_jalur_kritis": "2", "penyebab": "Sengketa", "kemungkinan": "Sedang", "dampak": "Tinggi", "mitigasi": "Konsinyasi" } ],
+    "dokumen_lampiran": [ "Studi kelayakan", "AMDAL" ]
+  },
+  "penandatangan": { "nama": "Pejabat Contoh", "jabatan": "Sekretaris Jenderal" },
+  "surat_rekomendasi": null,
+  "catatan_review_bappenas": { "umum": "", "per_poin": {} },
+  "completion_percentage": 85,
+  "submitted_at": "2026-10-12T09:00:00+07:00",
+  "attachments": [ { "id": 1, "type": "studi_kelayakan", "original_name": "fs.pdf", "mime_type": "application/pdf", "file_size": 204800, "review_status": "pending", "review_note": null } ],
+  "files": {
+    "dokumen_usulan": "https://sif.contoh.go.id/api/v1/external/usulan-psn/USL-20261012-0001/pdf",
+    "lampiran": [ { "id": 1, "type": "studi_kelayakan", "original_name": "fs.pdf", "url": "https://sif.contoh.go.id/api/v1/external/usulan-psn/USL-20261012-0001/attachments/1" } ]
+  }
+}

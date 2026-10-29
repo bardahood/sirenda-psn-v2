@@ -38,7 +38,13 @@ Halaman yang sudah tersedia: `/login`, `/dashboard` (Ringkasan Eksekutif), `/pro
 
 ## Integrasi aplikasi Dit. PSI
 
-Usulan PSN dari aplikasi permohonan Dit. PSI masuk lewat API `/api/integrasi/psi/v1`, lalu dinilai, dibahas di pleno, dan direkomendasikan di menu Perencanaan. Hasilnya dikirim balik ke PSI. Autentikasi memakai JWT RS256 dari PSI. Atur `PSI_CLIENT_ID` dan `PSI_KUNCI_PUBLIK` (path kunci publik `.pem` di `storage/app/private/kunci/`, jangan di-commit), serta opsi `PSI_IP_DIIZINKAN`, `PSI_API_URL`, dan `PSI_API_TOKEN` di `.env`. Untuk uji coba, `php artisan psi:token-uji <kunci-privat.pem>` mencetak token. Kontrak dan contoh `curl` ada di `docs/integrasi-psi.md`.
+SIRENDA (sebagai PMO) **mengambil** usulan PSN dari API SIF (Portal PSN dan KPBU, Dit. PSI), lalu usulan dinilai, dibahas di pleno, dan direkomendasikan di menu Perencanaan. Hasilnya (skor dan catatan PMO) **dikirim** kembali ke SIF. Setiap request dienkripsi dengan RSA-OAEP-SHA256 dan AES-256-GCM.
+
+1. Simpan **kunci publik** dari Dit. PSI di `storage/app/private/kunci/sif-public.pem`. Kunci privat tidak diperlukan dan jangan di-commit.
+2. Isi `SIF_BASE_URL`, `SIF_API_KEY`, dan `SIF_CLIENT_ID` di `.env`, lalu jalankan `php artisan config:clear`.
+3. Ambil usulan dengan `php artisan psi:sinkron` atau tombol **Ambil usulan dari PSI** di `/perencanaan`. Untuk pengambilan otomatis tiap jam, isi `SIF_SINKRON_OTOMATIS=true` dan jalankan cron `schedule:run`.
+
+Spesifikasi, pemetaan data, dan keputusan terbuka ada di `docs/integrasi-psi.md`.
 
 ```bash
 php artisan psi:contoh           # 4 usulan contoh (CONTOH-…) untuk mencoba tampilan

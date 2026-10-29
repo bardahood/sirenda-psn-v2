@@ -8,18 +8,18 @@ use App\Models\Penilaian;
 use App\Models\UsulanPsn;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use RuntimeException;
 use Throwable;
 
 /**
  * Hasil proses SIRENDA untuk satu usulan PSI (kontrak "sirenda.hasil.v1"): penilaian FINAL,
- * catatan/keputusan pleno, dan rekomendasi resmi. Dikirim ke PSI (push) bila PSI_API_URL diisi,
- * dan selalu dapat diambil PSI lewat GET /api/integrasi/psi/v1/usulan/{psi_id}/hasil (pull).
+ * catatan/keputusan pleno, dan rekomendasi resmi. Dikirim ke SIF lewat POST /{kode_usulan}/penilaian
+ * (payloadSif), dan tetap dapat diambil lewat API masuk SIRENDA GET /api/integrasi/psi/v1/usulan/{psi_id}/hasil.
  */
 class PsiHasilService
 {
-    public function __construct(protected ScoringService $scoring, protected AlurUsulan $alur, protected PsiImportService $impor) {}
+    public function __construct(protected ScoringService $scoring, protected AlurUsulan $alur, protected PsiImportService $impor, protected SifClient $sif) {}
 
     public function payload(UsulanPsn $u): array
     {
@@ -67,40 +67,70 @@ class PsiHasilService
 
     public function pushAktif(): bool
     {
-        return (bool) config('psn_dashboard.psi.url_api');
+        return $this->sif->aktif();
     }
 
-    /** Kirim hasil ke PSI (push). Melempar RuntimeException bila gagal; setiap percobaan dicatat. */
+    /**
+     * Body POST /{kode_usulan}/penilaian SIF: satu skor 0-100 (nilai akhir penilaian FINAL) dan catatan PMO
+     * yang merangkum rekomendasi resmi, keputusan pleno, komponen skor, dan temuan per kriteria.
+     */
+    public function payloadSif(UsulanPsn $u): array
+    {
+        $h = $this->payload($u);
+        $p = $h['penilaian'];
+        $angka = fn ($v) => $v === null ? '-' : number_format((float) $v, 2, ',', '.');
+        $baris = [];
+        if ($r = $h['rekomendasi']) {
+            $baris[] = "Rekomendasi PMO: {$r['label']}".($r['nomor_dokumen'] ? " (No. {$r['nomor_dokumen']})" : '').", ditetapkan {$r['tanggal']}.";
+            $r['catatan'] && $baris[] = "Catatan rekomendasi: {$r['catatan']}";
+        }
+        foreach ($h['pleno'] as $pl) {
+            $baris[] = "Keputusan pleno {$pl['nama']} ({$pl['tanggal']}): {$pl['keputusan_label']}."
+                .($pl['catatan'] ? " Catatan: {$pl['catatan']}" : '').($pl['tindak_lanjut'] ? " Tindak lanjut: {$pl['tindak_lanjut']}" : '');
+        }
+        if ($p) {
+            $baris[] = 'Nilai akhir '.$angka($p['nilai_akhir']).'; gate KU1-KU3 '.($p['gate_lulus'] === false ? 'tidak lulus ('.implode(', ', $p['gate_gagal']).')' : 'lulus').'.';
+            $baris[] = 'Skor komponen: '.collect($p['skor_komponen'])->map(fn ($v, $k) => Str::headline(Str::lower($k)).' '.$angka($v))->implode('; ').'.';
+            $p['catatan'] && $baris[] = "Catatan penilaian: {$p['catatan']}";
+            $temuan = collect($p['kriteria'])->filter(fn ($k) => $k['berlaku'] && filled($k['temuan']))->map(fn ($k) => "{$k['kode']}: {$k['temuan']}");
+            $temuan->isNotEmpty() && $baris[] = "Temuan per kriteria:\n".$temuan->implode("\n");
+        }
+
+        return ['skor_pmo' => $p['nilai_akhir'] ?? null, 'catatan_pmo' => Str::limit(implode("\n", $baris), 10000, '')];
+    }
+
+    /** Kirim hasil ke SIF. Melempar RuntimeException bila gagal; setiap percobaan dicatat. */
     public function kirim(UsulanPsn $u): array
     {
         $psi = $u->psi ?? throw new RuntimeException('Usulan ini tidak berasal dari aplikasi PSI.');
         if (! $u->rekomendasiFinal) {
             throw new RuntimeException('Rekomendasi resmi belum ditetapkan FINAL.');
         }
-        if (! $this->pushAktif()) {
-            throw new RuntimeException('Alamat API PSI (PSI_API_URL) belum dikonfigurasi. PSI tetap dapat mengambil hasil melalui API SIRENDA.');
+        if ($k = $this->sif->kendala()) {
+            throw new RuntimeException($k);
         }
-
-        $payload = $this->payload($u);
-        $url = rtrim(config('psn_dashboard.psi.url_api'), '/').'/usulan/'.rawurlencode($psi->psi_id).'/hasil-penilaian';
+        $payload = $this->payloadSif($u);
+        if ($payload['skor_pmo'] === null) {
+            throw new RuntimeException('Nilai akhir penilaian FINAL belum tersedia, sehingga skor PMO belum dapat dikirim.');
+        }
         $psi->increment('kirim_percobaan');
 
         try {
-            $r = Http::withToken((string) config('psn_dashboard.psi.token_keluar'))->acceptJson()
-                ->timeout(config('psn_dashboard.psi.timeout_detik'))->post($url, $payload);
-            $ok = $r->successful();
-            $this->impor->log('KIRIM_HASIL', $psi->psi_id, $u->id, $r->status(), $ok, $ok ? 'Hasil terkirim ke PSI.' : 'PSI menolak kiriman (HTTP '.$r->status().').', $payload, null, 'KELUAR', $r->body());
+            $r = $this->sif->kirimPenilaian($psi->psi_id, $payload);
+            $ok = true;
+            $this->impor->log('KIRIM_HASIL', $psi->psi_id, $u->id, 200, true, 'Hasil penilaian terkirim ke SIF (skor '.($r['data']['skor_pmo'] ?? $payload['skor_pmo']).').', $payload, null, 'KELUAR', json_encode($r['data'] ?? null));
         } catch (Throwable $e) {
             $ok = false;
-            $this->impor->log('KIRIM_HASIL', $psi->psi_id, $u->id, null, false, 'Gagal menghubungi PSI: '.$e->getMessage(), $payload, null, 'KELUAR');
+            $this->impor->log('KIRIM_HASIL', $psi->psi_id, $u->id, $e instanceof SifException ? $e->getCode() : null, false, 'Gagal mengirim ke SIF: '.$e->getMessage(), $payload, null, 'KELUAR');
         }
 
         $psi->forceFill(['kirim_status' => $ok ? 'TERKIRIM' : 'GAGAL', 'kirim_terakhir_at' => now()])->save();
         AuditLog::create(['user_id' => Auth::id(), 'user_label' => Auth::user()?->username ?? 'sistem', 'tabel' => 'usulan_psi', 'record_id' => $psi->id,
-            'psn_id' => $u->psn_id, 'aksi' => 'PUBLISH', 'nilai_baru' => ['kirim_status' => $ok ? 'TERKIRIM' : 'GAGAL', 'rekomendasi' => $payload['rekomendasi']['nilai'] ?? null]]);
+            'psn_id' => $u->psn_id, 'aksi' => 'PUBLISH', 'nilai_baru' => ['kirim_status' => $ok ? 'TERKIRIM' : 'GAGAL', 'skor_pmo' => $payload['skor_pmo'],
+                'rekomendasi' => $u->rekomendasiFinal->rekomendasi]]);
 
         if (! $ok) {
-            throw new RuntimeException('Pengiriman ke PSI gagal. Lihat riwayat integrasi untuk rinciannya; coba kirim ulang.');
+            throw new RuntimeException('Pengiriman ke SIF gagal. Lihat tab Riwayat untuk rinciannya; coba kirim ulang.');
         }
 
         return $payload;

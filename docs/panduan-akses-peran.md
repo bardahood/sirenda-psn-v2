@@ -95,6 +95,7 @@ Menu navigasi berada di **topbar** (bagian atas layar; pada layar kecil di balik
 2. **Perencanaan:**
    - Buat usulan di `/perencanaan/baru`.
    - Nilai usulan di `/perencanaan/{id}?tab=penilaian`: isi skor sub-kriteria, lalu **Finalisasi**. Hanya PMO dan Super Admin yang dapat membuka kembali penilaian final.
+   - **Ambil usulan dari PSI**: klik tombol ini di kanan atas `/perencanaan`. Usulan berstatus *submitted* atau *under review* di aplikasi SIF Dit. PSI akan masuk atau diperbarui.
    - **Usulan dari aplikasi PSI** (badge *PSI*):
      - Tetapkan **Direktorat pengampu**, klaster, dan jenis pengusul di tab *Data Umum*, agar Direktorat Sektor dapat menilai.
      - Periksa peringatan pemetaan di tab yang sama.

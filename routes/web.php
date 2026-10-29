@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\ReferensiController;
 use App\Http\Controllers\Api\V1\RisikoController;
 use App\Http\Controllers\Api\V1\UsulanController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\IntegrasiSifController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\Pengaturan\CutoffController;
 use App\Http\Controllers\Pengaturan\MasterDataController;
@@ -82,6 +83,8 @@ Route::middleware(['auth', 'akun.aktif'])->group(function () {
     });
     Route::post('/perencanaan/{usulan}/rekomendasi', [RekomendasiController::class, 'simpan'])->whereNumber('usulan')->name('perencanaan.rekomendasi');
     Route::post('/perencanaan/{usulan}/kirim-psi', [RekomendasiController::class, 'kirim'])->whereNumber('usulan')->name('perencanaan.kirim-psi');
+    Route::post('/perencanaan/sinkron-psi', [IntegrasiSifController::class, 'sinkron'])->name('perencanaan.sinkron-psi');
+    Route::get('/perencanaan/{usulan}/dokumen/{dokumen}', [IntegrasiSifController::class, 'unduh'])->whereNumber(['usulan', 'dokumen'])->name('perencanaan.dokumen');
     Route::put('/perencanaan/{usulan}/pemetaan', [PerencanaanController::class, 'ubahPemetaan'])->whereNumber('usulan')->name('perencanaan.pemetaan');
 
     Route::prefix('perencanaan')->name('perencanaan.')->controller(PerencanaanController::class)->group(function () {

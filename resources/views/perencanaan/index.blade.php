@@ -6,6 +6,12 @@
 @endphp
 <x-app-layout judul="Perencanaan & Penilaian Usulan PSN" subjudul="Usulan dari aplikasi PSI dan input SIRENDA: penilaian, pleno, rekomendasi, dan pengiriman hasil">
     <x-slot:aksi>
+        @can('kelola', App\Models\UsulanPsn::class)
+            <form method="POST" action="{{ route('perencanaan.sinkron-psi') }}" x-data="{ proses: false }" @submit="proses = true">@csrf
+                <button class="tombol-garis py-1.5" :disabled="proses" title="Ambil usulan berstatus submitted/under review dari aplikasi PSI (SIF)">
+                    <span x-text="proses ? 'Mengambil…' : 'Ambil usulan dari PSI'">Ambil usulan dari PSI</span></button>
+            </form>
+        @endcan
         <a href="{{ route('perencanaan.pleno.index') }}" class="tombol-garis py-1.5">Sidang Pleno</a>
         @can('create', App\Models\UsulanPsn::class)
             <a href="{{ route('perencanaan.create') }}" class="tombol-primer py-1.5">+ Usulan manual</a>
@@ -14,6 +20,7 @@
 
     <div class="mx-auto max-w-[1600px] space-y-5">
         @if (session('status'))<div class="rounded-kartu border border-green-200 bg-green-50 p-3 text-green-800" role="status">{{ session('status') }}</div>@endif
+        @if ($errors->any())<div class="rounded-kartu border border-red-200 bg-red-50 p-3 text-red-800" role="alert">{{ $errors->first() }}</div>@endif
 
         {{-- Alur bisnis: jumlah usulan per tahap (klik untuk memfilter) --}}
         <section aria-labelledby="h-alur">

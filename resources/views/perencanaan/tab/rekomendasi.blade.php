@@ -75,7 +75,7 @@
             <div class="flex flex-wrap items-start gap-4">
                 <div class="mr-auto">
                     <h3 id="h-kirim" class="judul-panel">Kirim Hasil ke Aplikasi PSI</h3>
-                    <p class="label font-normal text-slate-500">Hasil penilaian, catatan pleno, dan rekomendasi resmi dikirim ke PSI untuk usulan <b>{{ $psi->psi_id }}</b>.</p>
+                    <p class="label font-normal text-slate-500">Skor PMO (nilai akhir penilaian FINAL) dan catatan PMO (rekomendasi resmi, keputusan pleno, temuan per kriteria) dikirim ke SIF untuk usulan <b>{{ $psi->psi_id }}</b>. Catatan ini bersifat internal Bappenas dan tidak ditampilkan kepada pengusul.</p>
                 </div>
                 <div class="text-right text-isi">
                     <span @class(['badge', 'bg-emerald-100 text-emerald-900 ring-emerald-700/40' => $psi->kirim_status === 'TERKIRIM', 'bg-red-50 text-red-800 ring-red-600/40' => $psi->kirim_status === 'GAGAL', 'bg-slate-100 text-slate-700 ring-slate-400/40' => $psi->kirim_status === 'BELUM'])>
@@ -84,7 +84,7 @@
                 </div>
             </div>
             @if (! $pushAktif)
-                <p class="mt-3 rounded-lg bg-sky-50 p-3 text-[12px] text-sky-900">Alamat API PSI (<code>PSI_API_URL</code>) belum dikonfigurasi, sehingga SIRENDA belum dapat mengirim. Aplikasi PSI tetap dapat <b>mengambil</b> hasil ini melalui <code>GET /api/integrasi/psi/v1/usulan/{{ $psi->psi_id }}/hasil</code>.</p>
+                <p class="mt-3 rounded-lg bg-sky-50 p-3 text-[12px] text-sky-900">{{ app(\App\Services\SifClient::class)->kendala() }} Hubungi admin SIRENDA untuk melengkapi pengaturan API SIF.</p>
             @endif
             <div class="mt-3 flex flex-wrap items-center gap-3">
                 @if ($bolehKelola)
@@ -94,7 +94,7 @@
                     @if (! $rekResmi)<span class="text-[12px] text-amber-800">Tetapkan rekomendasi FINAL terlebih dahulu.</span>@endif
                 @endif
                 <details class="w-full"><summary class="cursor-pointer text-label text-aksen-700">Pratinjau data yang dikirim (JSON)</summary>
-                    <pre class="mt-2 max-h-96 overflow-auto rounded-lg bg-slate-900 p-3 text-[11px] text-slate-100">{{ json_encode(app(\App\Services\PsiHasilService::class)->payload($usulan), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre></details>
+                    <pre class="mt-2 max-h-96 overflow-auto rounded-lg bg-slate-900 p-3 text-[11px] text-slate-100">{{ json_encode(app(\App\Services\PsiHasilService::class)->payloadSif($usulan), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre></details>
             </div>
         </section>
     @endif

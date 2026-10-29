@@ -12,11 +12,10 @@ use App\Support\JwtRs256;
 use Database\Seeders\PeranSeeder;
 use Database\Seeders\ReferensiSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\Client\Request as HttpRequest;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Tests\Support\BuatDataPsn;
+use Tests\Support\SifTiruan;
 use Tests\TestCase;
 
 /**
@@ -25,7 +24,7 @@ use Tests\TestCase;
  */
 class IntegrasiPsiTest extends TestCase
 {
-    use BuatDataPsn, RefreshDatabase;
+    use BuatDataPsn, RefreshDatabase, SifTiruan;
 
     protected const TOKEN = 'token-uji-psi-0123456789';
 
@@ -35,7 +34,7 @@ class IntegrasiPsiTest extends TestCase
     {
         parent::setUp();
         $this->seed([ReferensiSeeder::class, PeranSeeder::class]);
-        config(['psn_dashboard.psi.token_masuk' => self::TOKEN, 'psn_dashboard.psi.url_api' => null, 'psn_dashboard.psi.ip_diizinkan' => []]);
+        config(['psn_dashboard.psi.token_masuk' => self::TOKEN, 'psn_dashboard.psi.sif.url' => null, 'psn_dashboard.psi.ip_diizinkan' => []]);
         $this->k = DB::table('ref_kriteria')->pluck('id', 'kode')->all();
     }
 
@@ -203,7 +202,7 @@ class IntegrasiPsiTest extends TestCase
         $this->post(route('perencanaan.rekomendasi', $u), ['rekomendasi' => 'DIREKOMENDASIKAN', 'tanggal' => '2026-10-25', 'catatan' => 'Direkomendasikan dengan catatan pleno.', 'nomor_dokumen' => 'BA-01/2026', 'tetapkan' => 1])->assertSessionHasNoErrors();
         $rek = UsulanRekomendasi::where('usulan_id', $u->id)->firstOrFail();
         $this->assertSame(['FINAL', $pmo->id], [$rek->status, $rek->ditetapkan_oleh]);
-        $this->get("/perencanaan/{$u->id}?tab=rekomendasi")->assertOk()->assertSee('Rekomendasi Resmi')->assertSee('PSI_API_URL');
+        $this->get("/perencanaan/{$u->id}?tab=rekomendasi")->assertOk()->assertSee('Rekomendasi Resmi')->assertSee('SIF_BASE_URL');
 
         // (7a) Pull: PSI mengambil hasil.
         $h = $this->withHeaders(['Authorization' => 'Bearer '.self::TOKEN])->getJson('/api/integrasi/psi/v1/usulan/CONTOH-USL-2026-0001/hasil')->assertOk();
@@ -212,19 +211,25 @@ class IntegrasiPsiTest extends TestCase
             ->assertJsonPath('data.pleno.0.keputusan', 'DISETUJUI_CATATAN')->assertJsonPath('data.pleno.0.catatan', 'Lengkapi dokumen AMDAL.');
         $this->assertCount(14, collect($h->json('data.penilaian.kriteria'))->where('berlaku', true));
 
-        // (7b) Push: belum dikonfigurasi -> galat ramah; gagal -> GAGAL; berhasil -> TERKIRIM.
+        // (7b) Kirim ke SIF: belum dikonfigurasi -> galat ramah; SIF menolak -> GAGAL; berhasil -> TERKIRIM.
         $this->post(route('perencanaan.kirim-psi', $u))->assertSessionHasErrors('kirim');
-        config(['psn_dashboard.psi.url_api' => 'https://psi.contoh.go.id/api', 'psn_dashboard.psi.token_keluar' => 'rahasia-keluar']);
-        Http::fake(['psi.contoh.go.id/*' => Http::sequence()->push(['pesan' => 'galat'], 500)->push(['diterima' => true], 200)]);
+        $this->siapkanSif();
+        $tolak = true;
+        $this->fakeSif(['POST /CONTOH-USL-2026-0001/penilaian' => function ($body) use (&$tolak) {
+            return $tolak ? [422, 'Usulan tidak berstatus submitted/under_review'] : [200, ['kode_usulan' => 'CONTOH-USL-2026-0001', 'skor_pmo' => $body['skor_pmo']]];
+        }]);
         $this->post(route('perencanaan.kirim-psi', $u))->assertSessionHasErrors('kirim');
         $this->assertSame('GAGAL', $u->psi->fresh()->kirim_status);
 
+        $tolak = false;
         $this->post(route('perencanaan.kirim-psi', $u))->assertSessionHasNoErrors();
         $this->assertSame('TERKIRIM', $u->psi->fresh()->kirim_status);
-        Http::assertSent(fn (HttpRequest $r) => $r->url() === 'https://psi.contoh.go.id/api/usulan/CONTOH-USL-2026-0001/hasil-penilaian'
-            && $r->hasHeader('Authorization', 'Bearer rahasia-keluar') && $r['rekomendasi']['nilai'] === 'DIREKOMENDASIKAN' && $r['skema'] === 'sirenda.hasil.v1');
+        $kirim = end($this->sifDiterima)['body'];
+        $this->assertSame(79.25, $kirim['skor_pmo']);
+        $this->assertStringContainsString('Rekomendasi PMO: Direkomendasikan (No. BA-01/2026)', $kirim['catatan_pmo']);
+        $this->assertStringContainsString('Disetujui dengan catatan. Catatan: Lengkapi dokumen AMDAL.', $kirim['catatan_pmo']);
         $this->get('/perencanaan?tahap=TERKIRIM')->assertOk()->assertSee('CONTOH — Pembangunan Jalan Tol');
-        $this->get("/perencanaan/{$u->id}?tab=riwayat")->assertOk()->assertSee('Kirim hasil')->assertSee('Kirim usulan');
+        $this->get("/perencanaan/{$u->id}?tab=riwayat")->assertOk()->assertSee('Kirim hasil')->assertSee('Data usulan');
 
         // Versi baru dari PSI setelah FINAL -> perlu ditinjau ulang.
         $this->kirim($this->payload(['versi' => 2]))->assertOk();
