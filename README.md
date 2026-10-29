@@ -27,6 +27,10 @@ cp .env.example .env && php artisan key:generate   # isi DB_* dan LEGACY_DB_*
 php artisan migrate --seed                        # skema + referensi + peran + akun admin (kata sandi dicetak sekali)
 ```
 
+## Memasang di hosting (cPanel)
+
+Lihat `docs/deploy-cpanel.md`: paket dibangun di lokal, document root diarahkan ke `public/`, basis data dipindahkan lewat phpMyAdmin (dengan `tools/konversi-dump-mysql.php` untuk membuang `DEFINER`), lalu `.env` produksi dan cron diatur.
+
 ## Menjalankan aplikasi
 
 ```bash
