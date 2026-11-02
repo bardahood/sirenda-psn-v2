@@ -77,6 +77,11 @@ return [
             'prefix' => '',
             'strict' => false,
             'engine' => null,
+            // Basis data lama di server lain (mis. sirenda-psn.id): batas waktu koneksi dan SSL opsional.
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::ATTR_TIMEOUT => (int) env('LEGACY_DB_TIMEOUT', 15),
+                PDO::MYSQL_ATTR_SSL_CA => env('LEGACY_DB_SSL_CA'),
+            ]) : [],
         ],
 
         'mariadb' => [

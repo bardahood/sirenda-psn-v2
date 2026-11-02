@@ -141,6 +141,57 @@ Buka cPanel **Cron Jobs** dan tambahkan jadwal setiap menit (`* * * * *`), atau 
 2. Pastikan `https://sirenda.ahcigars.com/.env` menampilkan 404 atau 403, **bukan** isi berkas.
 3. Pastikan dashboard tampil dengan cut-off terbaru dan menu Perencanaan dapat dibuka.
 
+## Mengambil data dari basis data SIRENDA lama (sirenda-psn.id)
+
+SIRENDA v2 **tidak dapat** memakai basis data aplikasi lama sebagai basis data utamanya, karena struktur tabelnya berbeda. Basis data lama dipakai sebagai **sumber** (koneksi `legacy`), lalu datanya disalin ke basis data v2 dengan `legacy:import`. Importer hanya **membaca** basis data lama dan tidak pernah mengubahnya.
+
+### Cara A: koneksi langsung ke server sirenda-psn.id
+
+1. **Di server sirenda-psn.id** (cPanel milik aplikasi lama, atau minta ke pengelolanya):
+   1. Buat pengguna MySQL khusus dengan hak **SELECT saja** pada basis data lama, mis. `sirendapsn_bappenas`.
+   2. Di **Remote MySQL**, tambahkan alamat IP server hosting v2 (lihat *Shared IP Address* di panel kanan cPanel hosting v2).
+2. **Di `.env` hosting v2:**
+   ```ini
+   LEGACY_DB_HOST=sirenda-psn.id
+   LEGACY_DB_PORT=3306
+   LEGACY_DB_DATABASE=nama_basis_data_lama
+   LEGACY_DB_USERNAME=pengguna_select_saja
+   LEGACY_DB_PASSWORD=...
+   LEGACY_DB_TIMEOUT=15
+   # LEGACY_DB_SSL_CA=/home/CPUSER/ca.pem   (bila server lama mendukung SSL)
+   ```
+3. **Uji koneksi, lalu impor** dari Terminal:
+   ```bash
+   cd ~/sirenda
+   php artisan config:cache
+   php artisan db:show --database=legacy        # harus menampilkan daftar tabel lama
+   php artisan legacy:import --fresh -n
+   php artisan psn:snapshot 2026-08 --terbit --paksa
+   php artisan psn:snapshot 2026-09 --terbit --paksa
+   php artisan psn:snapshot 2026-10 --terbit --paksa
+   php artisan cache:clear
+   php artisan psn:uji-akurasi 2026-10          # harus 0 selisih
+   ```
+
+Bila `db:show` berhenti dengan *Connection timed out*, ada dua kemungkinan:
+- port 3306 di server lama belum membuka akses untuk IP hosting v2 (Remote MySQL);
+- hosting v2 memblokir koneksi keluar ke port 3306. Minta dukungan hosting membukanya, atau pakai cara B.
+
+### Cara B: lewat berkas dump (tanpa koneksi antar server)
+
+1. Ekspor basis data lama dari phpMyAdmin sirenda-psn.id.
+2. Di hosting v2, buat basis data baru, mis. `CPUSER_sirendalama`, lalu impor dump ke sana. Bila dump dibuat dengan HeidiSQL atau memuat `CREATE DATABASE`/`USE`, konversi dulu:
+   ```
+   php tools/konversi-dump-mysql.php dump.sql dump_hosting.sql --database=CPUSER_sirendalama
+   ```
+3. Isi `LEGACY_DB_HOST=localhost` dan `LEGACY_DB_DATABASE=CPUSER_sirendalama` (dengan pengguna & sandi basis data tersebut), lalu jalankan perintah impor di cara A langkah 3.
+
+### Hal yang perlu diketahui
+
+- `legacy:import --fresh` mempertahankan akun pengguna, usulan dari PSI/SIF beserta penilaian dan pleno, serta jejak audit aplikasi. Data PSN dan semua snapshot diganti dari sumber, lalu snapshot dibangun ulang dengan perintah di atas.
+- Jalankan impor dari Terminal, bukan dari peramban. Prosesnya sekitar satu menit.
+- Selama aplikasi lama masih dipakai untuk mengisi data, ulangi impor setiap kali data terbaru diperlukan, mis. menjelang cut-off bulanan. Setelah pengisian berpindah ke v2, koneksi `legacy` sebaiknya dikosongkan.
+
 ## Pembaruan berikutnya
 
 Ulangi langkah 1 dan 4. Saat mengekstrak, timpa berkas lama, tetapi jangan menimpa `.env` dan `storage/`. Setelah itu jalankan:
