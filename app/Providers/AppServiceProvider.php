@@ -7,6 +7,7 @@ use App\Policies\UsulanPsnPolicy;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -24,9 +25,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Produksi wajib HTTPS (tautan & redirect dibangkitkan dengan skema https).
-        if ($this->app->isProduction()) {
+        // HTTPS dipaksa bila APP_URL https. Bila sertifikat belum aktif (APP_URL masih http), CSS/JS tetap
+        // dimuat lewat http; memaksa https saat itu membuat halaman tampil tanpa gaya.
+        if (str_starts_with((string) config('app.url'), 'https://')) {
             URL::forceScheme('https');
+        }
+        // Produksi: abaikan public/hot sisa `npm run dev` yang ikut terunggah (mengarahkan aset ke localhost:5173).
+        if ($this->app->isProduction()) {
+            Vite::useHotFile(storage_path('framework/vite.hot'));
         }
 
         // Super Admin memiliki seluruh hak (K pada semua modul).

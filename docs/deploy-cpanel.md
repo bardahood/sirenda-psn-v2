@@ -192,6 +192,20 @@ Bila `db:show` berhenti dengan *Connection timed out*, ada dua kemungkinan:
 - Jalankan impor dari Terminal, bukan dari peramban. Prosesnya sekitar satu menit.
 - Selama aplikasi lama masih dipakai untuk mengisi data, ulangi impor setiap kali data terbaru diperlukan, mis. menjelang cut-off bulanan. Setelah pengisian berpindah ke v2, koneksi `legacy` sebaiknya dikosongkan.
 
+## Halaman tampil tanpa CSS (berantakan)
+
+Buka halaman, tekan **F12**, lalu lihat tab **Console** dan **Network** (saring *CSS*). Cocokkan dengan tabel berikut.
+
+| Gejala di F12 | Penyebab | Perbaikan |
+|---|---|---|
+| CSS diminta ke `http://localhost:5173/...` | Berkas `public/hot` (sisa `npm run dev`) ikut terunggah | Hapus `sirenda/public/hot`. Versi terbaru mengabaikan berkas ini di produksi |
+| CSS diminta lewat `https://...`, gagal, dan situs dibuka lewat `http://` | SSL belum aktif, sedangkan `APP_URL` sudah `https://` | Selesaikan AutoSSL, atau sementara isi `APP_URL=http://...`, lalu `php artisan config:cache` |
+| `/build/assets/app-xxxx.css` → **404** | Document root bukan `sirenda/public`, atau folder `public/build` tidak ikut terunggah | Arahkan document root ke `sirenda/public` (langkah 3). Pastikan `sirenda/public/build/manifest.json` dan `public/build/assets/` ada; bila belum, jalankan `npm run build` di lokal lalu unggah folder `public/build` |
+| *Refused to load the stylesheet ... Content Security Policy* | Domain di bilah alamat berbeda dengan domain aset (mis. `www.` vs tanpa `www`) | Samakan `APP_URL` dengan alamat yang dibuka, lalu `php artisan config:cache` |
+| Halaman *500 Server Error* (bukan sekadar tanpa CSS) | `public/build/manifest.json` tidak ada | Unggah folder `public/build` hasil `npm run build` |
+
+Setelah perbaikan, kosongkan cache peramban (Ctrl+Shift+R).
+
 ## Pembaruan berikutnya
 
 Ulangi langkah 1 dan 4. Saat mengekstrak, timpa berkas lama, tetapi jangan menimpa `.env` dan `storage/`. Setelah itu jalankan:
