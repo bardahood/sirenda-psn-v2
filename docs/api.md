@@ -69,7 +69,7 @@ Mesin-ke-mesin; **tanpa sesi**. Autentikasi memakai `Authorization: Bearer <JWT 
 | Rute | Keterangan |
 |---|---|
 | `GET /laporan/ringkasan.pdf?{filter}` | PDF Ringkasan Eksekutif (angka identik dengan dashboard) |
-| `GET /proyek/{id}/form-pengendalian[?periode=YYYY-MM&jenis=fisik\|nonfisik&format=pdf]` | Form Pengendalian PSN per proyek, terisi data SIRENDA per cut-off (bawaan: cut-off akhir triwulan terakhir). Tampilan cetak atau PDF (`detail.lihat` + `PsnPolicy::view`) |
+| `GET /proyek/{id}/form-pengendalian[?periode=YYYY-MM&jenis=fisik\|nonfisik&format=pdf\|docx]` | Form Pengendalian PSN per proyek, terisi data SIRENDA per cut-off (bawaan: cut-off akhir triwulan terakhir). Tampilan cetak, PDF, atau Word (templat resmi `resources/templates/form-pengendalian-psn.docx` yang diisi; butuh ekstensi PHP `zip`) (`detail.lihat` + `PsnPolicy::view`) |
 | `GET /form-pengendalian/lama/{id_psn_lama}` | Tautan dari aplikasi SIRENDA lama (sirenda-psn.id): diteruskan ke form PSN v2 dengan `legacy_id` tersebut |
 | `GET /laporan` | Arsip laporan per cut-off terbit (`laporan.lihat`) |
 | `GET /laporan/risiko.xlsx?{filter}` | Excel register risiko per cut-off (`risiko.lihat`) |

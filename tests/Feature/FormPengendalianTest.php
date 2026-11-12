@@ -60,6 +60,30 @@ class FormPengendalianTest extends TestCase
         $this->assertStringContainsString('form-pengendalian_sda-1-2026-1-01_2026-10.pdf', $pdf->headers->get('Content-Disposition'));
         $this->assertStringStartsWith('%PDF', $pdf->getContent());
 
+        // Word: templat resmi terisi; kotak centang content control ikut dicentang; isu > 3 menambah baris.
+        foreach (range(3, 5) as $i) {
+            DB::table('isu')->insert(['psn_id' => $psn->id, 'uraian' => "Isu tambahan {$i}", 'status' => 'PROSES', 'tenggat' => "2027-0{$i}-01"]);
+        }
+        $word = $this->get(route('proyek.form-pengendalian', [$psn, 'jenis' => 'fisik', 'format' => 'docx']))->assertOk();
+        $this->assertSame('application/vnd.openxmlformats-officedocument.wordprocessingml.document', $word->headers->get('Content-Type'));
+        $this->assertStringContainsString('form-pengendalian_sda-1-2026-1-01_2026-09.docx', $word->headers->get('Content-Disposition'));
+        $berkas = tempnam(sys_get_temp_dir(), 'fp');
+        file_put_contents($berkas, $word->getContent());
+        $zip = new \ZipArchive;
+        $this->assertTrue($zip->open($berkas) === true);
+        $xml = $zip->getFromName('word/document.xml');
+        $zip->close();
+        @unlink($berkas);
+        foreach (['Bendungan Uji Pengendalian (SDA.1-2026.1-01)', 'JAWA BARAT', 'Penanggung jawab: Kementerian PU (Uji)', '2.500.000.000.000', '60,00', '45,00',
+            'Lahan genangan belum bebas', 'Percepatan konsinyasi (PIC: Kanwil BPN)', 'Isu tambahan 5', 'Permen Juknis', 'TW III 2026', 'Selasa, 17 November 2026'] as $teks) {
+            $this->assertStringContainsString($teks, $xml);
+        }
+        // Tercentang: A12 Fisik, B1 Konstruksi, C2 baris isu jalur kritis "Ya".
+        $this->assertSame(3, substr_count($xml, 'w14:checked w14:val="1"'));
+        $this->assertMatchesRegularExpression('/☒<\/w:t><\/w:r><\/w:sdtContent><\/w:sdt><w:r><w:t xml:space="preserve"> Konstruksi/', $xml);
+        $this->assertSame(5, substr_count($xml, 'Menghambat jalur kritis')); // 3 baris templat + 2 baris salinan
+        $this->assertSame(1, (new \DOMDocument)->loadXML($xml) ? 1 : 0);
+
         // Tautan dari aplikasi lama (psn.id lama) diteruskan ke PSN v2.
         $this->get(route('form-pengendalian.lama', ['id' => 777, 'jenis' => 'fisik']))->assertRedirect(route('proyek.form-pengendalian', [$psn, 'jenis' => 'fisik']));
         $this->get(route('form-pengendalian.lama', 999))->assertNotFound();

@@ -145,6 +145,8 @@ return [
     // sisanya dilengkapi PIC. Teks batas pengembalian diubah per putaran evaluasi.
     'form_pengendalian' => [
         'batas_kembali' => env('FORM_PENGENDALIAN_BATAS', 'Selasa, 17 November 2026'),
+        // Templat Word resmi untuk unduhan .docx terisi (FormPengendalianWord). Ganti berkas ini tiap putaran form baru.
+        'templat_word' => resource_path('templates/form-pengendalian-psn.docx'),
         // ref_status_psn.kode -> tahapan butir B1.
         'tahapan' => ['5' => 'PENYIAPAN', '4' => 'TRANSAKSI', '3' => 'KONSTRUKSI', '2' => 'BEROPERASI_SEBAGIAN', '1' => 'KUMULATIF_SELESAI'],
         'maks_isu' => 10,          // isu terbuka yang dicetak di C2 (jalur kritis dulu, lalu tenggat terdekat)

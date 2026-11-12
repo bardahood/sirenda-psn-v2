@@ -97,6 +97,7 @@
         </form>
         <span style="flex:1"></span>
         <button type="button" x-data @click="window.print()">Cetak</button>
+        <a href="{{ route('proyek.form-pengendalian', ['psn' => $psn, 'periode' => $cutoff?->kode, 'jenis' => $jenis, 'format' => 'docx']) }}" title="Form Word resmi yang sudah terisi; dapat dilengkapi PIC di Microsoft Word">Unduh Word</a>
         <a href="{{ route('proyek.form-pengendalian', ['psn' => $psn, 'periode' => $cutoff?->kode, 'jenis' => $jenis, 'format' => 'pdf']) }}">Unduh PDF</a>
     </div>
 @endunless
