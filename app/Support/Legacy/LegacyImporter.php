@@ -538,7 +538,12 @@ class LegacyImporter
         }
 
         foreach ($this->legacy->table('psn_regulasi')->orderBy('id')->get() as $r) {
-            if (! ($psn = $this->psnId($r->psn_id, 'psn_regulasi')) || ! ($u = $this->teks($r->regulasi))) {
+            if (! ($psn = $this->psnId($r->psn_id, 'psn_regulasi'))) {
+                continue;
+            }
+            if (! ($u = $this->teks($r->regulasi))) {
+                $this->peringatan('regulasi', "psn_regulasi#{$r->id}: nama regulasi kosong ('{$r->regulasi}'), dilewati");
+
                 continue;
             }
             $id = DB::table('regulasi')->insertGetId(['legacy_id' => $r->id, 'psn_id' => $psn, 'nama' => $u,

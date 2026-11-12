@@ -33,7 +33,8 @@ class LegacyImportAkurasiTest extends TestCase
         $this->assertSame($legacy->table('psn')->count(), DB::table('psn')->count());
         $this->assertSame($legacy->table('lokasi_psn')->count(), DB::table('psn_lokasi')->count());
         $this->assertSame($legacy->table('psn_item')->count(), DB::table('psn_profil_item')->count());
-        $this->assertSame($legacy->table('psn_regulasi')->count(), DB::table('regulasi')->count());
+        // Regulasi tanpa nama (kosong/"-") dilewati dan dicatat di laporan ETL.
+        $this->assertSame($legacy->table('psn_regulasi')->whereRaw("TRIM(COALESCE(regulasi, '')) NOT IN ('', '-', '.', 'NULL')")->count(), DB::table('regulasi')->count());
         $this->assertSame(
             $legacy->table('psn_kegiatan')->count() + $legacy->table('psn_kegiatan_cp')->count(),
             DB::table('kegiatan')->count()
@@ -58,9 +59,8 @@ class LegacyImportAkurasiTest extends TestCase
 
     public function test_nilai_investasi_tidak_berubah(): void
     {
-        $this->assertEquals(
-            (float) DB::connection('legacy')->table('psn')->sum('nilai_investasi'),
-            (float) DB::table('psn')->sum('nilai_investasi_rp')
-        );
+        // Jumlah berorde 10^16 melampaui presisi float (2^53): bandingkan dengan toleransi relatif 1e-12.
+        $lama = (float) DB::connection('legacy')->table('psn')->sum('nilai_investasi');
+        $this->assertEqualsWithDelta($lama, (float) DB::table('psn')->sum('nilai_investasi_rp'), abs($lama) * 1e-12);
     }
 }
