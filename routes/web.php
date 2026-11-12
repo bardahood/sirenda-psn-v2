@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\ReferensiController;
 use App\Http\Controllers\Api\V1\RisikoController;
 use App\Http\Controllers\Api\V1\UsulanController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\FormPengendalianController;
 use App\Http\Controllers\IntegrasiSifController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\Pengaturan\CutoffController;
@@ -34,6 +35,8 @@ Route::middleware(['auth', 'akun.aktif'])->group(function () {
     Route::view('/dashboard', 'dashboard.index')->middleware('can:ringkasan.lihat')->name('dashboard');
     Route::get('/proyek', [ProyekController::class, 'index'])->middleware('can:portofolio.lihat')->name('proyek.index');
     Route::get('/proyek/{psn}', [ProyekController::class, 'show'])->middleware('can:detail.lihat')->whereNumber('psn')->name('proyek.show');
+    Route::get('/proyek/{psn}/form-pengendalian', [FormPengendalianController::class, 'show'])->middleware('can:detail.lihat')->whereNumber('psn')->name('proyek.form-pengendalian');
+    Route::get('/form-pengendalian/lama/{id}', [FormPengendalianController::class, 'dariIdLama'])->middleware('can:detail.lihat')->whereNumber('id')->name('form-pengendalian.lama');
     Route::view('/kualitas-data', 'kualitas-data.index')->middleware('can:kualitas.lihat')->name('kualitas-data');
     Route::view('/risiko', 'risiko.index')->middleware('can:risiko.lihat')->name('risiko');
     Route::get('/peta', [PetaController::class, 'index'])->middleware('can:ringkasan.lihat')->name('peta');

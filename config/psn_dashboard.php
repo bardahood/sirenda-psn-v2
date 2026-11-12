@@ -141,6 +141,17 @@ return [
     'dashboard_top' => ['direktorat' => 5, 'dp_proyek' => 6],
 
     // Integrasi usulan PSN dengan aplikasi permohonan Dit. PSI (Fase 8). Lihat docs/integrasi-psi.md.
+    // Form Pengendalian PSN (cetak per PSN; /proyek/{id}/form-pengendalian). Isian terisi dari data SIRENDA,
+    // sisanya dilengkapi PIC. Teks batas pengembalian diubah per putaran evaluasi.
+    'form_pengendalian' => [
+        'batas_kembali' => env('FORM_PENGENDALIAN_BATAS', 'Selasa, 17 November 2026'),
+        // ref_status_psn.kode -> tahapan butir B1.
+        'tahapan' => ['5' => 'PENYIAPAN', '4' => 'TRANSAKSI', '3' => 'KONSTRUKSI', '2' => 'BEROPERASI_SEBAGIAN', '1' => 'KUMULATIF_SELESAI'],
+        'maks_isu' => 10,          // isu terbuka yang dicetak di C2 (jalur kritis dulu, lalu tenggat terdekat)
+        'baris_isu_kosong' => 2,   // baris kosong tambahan di C2 untuk diisi PIC
+        'baris_lampiran' => 8,
+    ],
+
     // ETL dari SIRENDA lama (legacy:import).
     'legacy' => [
         // Koreksi tahun realisasi bulanan KP/RO (psn_kegiatan_detil). Aplikasi lama menyimpan seluruh baris

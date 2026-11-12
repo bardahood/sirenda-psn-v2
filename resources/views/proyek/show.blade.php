@@ -34,7 +34,11 @@
                         <span class="badge bg-red-50 text-red-800 ring-red-600/40">Risiko kritis</span>
                     @endif
                     <span class="label">Cut-off {{ $header['cutoff'] ?? '–' }}</span>
-                    <a href="{{ $kembali }}" class="tombol-garis py-1.5">← Kembali ke portofolio</a>
+                    <div class="flex flex-wrap justify-end gap-2">
+                        <a href="{{ route('proyek.form-pengendalian', $psn) }}" target="_blank" rel="noopener" class="tombol-primer py-1.5"
+                           title="Form Pengendalian PSN terisi data SIRENDA; dapat dicetak atau diunduh PDF">Cetak Form Pengendalian</a>
+                        <a href="{{ $kembali }}" class="tombol-garis py-1.5">← Kembali ke portofolio</a>
+                    </div>
                 </div>
             </div>
         </section>

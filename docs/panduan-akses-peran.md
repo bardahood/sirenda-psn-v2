@@ -59,6 +59,7 @@ Arti simbol:
 | Peta Sebaran | `/peta` | ✓ | ✓ | ✓ | ✓ | ✓¹ |
 | Kualitas Data | `/kualitas-data` | ✓ | ✓ | ✓ | ✓ | ✓¹ |
 | Laporan (arsip per cut-off) | `/laporan` | ✓ | ✓ | ✓ | ✓ | ✗ |
+| Cetak Form Pengendalian PSN | `/proyek/{id}/form-pengendalian` (tombol di Detail proyek) | ✓ | ✓ | ✓ | ✓ | ✓¹ |
 | PDF Ringkasan Eksekutif | `/laporan/ringkasan.pdf?periode=YYYY-MM` | ✓ | ✓ | ✓ | ✓ | ✓¹ |
 | Excel Register Risiko | `/laporan/risiko.xlsx?periode=YYYY-MM` | ✓ | ✓ | ✓ | ✓ | ✓¹ |
 | Excel Rekap Pengisian | `/laporan/pengisian.xlsx?periode=YYYY-MM` | ✓ | ✓ | ✓ | ✓ | ✗ |
