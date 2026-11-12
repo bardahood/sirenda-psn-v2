@@ -45,6 +45,10 @@ class UjiAkurasi
             ($thn = DB::table('psn')->whereNull('deleted_at')->whereNotNull('tahun_selesai')->groupBy('tahun_selesai')->orderByRaw('COUNT(*) DESC')->orderBy('tahun_selesai')->value('tahun_selesai'))
                 ? "thn={$thn}" : null,
             $kl && $thn ? "kl={$kl}&thn={$thn},".($thn + 1) : null,
+            // Sumber penetapan PSN (RKP / Permenko), sendiri & gabungan.
+            'sumber=permenko',
+            'sumber=rkp',
+            $prov ? "sumber=rkp&prov={$prov}" : null,
         ], fn ($v) => $v !== null));
     }
 

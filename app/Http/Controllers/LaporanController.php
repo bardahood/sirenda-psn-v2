@@ -83,6 +83,7 @@ class LaporanController extends Controller
             'Kementerian/Lembaga' => $f->kl ? collect($f->kl)->map(fn ($s) => Kementerian::daftar()[$s]['label'] ?? $s)->implode(', ') : null,
             'Tahun target selesai' => $f->thn ? implode(', ', $f->thn) : null,
             'Status' => $f->status ? implode(', ', array_map(fn ($s) => StatusProgres::from($s)->label(), $f->status)) : null,
+            'Sumber PSN' => $f->sumber ? config('psn_dashboard.label_sumber_psn')[$f->sumber] : null,
             'Kategori' => $f->kat,
             'PSN' => $f->psn ? DB::table('psn')->whereIn('id', $f->psn)->orderBy('nama')->pluck('nama')->implode('; ') : null,
             'Sumber dana' => $f->dana ? implode(', ', array_map(fn ($s) => DashboardService::LABEL_SKEMA[$s] ?? $s, $f->dana)) : null,

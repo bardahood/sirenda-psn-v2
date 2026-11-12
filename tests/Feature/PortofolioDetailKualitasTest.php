@@ -62,8 +62,10 @@ class PortofolioDetailKualitasTest extends TestCase
         $dit = $this->ref('ref_unit_kerja', '19');
         $kl = $this->ref('ref_klaster', 'R.6');
         foreach (['', 'prov=32', 'prov=31,35', 'dana=kpbu', 'dana=apbd', "dit={$dit}", "klaster={$kl}", 'kat=pkpn', 'status=terlambat,tanpa_data', "prov=32&dana=apbn&klaster={$kl}"] as $qs) {
-            $k1 = collect($this->getJson("/api/v1/dashboard/kpi?{$qs}")->json('data'))->firstWhere('kode', 'K1')['nilai'];
-            $this->assertEquals($k1, $this->getJson("/api/v1/proyek?{$qs}")->assertOk()->json('meta.total'), "filter: {$qs}");
+            $k1 = collect($this->getJson("/api/v1/dashboard/kpi?{$qs}")->json('data'))->firstWhere('kode', 'K1');
+            // Kartu K1 menghitung seluruh PSN tercatat (tautannya membuka portofolio dengan nonaktif=1); bawaan portofolio = PSN aktif.
+            $this->assertEquals($k1['nilai'], $this->getJson('/api/v1/proyek?'.ltrim("{$qs}&nonaktif=1", '&'))->assertOk()->json('meta.total'), "filter: {$qs}");
+            $this->assertEquals($k1['aktif'], $this->getJson("/api/v1/proyek?{$qs}")->assertOk()->json('meta.total'), "filter: {$qs}");
         }
     }
 

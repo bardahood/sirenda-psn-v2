@@ -361,6 +361,7 @@ class SnapshotService
                 'tahap' => $p->tahap,
                 'kategori' => $this->cfg['kategori_pkpn_dari_klaster_pkpn'] && $p->klaster_pkpn_id ? 'PKPN' : 'PSN',
                 'tahun_selesai' => $p->tahun_selesai,
+                'sumber' => config('psn_dashboard.sumber_psn')[$p->sumber_input] ?? null,
                 'provinsi_kode' => json_encode($p->provinsi),
                 'unit_kerja_id' => json_encode($p->unit),
                 'sumber_dana_id' => json_encode($p->dana),

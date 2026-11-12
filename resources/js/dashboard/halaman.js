@@ -53,6 +53,11 @@ export function halamanDashboard(kamus, kelasPeta) {
         angka,
 
         async init() {
+            // Dashboard tidak menampilkan pilihan periode: selalu cut-off terbit terbaru.
+            if (this.$store.filter.nilai.periode) {
+                this.$store.filter.nilai.periode = '';
+                this.$store.filter.terapkan();
+            }
             await this.$store.filter.muatOpsi();
             await this.muat();
             window.addEventListener('filter-berubah', () => this.muat());
@@ -100,8 +105,9 @@ export function halamanDashboard(kamus, kelasPeta) {
 
         // ---- turunan data panel
 
+        /** Penyebut persentase panel: PSN aktif (K1 menghitung seluruh PSN tercatat). */
         get totalPsn() {
-            return this.kartu('K1')?.nilai ?? 0;
+            return this.kartu('K1')?.aktif ?? this.kartu('K1')?.nilai ?? 0;
         },
         persen(n, total = this.totalPsn) {
             return total ? (n / total) * 100 : 0;

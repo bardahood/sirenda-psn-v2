@@ -180,6 +180,33 @@ class KontrakEndpointTest extends TestCase
         $this->assertSame(0, $k1('kl=kementerian-perhubungan'));
     }
 
+    public function test_filter_sumber_rkp_permenko_dan_k1_seluruh_psn(): void
+    {
+        $this->buatPsn(['nama' => 'Permenko Uji', 'sumber_input' => 2], []);
+        $this->buatPsn(['nama' => 'RKP Keluar Uji', 'sumber_input' => 1, 'status_psn_id' => $this->ref('ref_status_psn', '6')], []);
+        DB::table('psn')->whereIn('id', [$this->id['psn07'], $this->id['psn19']])->update(['sumber_input' => 1]);
+        app(SnapshotService::class)->buat('2026-10', terbit: true);
+
+        $this->actingAs($this->buatPengguna('Pimpinan'));
+        $kpi = fn (string $qs) => collect($this->getJson("/api/v1/dashboard/kpi?periode=2026-10&{$qs}")->assertOk()->json('data'))->firstWhere('kode', 'K1');
+        // K1 = seluruh PSN tercatat (termasuk keluar PSN), dengan rincian aktif/keluar.
+        $this->assertEquals([4, 3, 1], array_values(array_intersect_key($kpi(''), array_flip(['nilai', 'aktif', 'keluar']))));
+        $this->assertEquals([3, 2, 1], array_values(array_intersect_key($kpi('sumber=rkp'), array_flip(['nilai', 'aktif', 'keluar']))));
+        $this->assertEquals([1, 1, 0], array_values(array_intersect_key($kpi('sumber=permenko'), array_flip(['nilai', 'aktif', 'keluar']))));
+        $this->assertSame(['Permenko Uji'], collect($this->getJson('/api/v1/proyek?periode=2026-10&sumber=permenko')->json('data'))->pluck('nama')->all());
+        $this->assertSame('permenko', $this->getJson('/api/v1/dashboard/kpi?sumber=PERMENKO')->json('meta.filter.sumber'));
+        $this->getJson('/api/v1/dashboard/kpi?sumber=lainnya')->assertUnprocessable();
+        $this->assertSame(['rkp', 'permenko'], collect($this->getJson('/api/v1/filter-opsi')->json('data.sumber'))->pluck('nilai')->all());
+        $this->assertSame(['RKP', 'PERMENKO'], DB::table('snapshot_psn')->join('periode_cutoff as c', 'c.id', '=', 'periode_cutoff_id')->where('c.kode', '2026-10')
+            ->whereIn('psn_id', DB::table('psn')->whereIn('nama', ['Milik Dit 07', 'Permenko Uji'])->pluck('id'))->orderBy('sumber', 'desc')->pluck('sumber')->all());
+
+        // Dashboard: pilihan periode disembunyikan, filter Sumber PSN tampil.
+        $html = $this->get('/dashboard')->assertOk()->getContent();
+        $this->assertStringContainsString('Sumber PSN', $html);
+        $this->assertStringNotContainsString('Periode Data', $html);
+        $this->assertStringContainsString('Periode Data', $this->get('/proyek')->assertOk()->getContent());
+    }
+
     public function test_pengguna_tanpa_peran_ditolak_di_semua_halaman(): void
     {
         $this->actingAs(User::factory()->create());

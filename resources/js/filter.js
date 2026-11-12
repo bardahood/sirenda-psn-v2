@@ -1,6 +1,6 @@
 // Filter global: disimpan di query string (tautan dapat dibagikan) dan berlaku lintas halaman.
 export const MULTI = ['psn', 'kl', 'prov', 'klaster', 'dit', 'thn', 'status', 'dana'];
-export const TUNGGAL = ['periode', 'kat'];
+export const TUNGGAL = ['periode', 'sumber', 'kat'];
 
 export function bacaUrl(search = window.location.search) {
     const q = new URLSearchParams(search);
@@ -20,7 +20,7 @@ export function keQuery(nilai) {
 export function filterStore() {
     return {
         nilai: bacaUrl(),
-        opsi: { periode: [], psn: [], kementerian: [], tahun: [], provinsi: [], klaster: [], direktorat: [], dana: [], kategori: [], status: [] },
+        opsi: { periode: [], sumber: [], psn: [], kementerian: [], tahun: [], provinsi: [], klaster: [], direktorat: [], dana: [], kategori: [], status: [] },
         siap: false,
 
         async muatOpsi() {

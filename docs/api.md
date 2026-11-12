@@ -18,6 +18,7 @@ Berlaku untuk semua endpoint dashboard, portofolio, kualitas data, dan peta. Nil
 | `kat` | `psn` | `psn` atau `pkpn` |
 | `dana` | `kpbu` | `apbn`, `apbd`, `kpbu`, `lainnya` |
 | `kl` | `kementerian-perhubungan` | Kementerian/lembaga induk unit pengampu (slug dari `GET /filter-opsi` → `data.kementerian`). Mencakup semua unitnya (Ditjen, BBWS, dll.); pengelompokan diatur di `config/psn_dashboard.php` → `kementerian` |
+| `sumber` | `rkp` | Sumber penetapan PSN: `rkp` atau `permenko` (`snapshot_psn.sumber`, dari `psn.sumber_input` 1=RKP, 2=Permenko); kosong = keduanya. Opsi di `data.sumber` |
 | `thn` | `2029,2030` | Tahun target selesai PSN pada cut-off (`snapshot_psn.tahun_selesai`); opsi di `data.tahun` |
 | `psn` | `45,55` | `psn.id` — hanya PSN tertentu (maks. 100). Opsinya di `GET /filter-opsi` → `data.psn`, mengikuti cakupan akses pengguna |
 

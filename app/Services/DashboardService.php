@@ -56,7 +56,7 @@ class DashboardService
             ];
 
             return [
-                $kartu('K1', 'jumlah', 'naik'),
+                $kartu('K1', 'jumlah', 'naik') + ['aktif' => $kini['K1_aktif'], 'keluar' => $kini['K1'] - $kini['K1_aktif']],
                 $kartu('K2', 'jumlah', 'naik') + ['satuan' => 'Rp triliun'],
                 $kartu('K3', 'persen', 'naik') + ['satuan' => '%', 'cakupan_psn' => $kini['K3_n'], 'metode' => config('psn_dashboard.k3_metode')],
                 $kartu('K4', 'jumlah', 'turun'),
@@ -81,7 +81,9 @@ class DashboardService
         [$k3, $n] = $this->rataProgres($aktif, 'progres_realisasi_persen');
 
         return [
-            'K1' => (float) $aktif->count(),
+            // K1: seluruh PSN tercatat pada cut-off (termasuk "Keluar dari PSN"); K2-K4 & panel tetap PSN aktif.
+            'K1' => (float) $rows->count(),
+            'K1_aktif' => (float) $aktif->count(),
             'K2' => round($aktif->sum(fn ($r) => (float) $r->nilai_investasi_rp) / 1e12, 1),
             'K3' => $k3,
             'K3_n' => $n,

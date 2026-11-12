@@ -9,7 +9,7 @@ namespace App\Support\Dashboard;
 final class KamusIndikator
 {
     public const DAFTAR = [
-        'K1' => ['nama' => 'Total PSN', 'rumus' => 'Jumlah PSN aktif sesuai filter (tidak termasuk status Keluar dari PSN). Δ dalam % terhadap cut-off sebelumnya.', 'sumber' => 'Snapshot profil PSN'],
+        'K1' => ['nama' => 'Total PSN', 'rumus' => 'Jumlah seluruh PSN tercatat sesuai filter, bersumber RKP maupun Permenko, termasuk yang berstatus Keluar dari PSN (rincian aktif/keluar ditampilkan di kartu). Indikator lain menghitung PSN aktif saja. Δ dalam % terhadap cut-off sebelumnya.', 'sumber' => 'Snapshot profil PSN'],
         'K2' => ['nama' => 'Total Investasi', 'rumus' => 'Σ nilai investasi PSN aktif, dalam Rp triliun. Nilai yang ditandai anomali (salah satuan) dikecualikan. Δ dalam %.', 'sumber' => 'Snapshot profil PSN (psn.nilai_investasi_rp)'],
         'K3' => ['nama' => 'Progres Fisik Rata-rata', 'rumus' => 'Σ(progres × investasi) ÷ Σ investasi atas PSN yang memiliki data progres (metode dapat diubah ke rata-rata sederhana). Δ dalam pp.', 'sumber' => 'Snapshot KP/RO (kegiatan_target)'],
         'K4' => ['nama' => 'Risiko Kritis', 'rumus' => 'Jumlah PSN berstatus Terlambat ATAU memiliki risiko residual ≥ Tinggi. Penurunan berarti membaik.', 'sumber' => 'Snapshot progres & register risiko'],

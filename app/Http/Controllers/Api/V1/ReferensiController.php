@@ -24,6 +24,7 @@ class ReferensiController extends Controller
             'direktorat' => DB::table('ref_unit_kerja')->where('jenis', 'DIREKTORAT')->where('is_aktif', true)->orderBy('nama')->get(['id as nilai', 'nama as label']),
             'dana' => collect(DashboardService::LABEL_SKEMA)->map(fn ($l, $k) => ['nilai' => strtolower($k), 'label' => $l])->values(),
             'kategori' => [['nilai' => 'psn', 'label' => 'PSN'], ['nilai' => 'pkpn', 'label' => 'PKPN']],
+            'sumber' => collect(config('psn_dashboard.label_sumber_psn'))->map(fn ($l, $k) => ['nilai' => strtolower($k), 'label' => $l])->values(),
             'status' => collect(StatusProgres::cases())->map(fn ($s) => ['nilai' => strtolower($s->value), 'label' => $s->label()]),
             // Kementerian/lembaga induk yang mengampu minimal satu PSN (urut nama).
             'kementerian' => (function () {

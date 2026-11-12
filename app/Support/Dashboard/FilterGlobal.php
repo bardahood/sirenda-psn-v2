@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Validator;
 /**
  * Filter global dashboard yang dibawa lewat query string dan berlaku lintas halaman:
  * periode=2026-09&prov=31,32&klaster=3,7&dit=12&status=terlambat&kat=psn&dana=kpbu&psn=12,40
- * &kl=kementerian-perhubungan&thn=2029,2030
+ * &kl=kementerian-perhubungan&thn=2029,2030&sumber=permenko
  */
 final class FilterGlobal
 {
@@ -28,6 +28,7 @@ final class FilterGlobal
      * @param  string[]  $kl  slug kementerian/lembaga induk (App\Support\Referensi\Kementerian)
      * @param  int[]  $klUnit  ref_unit_kerja.id anggota $kl (hasil ekspansi)
      * @param  int[]  $thn  tahun target selesai
+     * @param  ?string  $sumber  sumber penetapan PSN: RKP | PERMENKO
      */
     public function __construct(
         public readonly ?string $periode = null,
@@ -41,6 +42,7 @@ final class FilterGlobal
         public readonly array $kl = [],
         public readonly array $klUnit = [],
         public readonly array $thn = [],
+        public readonly ?string $sumber = null,
     ) {}
 
     public static function fromRequest(Request $request): self
@@ -58,6 +60,7 @@ final class FilterGlobal
             'psn' => $daftar('psn'),
             'kl' => array_map('strtolower', $daftar('kl')),
             'thn' => $daftar('thn'),
+            'sumber' => $request->query('sumber') ? strtolower($request->query('sumber')) : null,
         ];
 
         Validator::make($input, [
@@ -74,6 +77,7 @@ final class FilterGlobal
             'kl.*' => ['regex:/^[a-z0-9-]{1,120}$/'],
             'thn' => ['array', 'max:50'],
             'thn.*' => ['integer', 'between:1900,2100'],
+            'sumber' => ['nullable', 'in:'.strtolower(implode(',', config('psn_dashboard.sumber_psn')))],
         ], [
             'periode.regex' => 'Format periode harus YYYY-MM.',
             '*.*.regex' => 'Kode provinsi tidak valid.',
@@ -94,13 +98,14 @@ final class FilterGlobal
             $kl = array_values(array_unique($input['kl'])),
             Kementerian::unit($kl),
             array_values(array_unique(array_map('intval', $input['thn']))),
+            $input['sumber'] ? strtoupper($input['sumber']) : null,
         );
     }
 
     /** Salinan dengan periode berbeda (mis. untuk pembanding cut-off sebelumnya). */
     public function denganPeriode(?string $periode): self
     {
-        return new self($periode, $this->prov, $this->klaster, $this->dit, $this->status, $this->kat, $this->dana, $this->psn, $this->kl, $this->klUnit, $this->thn);
+        return new self($periode, $this->prov, $this->klaster, $this->dit, $this->status, $this->kat, $this->dana, $this->psn, $this->kl, $this->klUnit, $this->thn, $this->sumber);
     }
 
     /**
@@ -119,6 +124,7 @@ final class FilterGlobal
             && $irisan($this->dit, array_map('intval', (array) $row->unit_kerja_id))
             && (! $this->kl || array_intersect($this->klUnit, array_map('intval', (array) $row->unit_kerja_id)))
             && (! $this->thn || in_array((int) $row->tahun_selesai, $this->thn, true))
+            && (! $this->sumber || ($row->sumber ?? null) === $this->sumber)
             && (! $this->status || in_array($row->status_progres, $this->status, true))
             && (! $this->kat || $row->kategori === $this->kat)
             && $irisan($this->dana, array_map(fn ($id) => $skemaPerDanaId[$id] ?? 'LAINNYA', (array) $row->sumber_dana_id));
@@ -158,6 +164,7 @@ final class FilterGlobal
         $this->kat && $q->where("{$t}.kategori", $this->kat);
         $this->psn && $q->whereIn("{$t}.psn_id", $this->psn);
         $this->thn && $q->whereIn("{$t}.tahun_selesai", $this->thn);
+        $this->sumber && $q->where("{$t}.sumber", $this->sumber);
     }
 
     /** Bentuk kanonik untuk meta respons dan query string (hanya yang terisi). */
@@ -174,6 +181,7 @@ final class FilterGlobal
             'psn' => $this->psn ? implode(',', $this->psn) : null,
             'kl' => $this->kl ? implode(',', $this->kl) : null,
             'thn' => $this->thn ? implode(',', $this->thn) : null,
+            'sumber' => $this->sumber ? strtolower($this->sumber) : null,
         ]);
     }
 }

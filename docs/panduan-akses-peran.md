@@ -156,6 +156,7 @@ Parameter filter global:
 - `dana` (`apbn`, `apbd`, `kpbu`, `lainnya`)
 - `psn` (ID PSN; pilih lewat kotak **PSN** di bagian filter, dapat dicari dengan nama atau kode PSN)
 - `kl` (kementerian/lembaga pengampu, mis. `kementerian-pekerjaan-umum`; pilih lewat kotak **Kementerian/Lembaga**). Pilihan ini mencakup semua unit di bawahnya, seperti Ditjen dan BBWS.
+- `sumber` (`rkp` atau `permenko`; pilih lewat kotak **Sumber PSN**)
 - `thn` (tahun target selesai PSN, mis. `2029`; pilih lewat kotak **Tahun Selesai**)
 
 Beberapa nilai dipisahkan koma.

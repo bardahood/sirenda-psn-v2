@@ -35,7 +35,7 @@ Status selalu ditampilkan sebagai badge berlabel, tidak pernah warna saja.
 
 | Kode | Nama | Rumus | Sumber | Δ |
 |---|---|---|---|---|
-| K1 | Total PSN | COUNT PSN aktif (`ref_status_psn.is_aktif`, tidak terhapus) sesuai filter | `snapshot_psn.is_aktif` | % (naik = hijau) |
+| K1 | Total PSN | COUNT seluruh PSN tercatat pada cut-off (RKP dan Permenko, termasuk yang berstatus Keluar PSN) sesuai filter; rincian `aktif` (`ref_status_psn.is_aktif`) dan `keluar` ditampilkan di keterangan kartu. Indikator lain tetap hanya menghitung PSN aktif | `snapshot_psn` (semua baris), `snapshot_psn.is_aktif` | % (naik = hijau) |
 | K2 | Total Investasi | Σ `nilai_investasi_rp` PSN aktif, tanpa `investasi_anomali`, dalam Rp triliun 1 desimal | `snapshot_psn.nilai_investasi_rp` | % |
 | K3 | Progres Fisik Rata-rata | tertimbang: Σ(progres × investasi) ÷ Σ investasi; sederhana: rata-rata progres (`k3_metode`) | `snapshot_psn.progres_realisasi_persen` | pp |
 | K4 | Risiko Kritis | COUNT PSN dengan status Terlambat ATAU risiko residual ≥ Tinggi | `snapshot_psn.is_kritis` | % (**turun = hijau**) |

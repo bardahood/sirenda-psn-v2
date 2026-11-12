@@ -53,6 +53,11 @@ return [
 
     // Pengelompokan sumber dana (master DANA) untuk P6.
     // TODO: master lama tidak memiliki kode KPBU -- konfirmasi pemetaan C/D.
+    // Sumber penetapan PSN dari psn.sumber_input (kolom `psn.sumber` aplikasi lama: "1=rkp,2=permenko").
+    // Dimensi filter global `sumber` dan kolom snapshot_psn.sumber.
+    'sumber_psn' => [1 => 'RKP', 2 => 'PERMENKO'],
+    'label_sumber_psn' => ['RKP' => 'RKP', 'PERMENKO' => 'Permenko'],
+
     'skema_dana' => [
         'A' => 'APBN',
         'B' => 'APBD',

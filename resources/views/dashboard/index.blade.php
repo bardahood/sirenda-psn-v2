@@ -11,14 +11,17 @@
     // Tinggi grafik: tetap di layar kecil (bergulir), mengisi sisa panel pada mode satu layar.
     $isiPanel = 'h-56 layar:h-auto layar:min-h-0 layar:flex-1';
 @endphp
-<x-app-layout judul="Dashboard Monitoring & Evaluasi PSN" subjudul="Berdasarkan Data Proyek Strategis Nasional" :layar-penuh="true">
+<x-app-layout judul="Dashboard Monitoring & Evaluasi PSN" :layar-penuh="true">
+    <x-slot:infoJudul>
+        {{-- Pengganti pilihan periode: dashboard selalu memakai cut-off terbit terbaru. --}}
+        <span x-data x-show="$store.statusDasbor.tanggal" x-cloak title="Dashboard selalu memakai cut-off terbit terbaru">Data per <b class="text-slate-700" x-text="$store.statusDasbor.tanggal"></b></span>
+    </x-slot:infoJudul>
     <x-slot:filter>
-        <x-filter-global />
+        <x-filter-global :periode="false" />
     </x-slot:filter>
     <x-slot:aksi>
         {{-- Status data (diisi halaman dashboard melalui Alpine.store('statusDasbor')) --}}
         <div class="flex items-center gap-3 text-[12px] text-slate-600" x-show="$store.statusDasbor.tanggal" x-cloak aria-label="Status data">
-            <span class="hidden min-[1700px]:inline">Cut-off <b class="text-slate-900" x-text="$store.statusDasbor.tanggal"></b></span>
             <span class="hidden min-[1800px]:inline">Kelengkapan <b class="angka text-slate-900" x-text="$store.statusDasbor.kelengkapan"></b></span>
             <span class="hidden min-[1880px]:inline"><b class="angka text-slate-900" x-text="$store.statusDasbor.belum"></b> belum terverifikasi</span>
             <a :href="'{{ route('laporan.ringkasan-pdf') }}' + ($store.filter.qs() ? '?' + $store.filter.qs() : '')" class="tombol-garis px-2.5 py-1.5 text-label" title="Unduh PDF Ringkasan Eksekutif sesuai filter">
@@ -42,7 +45,7 @@
             {{-- Baris 1: K1-K4 (klik -> Portofolio dengan filter yang sama) --}}
             <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:col-span-2 xl:grid-cols-4 layar:col-span-full">
                 @foreach ($kpi as $k => [$judul, $ikon])
-                    <a :href="$store.filter.tautan('/proyek') + ({{ $k === 'K4' ? 'true' : 'false' }} ? ($store.filter.qs() ? '&' : '?') + 'kritis=1' : '')"
+                    <a :href="$store.filter.tautan('/proyek') + ({{ in_array($k, ['K1', 'K4']) ? 'true' : 'false' }} ? ($store.filter.qs() ? '&' : '?') + '{{ $k === 'K1' ? 'nonaktif=1' : 'kritis=1' }}' : '')"
                        class="kartu flex items-center gap-3 !px-4 !py-2.5 transition hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-aksen"
                        aria-labelledby="kpi-{{ $k }}">
                         <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white shadow" :style="{ background: warnaKpi('{{ $k }}') }">
@@ -63,7 +66,7 @@
                                 </span>
                                 <span class="truncate">
                                     @switch($k)
-                                        @case('K1') PSN aktif @break
+                                        @case('K1') <span x-text="angka(kartu('K1')?.aktif, 0) + ' aktif · ' + angka(kartu('K1')?.keluar, 0) + ' keluar PSN'"></span> @break
                                         @case('K2') investasi PSN aktif @break
                                         @case('K3') <span x-text="angka(kartu('K3')?.cakupan_psn, 0) + ' PSN berdata'"></span> @break
                                         @case('K4') <span x-text="'dari ' + angka(totalPsn, 0) + ' PSN'"></span> @break
@@ -165,26 +168,28 @@
             <x-panel kode="RO_KRITIS" judul="RO Critical Path Berisiko & Terlambat" padat class="layar:col-[span_7/span_7]">
                 <x-slot:subjudul>5 teratas menurut selisih realisasi terhadap rencana</x-slot:subjudul>
                 <div class="min-h-0 overflow-auto layar:flex-1">
-                    <table class="w-full text-left text-[11.5px]">
+                    {{-- Lebar kolom tetap agar kolom Status tidak terpotong; baris KP/RO disembunyikan saat layar pendek (tetap di tooltip). --}}
+                    <table class="w-full table-fixed text-left text-[11.5px]">
+                        <colgroup><col><col class="w-[26%]"><col class="w-[5.5rem]"><col class="w-[6.25rem]"></colgroup>
                         <thead class="sticky top-0 bg-white text-[10.5px] text-slate-500">
-                            <tr><th class="py-1 pr-2">PSN / KP-RO</th><th class="py-1 pr-2">Direktorat</th><th class="w-36 py-1 pr-2">Progres</th><th class="py-1">Status</th></tr>
+                            <tr><th class="py-1 pr-2">PSN / KP-RO</th><th class="py-1 pr-2">Direktorat</th><th class="py-1 pr-2">Progres</th><th class="py-1">Status</th></tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
                             <template x-for="r in d.roKritis ?? []" :key="r.kegiatan_id">
                                 <tr>
-                                    <td class="max-w-[12rem] py-1 pr-2">
-                                        <a class="block truncate font-semibold text-slate-900 hover:underline" :href="$store.filter.tautan('/proyek/' + r.psn_id)" :title="r.psn" x-text="r.psn"></a>
-                                        <span class="block truncate text-[10.5px] text-slate-500" :title="r.kegiatan" x-text="r.kegiatan"></span>
+                                    <td class="py-1 pr-2">
+                                        <a class="block truncate font-semibold text-slate-900 hover:underline" :href="$store.filter.tautan('/proyek/' + r.psn_id)" :title="r.psn + ' — ' + r.kegiatan" x-text="r.psn"></a>
+                                        <span class="block truncate text-[10.5px] text-slate-500 [@media(max-height:1000px)]:hidden" :title="r.kegiatan" x-text="r.kegiatan"></span>
                                     </td>
-                                    <td class="max-w-[9rem] truncate py-1 pr-2 text-slate-700" :title="r.direktorat" x-text="(r.direktorat ?? '–').replace(/^Direktorat\s+/i, '')"></td>
+                                    <td class="truncate py-1 pr-2 text-slate-700" :title="r.direktorat" x-text="(r.direktorat ?? '–').replace(/^Direktorat\s+/i, '')"></td>
                                     <td class="py-1 pr-2">
                                         <span class="relative block h-1.5 rounded-full bg-slate-100">
                                             <span class="block h-1.5 rounded-full bg-aksen" :style="{ width: persenLebar(r.realisasi_persen) }"></span>
                                             <span class="absolute -top-1 h-3.5 w-0.5 bg-slate-900" :style="{ left: persenLebar(r.rencana_persen) }"></span>
                                         </span>
-                                        <span class="angka text-[10.5px] text-slate-600" x-text="angka(r.realisasi_persen, 0) + '% / ' + angka(r.rencana_persen, 0) + '%'"></span>
+                                        <span class="angka block whitespace-nowrap text-[10.5px] text-slate-600" :title="'Realisasi ' + angka(r.realisasi_persen, 1) + '% dari rencana ' + angka(r.rencana_persen, 1) + '%'" x-text="angka(r.realisasi_persen, 0) + '/' + angka(r.rencana_persen, 0) + '%'"></span>
                                     </td>
-                                    <td class="whitespace-nowrap py-1"><span :class="'badge-' + r.status"><span :class="'titik-' + r.status"></span><span x-text="labelStatus(r.status)"></span></span></td>
+                                    <td class="overflow-hidden whitespace-nowrap py-1"><span :class="'badge-' + r.status"><span :class="'titik-' + r.status"></span><span x-text="labelStatus(r.status)"></span></span></td>
                                 </tr>
                             </template>
                         </tbody>

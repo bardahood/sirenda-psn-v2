@@ -391,6 +391,13 @@ Dit. PSI menyerahkan *Dokumen Integrasi API Usulan PSN untuk PMO* v1.3 dan *Tata
 - API masuk Fase 8 (`/api/integrasi/psi/v1`) dipertahankan sebagai jalur opsional, tetapi tidak dipakai SIF. Konfigurasi push lama (`PSI_API_URL`, `PSI_API_TOKEN`) dihapus.
 - **Belum dapat diuji ke server SIF sungguhan**, karena host dan `X-API-Key` belum diterima (Q-31). Pengujian memakai server tiruan yang menerapkan enkripsi yang sama.
 
+### 8.11 Filter Sumber PSN & K1 seluruh PSN
+
+- Kolom baru `snapshot_psn.sumber` (`RKP`/`PERMENKO`, migrasi `2026_11_13_100000`, diisi ulang dari `psn.sumber_input` untuk snapshot lama).
+- Filter global `sumber=rkp|permenko` (kotak **Sumber PSN**) berlaku di dashboard, portofolio, API, dan laporan. Di halaman dashboard kotak ini menggantikan pilihan Periode Data: dashboard selalu memakai cut-off terbit terakhir, ditampilkan sebagai "Data per …" di bawah judul. Pilihan periode tetap tersedia di halaman lain.
+- K1 kini menghitung seluruh PSN tercatat (RKP + Permenko, termasuk Keluar PSN), misalnya 380 = 377 aktif + 3 keluar pada cut-off Oktober 2026. Keterangan kartu menampilkan rincian aktif/keluar; klik kartu membuka Portofolio dengan `nonaktif=1`. Indikator lain dan persentase panel tetap berbasis PSN aktif.
+- Uji akurasi menambah kombinasi `sumber=rkp`, `sumber=permenko`, dan `sumber=rkp&prov=…`.
+
 ## 9. Hasil impor awal (dump 7 Oktober 2026)
 
 Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan test`): jumlah PSN, lokasi, item profil, regulasi, KP/RO, agregat per provinsi, agregat per klaster, dan total nilai investasi **identik** dengan basis data lama.
@@ -443,7 +450,7 @@ Dump HeidiSQL (MariaDB 10.11) dimuat ke basis data terpisah `sirendapsn_bappenas
 
 | No | Pertanyaan | Asumsi sementara |
 |---|---|---|
-| Q-01 | Arti `psn.sumber` (1/2) | Disimpan apa adanya di `sumber_input` |
+| Q-01 | Arti `psn.sumber` (1/2) | **Terjawab:** 1 = RKP, 2 = Permenko (komentar kolom basis data lama). Dipetakan di `config/psn_dashboard.php` → `sumber_psn` dan dipakai filter Sumber PSN (§8.11) |
 | Q-02 | Satuan baku investasi dan anggaran KP/RO | Rupiah penuh |
 | Q-03 | Pemetaan BUMN dan Badan Usaha/Swasta ke KPBU | D → KPBU, C → Lainnya |
 | Q-04 | Sumber % progres fisik proyek (K3) | Agregat tertimbang `kegiatan_target.realisasi_persen` |

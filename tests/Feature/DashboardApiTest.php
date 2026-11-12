@@ -72,9 +72,10 @@ class DashboardApiTest extends TestCase
             ->assertJsonPath('meta.sebelumnya', '2026-08');
 
         $k = collect($r->json('data'))->keyBy('kode');
-        $this->assertEquals(3, $k['K1']['nilai']);                      // D keluar PSN tidak dihitung
-        $this->assertEquals(2, $k['K1']['sebelumnya']);
-        $this->assertEquals(50.0, $k['K1']['delta']['nilai']);          // (3-2)/2
+        $this->assertEquals(4, $k['K1']['nilai']);                      // seluruh PSN tercatat, termasuk D (keluar PSN)
+        $this->assertEquals([3, 1], [$k['K1']['aktif'], $k['K1']['keluar']]);
+        $this->assertEquals(3, $k['K1']['sebelumnya']);                 // Agustus: A, B, D
+        $this->assertEqualsWithDelta(33.3, $k['K1']['delta']['nilai'], 0.05); // (4-3)/3
         $this->assertTrue($k['K1']['delta']['baik']);
         $this->assertEquals(300.0, $k['K2']['nilai']);                  // Rp triliun
         // K3 tertimbang investasi: (30x200 + 52x100)/300 = 37,33
@@ -219,7 +220,7 @@ class DashboardApiTest extends TestCase
 
         // Komposisi dana: kelompok saling lepas -> jumlah PSN = K1, investasi = K2.
         $kom = collect($this->getJson('/api/v1/dashboard/distribusi?dim=komposisi_dana')->assertOk()->json('data'));
-        $this->assertSame((int) $kpi['K1']['nilai'], $kom->sum('jumlah'));
+        $this->assertSame((int) $kpi['K1']['aktif'], $kom->sum('jumlah'));
         $this->assertEqualsWithDelta($kpi['K2']['nilai'], $kom->sum('investasi_triliun'), 0.2);
 
         // Pulau: PSN dihitung sekali per pulau; tidak melebihi K1 per pulau.

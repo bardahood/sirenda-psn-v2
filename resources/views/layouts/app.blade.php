@@ -108,6 +108,8 @@
         <div @class(['flex flex-wrap items-center gap-x-4 gap-y-2 px-3 md:px-5', 'py-2' => ! $layarPenuh, 'py-1.5' => $layarPenuh])>
             <div class="mr-auto min-w-0">
                 <h1 class="truncate text-[17px] font-bold leading-6 text-primer">{{ $judul ?? 'Dashboard' }}</h1>
+                {{-- infoJudul: keterangan singkat yang selalu tampil (mis. tanggal cut-off dashboard). --}}
+                @isset($infoJudul)<p class="truncate text-[12px] leading-4 text-slate-500">{{ $infoJudul }}</p>@endisset
                 @if (! empty($subjudul))<p @class(['truncate text-[12px] leading-4 text-slate-500', '[@media(max-height:1000px)]:hidden' => $layarPenuh])>{{ $subjudul }}</p>@endif
             </div>
             @isset($filter){{ $filter }}@endisset

@@ -30,10 +30,11 @@ class KueriAcuan
     public function __construct(protected PeriodeCutoff $c, protected FilterGlobal $f) {}
 
     /** Subquery id PSN aktif pada cut-off yang lolos filter (dari tabel inti). */
-    protected function psnAktif(): string
+    protected function psnAktif(bool $termasukNonaktif = false): string
     {
         $this->ikat = [$this->c->tanggal_cutoff->copy()->endOfDay()->toDateTimeString()];
-        $w = ['(p.deleted_at IS NULL OR p.deleted_at > ?)', 'COALESCE(s.is_aktif, 1) = 1'];
+        $w = ['(p.deleted_at IS NULL OR p.deleted_at > ?)'];
+        $termasukNonaktif || $w[] = 'COALESCE(s.is_aktif, 1) = 1';
 
         if ($this->f->prov) {
             $w[] = 'EXISTS (SELECT 1 FROM psn_lokasi l WHERE l.psn_id = p.id AND l.deleted_at IS NULL AND l.provinsi_kode IN ('.$this->tanda($this->f->prov).'))';
@@ -52,6 +53,10 @@ class KueriAcuan
             $unit = DB::table('ref_unit_kerja')->whereIn('jenis', config('psn_dashboard.kementerian.jenis_unit'))->get(['id', 'nama'])
                 ->filter(fn ($u) => in_array(Str::slug(Kementerian::induk($u->nama)), $this->f->kl, true))->pluck('id')->all();
             $w[] = $unit ? 'EXISTS (SELECT 1 FROM psn_unit_pengampu u WHERE u.psn_id = p.id AND u.unit_kerja_id IN ('.$this->tanda($unit).'))' : '1 = 0';
+        }
+        if ($this->f->sumber) {
+            $kode = array_keys(array_filter(config('psn_dashboard.sumber_psn'), fn ($s) => $s === $this->f->sumber));
+            $w[] = 'p.sumber_input IN ('.$this->tanda($kode).')';
         }
         if ($this->f->thn) {
             $w[] = 'p.tahun_selesai IN ('.$this->tanda($this->f->thn).')';
@@ -96,9 +101,12 @@ class KueriAcuan
 
     // ------------------------------------------------------------------ K1-K4
 
+    /** K1: seluruh PSN tercatat (termasuk berstatus "Keluar dari PSN"). */
     public function k1(): int
     {
-        return (int) $this->satu('SELECT COUNT(*) AS n FROM ({AKTIF}) a')->n;
+        $sub = $this->psnAktif(termasukNonaktif: true);
+
+        return (int) DB::selectOne("SELECT COUNT(*) AS n FROM ({$sub}) a", $this->ikat)->n;
     }
 
     public function k2(): float

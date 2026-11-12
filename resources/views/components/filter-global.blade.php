@@ -1,6 +1,25 @@
-{{-- Filter global: semua nilai di query string (Alpine.store('filter')), opsi dari tabel referensi. --}}
+{{-- Filter global: semua nilai di query string (Alpine.store('filter')), opsi dari tabel referensi.
+     :periode="false" menyembunyikan pilihan cut-off (dashboard selalu cut-off terbaru). --}}
+@props(['periode' => true])
 @php($chevron = '<svg class="h-4 w-4 shrink-0 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>')
 <div class="flex flex-wrap items-center gap-1.5 min-[1700px]:gap-2" role="group" aria-label="Filter global">
+    {{-- Sumber penetapan PSN: RKP / Permenko --}}
+    <label class="kotak-filter cursor-pointer" :class="$store.filter.nilai.sumber && '!border-aksen'">
+        <svg class="hidden h-5 w-5 shrink-0 text-primer min-[1700px]:block" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h10"/></svg>
+        <span>
+            <span class="kotak-filter-label">Sumber PSN</span>
+            <select class="kotak-filter-nilai -ml-0.5 cursor-pointer appearance-none border-0 bg-none p-0 pr-1 focus:ring-0"
+                    :value="$store.filter.nilai.sumber" @change="$store.filter.set('sumber', $event.target.value)" aria-label="Sumber penetapan PSN">
+                <option value="">RKP &amp; Permenko</option>
+                <template x-for="o in $store.filter.opsi.sumber" :key="o.nilai">
+                    <option :value="o.nilai" x-text="o.label" :selected="o.nilai === $store.filter.nilai.sumber"></option>
+                </template>
+            </select>
+        </span>
+        {!! $chevron !!}
+    </label>
+
+    @if ($periode)
     {{-- Periode data (cut-off) --}}
     <label class="kotak-filter cursor-pointer">
         <svg class="hidden h-5 w-5 shrink-0 text-primer min-[1700px]:block" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
@@ -16,6 +35,7 @@
         </span>
         {!! $chevron !!}
     </label>
+    @endif
 
     {{-- PSN tertentu (cari nama/kode; daftar mengikuti cakupan akses pengguna) --}}
     <div class="relative" x-data="multiPilih('psn', 'psn', 'PSN')" @keydown.escape="buka = false" @click.outside="buka = false">
