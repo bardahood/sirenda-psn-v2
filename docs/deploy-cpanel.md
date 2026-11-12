@@ -206,6 +206,28 @@ Buka halaman, tekan **F12**, lalu lihat tab **Console** dan **Network** (saring 
 
 Setelah perbaikan, kosongkan cache peramban (Ctrl+Shift+R).
 
+## Menambah fitur tanpa mengunggah ulang seluruh aplikasi
+
+Bila hanya ada beberapa berkas yang berubah, unggah berkas itu saja. Di **PowerShell** pada folder proyek, buat zip berisi berkas yang ditambah atau diubah sejak commit yang terpasang di hosting (`<commit-lama>`, lihat `git log --oneline`):
+
+```powershell
+git archive -o update.zip HEAD $(git diff --name-only --diff-filter=AM <commit-lama> HEAD -- . ':!tests' ':!docs')
+git diff --name-only --diff-filter=D <commit-lama> HEAD   # berkas yang harus DIHAPUS manual di server (bila ada)
+```
+
+Periksa juga daftar perubahannya:
+- ada berkas di `database/migrations/` → jalankan `php artisan migrate --force`;
+- `composer.lock` berubah → unggah juga folder `vendor` hasil `composer install --no-dev --optimize-autoloader`;
+- `resources/js` atau `resources/css` berubah → jalankan `npm run build` lalu unggah folder `public/build`.
+
+Di File Manager, cadangkan dulu folder yang akan ditimpa (klik kanan → *Compress*). Unggah `update.zip` ke `/home/CPUSER/sirenda`, ekstrak, lalu jalankan:
+
+```bash
+php artisan optimize:clear && php artisan config:cache && php artisan route:cache && php artisan view:cache
+```
+
+Tanpa Terminal, hapus `bootstrap/cache/config.php` dan `bootstrap/cache/routes-v7.php` lewat File Manager. Bila tidak dihapus, rute baru akan tampil 404 karena cache rute lama masih dipakai.
+
 ## Pembaruan berikutnya
 
 Ulangi langkah 1 dan 4. Saat mengekstrak, timpa berkas lama, tetapi jangan menimpa `.env` dan `storage/`. Setelah itu jalankan:
