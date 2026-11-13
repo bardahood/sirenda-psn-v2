@@ -145,10 +145,13 @@ php artisan config:clear
 php artisan psi:cek                     # diagnosis: .env, kunci publik, kriptografi, koneksi (tanpa mengubah data)
 php artisan psi:sinkron                 # ambil semua usulan submitted/under_review
 php artisan psi:sinkron --belum-dinilai # hanya yang belum punya skor PMO
+php artisan psi:sinkron --kode=USL-20260925-0006 --simpan-mentah  # satu usulan + simpan JSON terdekripsi ke storage/app/private/sif-mentah (diagnosis)
 
 php artisan psi:contoh                  # data contoh tanpa koneksi SIF (4 usulan CONTOH-…)
 php artisan psi:contoh --hapus
 ```
+
+Data SIF produksi tidak selalu mengikuti contoh dokumen: sebagian objek dikirim sebagai string JSON atau teks polos (mis. `kriteria_utama` berupa kalimat). `SifSinkronService` menormalkan keduanya: string JSON didekode, teks polos ditampilkan sebagai paragraf pada bagian yang sama, dan item daftar berupa teks tetap dipertahankan. Hapus folder `sif-mentah` setelah diagnosis selesai karena berisi data usulan.
 
 `psi:cek` menandai setiap butir `[OK]`/`[GAGAL]` dan menjelaskan arti status HTTP (401 API key, 403 client/kunci/IP, 404 alamat, 429 batas request). Opsi `--kunci-privat=<path>` (hanya di komputer lokal) memastikan pasangan kunci cocok; opsi `--tanpa-jaringan` melewati panggilan ke SIF. Bila berkas `SIF_KUNCI_PUBLIK` ternyata berisi kunci privat, perintah menolak dan meminta kunci privat dihapus dari server.
 

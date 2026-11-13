@@ -18,6 +18,9 @@ class SifSinkronService
 {
     public function __construct(protected SifClient $sif, protected PsiImportService $impor) {}
 
+    /** Bila diisi, detail SIF terdekripsi disimpan di folder ini (opsi --simpan-mentah). */
+    public ?string $folderMentah = null;
+
     /** @return array{baru:int, diperbarui:int, tetap:int, gagal:int, galat:string[]} */
     public function sinkron(bool $belumDinilai = false, ?\Closure $log = null): array
     {
@@ -51,6 +54,11 @@ class SifSinkronService
     public function satu(string $kode): string
     {
         $detail = $this->sif->detail($kode);
+        if ($this->folderMentah !== null) {
+            // Diagnosis: salinan JSON terdekripsi di folder privat (tidak ikut git, tidak dapat diakses web).
+            @mkdir($this->folderMentah, 0700, true);
+            file_put_contents($this->folderMentah.'/'.preg_replace('/[^\w.\-]/', '_', $kode).'.json', json_encode($detail, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        }
         // Status SIF (submitted/under_review) bukan isi usulan: perubahannya tidak menaikkan versi.
         $sidik = hash('sha256', json_encode($this->urutkan(Arr::except($detail, ['status']))));
         $psi = UsulanPsi::withTrashed()->where('psi_id', $kode)->first();
@@ -68,12 +76,16 @@ class SifSinkronService
     /** Model data SIF (Dokumen Integrasi §3–4) -> kontrak psi.usulan.v1 (PsiImportService::aturan). */
     public function petakan(array $d): array
     {
-        $du = $d['data_umum'] ?? [];
-        $ru = $d['rincian_usulan'] ?? [];
-        $profil = $ru['profil_proyek'] ?? [];
-        $proyek = $d['proyek'] ?? [];
-        $pengusul = $d['proposer'] ?? [];
-        $kesiapan = $d['kesiapan'] ?? [];
+        // SIF kadang mengirim objek/array sebagai string JSON, atau teks polos di tempat objek.
+        $d = $this->normal($d);
+        $du = $this->larik($d['data_umum'] ?? []);
+        $ru = $this->larik($d['rincian_usulan'] ?? []);
+        $profil = $this->larik($ru['profil_proyek'] ?? []);
+        $proyek = $this->larik($d['proyek'] ?? []);
+        $pengusul = $this->larik($d['proposer'] ?? []);
+        $kesiapan = $this->larik($d['kesiapan'] ?? []);
+        $d['surat'] = $this->larik($d['surat'] ?? []);
+        $d['penandatangan'] = $this->larik($d['penandatangan'] ?? []);
         $submitted = $this->tanggal($d['submitted_at'] ?? null);
         $teks = fn ($v) => is_scalar($v) && trim((string) $v) !== '' ? trim((string) $v) : null;
 
@@ -109,20 +121,20 @@ class SifSinkronService
                 'lingkup_pekerjaan_html' => $this->paragraf($profil['rangkuman_lingkup'] ?? $proyek['lingkup'] ?? null),
                 'bagian_lain' => array_values(array_filter([
                     $this->bagianProyekList($d),
-                    $this->bagianKriteriaUtama($ru['kriteria_utama'] ?? []),
-                    $this->bagianKriteriaPendukung($ru['kriteria_pendukung'] ?? []),
-                    $this->bagianKriteriaKesiapan($ru['kriteria_kesiapan'] ?? []),
-                    $this->bagianKunciNilai('Rincian Tambahan (CAPEX/OPEX/Pendapatan)', $d['rincian_tambahan'] ?? []),
-                    $this->bagianCatatanBappenas($d['catatan_review_bappenas'] ?? []),
+                    $this->bagian('Kriteria Utama (isian pengusul)', $ru['kriteria_utama'] ?? null, fn ($a) => $this->bagianKriteriaUtama($a)),
+                    $this->bagian('Kriteria Pendukung (isian pengusul)', $ru['kriteria_pendukung'] ?? null, fn ($a) => $this->bagianKriteriaPendukung($a)),
+                    $this->bagian('Kriteria Kesiapan (isian pengusul)', $ru['kriteria_kesiapan'] ?? null, fn ($a) => $this->bagianKriteriaKesiapan($a)),
+                    $this->bagian('Rincian Tambahan (CAPEX/OPEX/Pendapatan)', $d['rincian_tambahan'] ?? null, fn ($a) => $this->bagianKunciNilai('Rincian Tambahan (CAPEX/OPEX/Pendapatan)', $a)),
+                    $this->bagian('Catatan Review Bappenas (SIF)', $d['catatan_review_bappenas'] ?? null, fn ($a) => $this->bagianCatatanBappenas($a)),
                 ])),
             ],
             'kesiapan' => [
-                'jalur_kritis' => $this->jalurKritis($kesiapan['jalur_kritis'] ?? []),
-                'penjelasan_html' => $this->strategiJalurKritis($kesiapan['jalur_kritis'] ?? []),
+                'jalur_kritis' => $this->jalurKritis($this->baris($kesiapan['jalur_kritis'] ?? [], 'kegiatan')),
+                'penjelasan_html' => $this->strategiJalurKritis($this->baris($kesiapan['jalur_kritis'] ?? [], 'kegiatan')),
                 'bagian_lain' => array_values(array_filter([
-                    $this->bagianKelembagaan($kesiapan['struktur_kelembagaan'] ?? []),
-                    $this->bagianRisiko($kesiapan['manajemen_risiko'] ?? []),
-                    ($kesiapan['dokumen_lampiran'] ?? []) ? ['judul' => 'Dokumen Lampiran Kesiapan', 'isi_html' => $this->daftar($kesiapan['dokumen_lampiran'])] : null,
+                    $this->bagian('Struktur Kelembagaan', $kesiapan['struktur_kelembagaan'] ?? null, fn ($a) => $this->bagianKelembagaan($a)),
+                    $this->bagian('Manajemen Risiko', $kesiapan['manajemen_risiko'] ?? null, fn ($a) => $this->bagianRisiko($this->baris($a, 'risiko'))),
+                    ($dl = $this->larikDaftar($kesiapan['dokumen_lampiran'] ?? [])) ? ['judul' => 'Dokumen Lampiran Kesiapan', 'isi_html' => $this->daftar($dl)] : null,
                 ])),
             ],
             'dokumen' => $this->dokumen($d),
@@ -176,7 +188,7 @@ class SifSinkronService
 
     protected function bagianProyekList(array $d): ?array
     {
-        $daftar = $d['proyek_list'] ?? [];
+        $daftar = $this->baris($d['proyek_list'] ?? [], 'nama_proyek');
         if (($d['template_variant'] ?? 'tunggal') !== 'jamak' || count($daftar) < 2) {
             return null;
         }
@@ -189,7 +201,7 @@ class SifSinkronService
     {
         $html = '';
         foreach (['rpjmn_17' => 'Dukungan terhadap sasaran RPJMN (17 butir)', 'hasil_cepat_8' => 'Program Hasil Terbaik Cepat (8 butir)'] as $kunci => $judul) {
-            if ($baris = $this->barisYaTidak($k[$kunci] ?? [])) {
+            if ($baris = $this->barisYaTidak($this->baris($k[$kunci] ?? [], 'label'))) {
                 $html .= "<p><b>{$judul}</b></p>".$this->tabel(['No', 'Butir', 'Ya/Tidak', 'Alasan'], $baris);
             }
         }
@@ -202,7 +214,7 @@ class SifSinkronService
     {
         $html = $this->kunciNilai(['Tematik, holistik, integratif, spasial' => $k['tematik_holistik'] ?? null, 'Persebaran kegiatan' => $k['persebaran_kegiatan'] ?? null,
             'RPJMN / RPJMD / RKAP' => $k['rpjmn_rpjmd_rkap'] ?? null]);
-        if ($baris = $this->barisYaTidak($k['multi_kontribusi'] ?? [])) {
+        if ($baris = $this->barisYaTidak($this->baris($k['multi_kontribusi'] ?? [], 'label'))) {
             $html .= '<p><b>Multi kontribusi</b></p>'.$this->tabel(['No', 'Butir', 'Ya/Tidak', 'Alasan'], $baris);
         }
 
@@ -227,19 +239,19 @@ class SifSinkronService
 
     protected function bagianCatatanBappenas(array $c): ?array
     {
-        $html = $this->kunciNilai(['Catatan umum' => $c['umum'] ?? null] + collect($c['per_poin'] ?? [])->mapWithKeys(fn ($v, $k) => ["Poin {$k}" => $v])->all());
+        $html = $this->kunciNilai(['Catatan umum' => $c['umum'] ?? null] + collect($this->larik($c['per_poin'] ?? []))->mapWithKeys(fn ($v, $k) => ["Poin {$k}" => $v])->all());
 
         return $html !== '' ? ['judul' => 'Catatan Review Bappenas (SIF)', 'isi_html' => $html] : null;
     }
 
     protected function bagianKelembagaan(array $s): ?array
     {
-        $pihak = collect($s['pihak'] ?? [])->keyBy('id');
+        $pihak = collect($this->baris($s['pihak'] ?? [], 'nama'))->keyBy('id');
         if ($pihak->isEmpty()) {
             return null;
         }
         $html = $this->tabel(['Pihak', 'Kategori', 'Tingkat'], $pihak->sortBy('tingkat')->map(fn ($p) => [$p['nama'] ?? '', Str::headline((string) ($p['kategori'] ?? '')), $p['tingkat'] ?? ''])->values()->all());
-        if ($relasi = $s['relasi'] ?? []) {
+        if ($relasi = $this->baris($s['relasi'] ?? [])) {
             $html .= '<p><b>Relasi</b></p>'.$this->tabel(['Dari', 'Ke', 'Hubungan', 'Dua arah'], array_map(fn ($r) => [
                 $pihak[$r['dari'] ?? null]['nama'] ?? ($r['dari'] ?? ''), $pihak[$r['ke'] ?? null]['nama'] ?? ($r['ke'] ?? ''), $r['label'] ?? '', ! empty($r['dua_arah']) ? 'Ya' : 'Tidak'], $relasi));
         }
@@ -348,6 +360,51 @@ class SifSinkronService
         } catch (Throwable) {
             return null;
         }
+    }
+
+    /** Dekode rekursif string JSON objek/array yang dikirim SIF sebagai teks. */
+    protected function normal($v)
+    {
+        if (is_string($v) && preg_match('/^\s*[\[{]/', $v)) {
+            $j = json_decode($v, true);
+            if (is_array($j)) {
+                $v = $j;
+            }
+        }
+
+        return is_array($v) ? array_map(fn ($x) => $this->normal($x), $v) : $v;
+    }
+
+    /** Nilai -> array asosiatif; teks polos menjadi ['keterangan' => teks]. */
+    protected function larik($v): array
+    {
+        return is_array($v) ? $v : (is_scalar($v) && trim((string) $v) !== '' ? ['keterangan' => trim((string) $v)] : []);
+    }
+
+    /** Daftar item; item skalar dibungkus menjadi [$kunci => teks] agar tidak hilang. */
+    protected function baris($v, string $kunci = 'keterangan'): array
+    {
+        $v = is_array($v) ? (array_is_list($v) ? $v : [$v]) : $this->larikDaftar($v);
+
+        return array_values(array_map(fn ($x) => is_array($x) ? $x : [$kunci => (string) $x], array_filter($v, fn ($x) => is_array($x) || (is_scalar($x) && trim((string) $x) !== ''))));
+    }
+
+    protected function larikDaftar($v): array
+    {
+        return is_array($v) ? array_values(array_filter($v, fn ($x) => filled($x))) : (is_scalar($v) && trim((string) $v) !== '' ? [trim((string) $v)] : []);
+    }
+
+    /** Bagian rincian: objek diproses $fn; teks polos ditampilkan apa adanya sebagai paragraf. */
+    protected function bagian(string $judul, $v, \Closure $fn): ?array
+    {
+        if (is_scalar($v)) {
+            return ($html = $this->paragraf((string) $v)) ? ['judul' => $judul, 'isi_html' => $html] : null;
+        }
+        if (! is_array($v) || $v === []) {
+            return null;
+        }
+
+        return $fn($v) ?? (($html = $this->kunciNilai($v)) !== '' ? ['judul' => $judul, 'isi_html' => $html] : null);
     }
 
     protected function urutkan($v)

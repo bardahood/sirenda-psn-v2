@@ -172,4 +172,37 @@ class SifIntegrasiTest extends TestCase
         $this->artisan('psi:cek', ['--tanpa-jaringan' => true])->expectsOutputToContain('berisi KUNCI PRIVAT')->assertFailed();
         @unlink($privat);
     }
+
+    /** Data SIF nyata dapat berisi teks polos atau string JSON di tempat objek/array (kasus USL-20260925-0006/0007). */
+    public function test_sinkron_tahan_bentuk_data_tidak_baku(): void
+    {
+        $d = $this->detail;
+        $d['kode_usulan'] = 'USL-20260925-0006';
+        $d['rincian_usulan']['kriteria_utama'] = 'Mendukung sasaran RPJMN butir 3 dan 7';
+        $d['rincian_usulan']['kriteria_pendukung'] = json_encode($d['rincian_usulan']['kriteria_pendukung']);
+        $d['rincian_usulan']['kriteria_kesiapan']['rencana_pembiayaan'] = 'APBN murni';
+        $d['kesiapan']['manajemen_risiko'] = ['Lahan belum bebas', ['risiko' => 'Cuaca ekstrem', 'mitigasi' => 'Jadwal ulang']];
+        $d['kesiapan']['jalur_kritis'] = json_encode($d['kesiapan']['jalur_kritis']);
+        $d['kesiapan']['dokumen_lampiran'] = 'Studi kelayakan';
+        $d['kesiapan']['struktur_kelembagaan'] = 'Kementerian sebagai PJPK';
+        $d['catatan_review_bappenas'] = '';
+        $this->fakeSif([
+            'GET /' => fn () => [200, [['kode_usulan' => 'USL-20260925-0006', 'status' => 'submitted']], ['last_page' => 1]],
+            'GET /USL-20260925-0006' => fn () => [200, $d],
+        ]);
+
+        $this->artisan('psi:sinkron', ['--kode' => 'USL-20260925-0006', '--simpan-mentah' => true])->assertSuccessful();
+
+        $psi = UsulanPsi::where('psi_id', 'USL-20260925-0006')->firstOrFail();
+        $rincian = collect($psi->rincian_lain)->pluck('isi_html', 'judul');
+        $this->assertStringContainsString('Mendukung sasaran RPJMN butir 3 dan 7', $rincian['Kriteria Utama (isian pengusul)']);
+        $this->assertStringContainsString('Dua provinsi', $rincian['Kriteria Pendukung (isian pengusul)']);
+        $kesiapan = collect($psi->kesiapan_lain)->pluck('isi_html', 'judul');
+        $this->assertStringContainsString('Lahan belum bebas', $kesiapan['Manajemen Risiko']);
+        $this->assertStringContainsString('Kementerian sebagai PJPK', $kesiapan['Struktur Kelembagaan']);
+        $this->assertStringContainsString('Studi kelayakan', $kesiapan['Dokumen Lampiran Kesiapan']);
+        $this->assertSame(3, UsulanPsn::withoutGlobalScopes()->findOrFail($psi->usulan_id)->jalurKritis()->count());
+        $this->assertFileExists(storage_path('app/private/sif-mentah/USL-20260925-0006.json'));
+        @unlink(storage_path('app/private/sif-mentah/USL-20260925-0006.json'));
+    }
 }
