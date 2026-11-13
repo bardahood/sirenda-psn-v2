@@ -142,12 +142,17 @@ php artisan migrate
 #   storage/app/private/kunci/sif-public.pem
 # Isi SIF_BASE_URL, SIF_API_KEY, SIF_CLIENT_ID di .env, lalu:
 php artisan config:clear
+php artisan psi:cek                     # diagnosis: .env, kunci publik, kriptografi, koneksi (tanpa mengubah data)
 php artisan psi:sinkron                 # ambil semua usulan submitted/under_review
 php artisan psi:sinkron --belum-dinilai # hanya yang belum punya skor PMO
 
 php artisan psi:contoh                  # data contoh tanpa koneksi SIF (4 usulan CONTOH-…)
 php artisan psi:contoh --hapus
 ```
+
+`psi:cek` menandai setiap butir `[OK]`/`[GAGAL]` dan menjelaskan arti status HTTP (401 API key, 403 client/kunci/IP, 404 alamat, 429 batas request). Opsi `--kunci-privat=<path>` (hanya di komputer lokal) memastikan pasangan kunci cocok; opsi `--tanpa-jaringan` melewati panggilan ke SIF. Bila berkas `SIF_KUNCI_PUBLIK` ternyata berisi kunci privat, perintah menolak dan meminta kunci privat dihapus dari server.
+
+Kunci publik client `konsultan-psn-snkv93` yang diterima: RSA 2048 bit, fingerprint SHA-256 `AC:6F:FF:1B:DE:71:D9:E5:68:3F:57:3D:1E:46:A3:82:42:9B:B3:EC:45:F8:F5:19:39:F4:7E:50:80:A3:F5:17`. Pembungkusan kunci sesi SIRENDA dengan kunci ini terbukti dapat dibuka oleh kunci privat pasangannya (diverifikasi juga dengan `openssl pkeyutl` OAEP-SHA256).
 
 Tes otomatis memakai server SIF tiruan yang benar-benar mendekripsi dan mengenkripsi (`tests/Support/SifTiruan.php`): `php artisan test --filter='SifIntegrasiTest|IntegrasiPsiTest'`.
 

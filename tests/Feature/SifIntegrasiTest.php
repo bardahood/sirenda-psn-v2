@@ -150,4 +150,26 @@ class SifIntegrasiTest extends TestCase
         $this->actingAs($this->buatPengguna('Tim Koordinasi/PMO'));
         $this->post(route('perencanaan.sinkron-psi'))->assertSessionHasErrors('sinkron');
     }
+
+    public function test_psi_cek_mendiagnosis_konfigurasi_dan_koneksi(): void
+    {
+        $this->fakeSif($this->ruteDasar());
+        $privat = tempnam(sys_get_temp_dir(), 'priv');
+        file_put_contents($privat, $this->sifPrivat);
+        $this->artisan('psi:cek', ['--kunci-privat' => $privat])
+            ->expectsOutputToContain('RSA 2048 bit')
+            ->expectsOutputToContain('pasangan cocok')
+            ->expectsOutputToContain('Koneksi: berhasil')
+            ->expectsOutputToContain('SEMUA PEMERIKSAAN LULUS')
+            ->assertSuccessful();
+
+        // API key salah: 401 dijelaskan.
+        config(['psn_dashboard.psi.sif.api_key' => 'salah']);
+        $this->artisan('psi:cek')->expectsOutputToContain('SIF_API_KEY salah')->assertFailed();
+
+        // Kunci privat terpasang sebagai kunci publik: ditolak dengan pesan jelas.
+        config(['psn_dashboard.psi.sif.kunci_publik' => $privat]);
+        $this->artisan('psi:cek', ['--tanpa-jaringan' => true])->expectsOutputToContain('berisi KUNCI PRIVAT')->assertFailed();
+        @unlink($privat);
+    }
 }
