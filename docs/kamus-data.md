@@ -54,6 +54,43 @@
 | `created_at` | timestamp | ya |  |  |
 | `updated_at` | timestamp | ya |  |  |
 
+## `integrasi_peks3_log`
+
+| Kolom | Tipe | Null | Relasi | Keterangan |
+|---|---|---|---|---|
+| `id` | bigint(20) unsigned |  | PK |  |
+| `jenis` | varchar(20) |  |  | PSN\|REFERENSI\|REKONSILIASI\|TERAPKAN |
+| `legacy_psn_id` | bigint(20) unsigned | ya |  |  |
+| `hasil` | varchar(20) |  |  | DITERIMA\|TETAP\|VERSI_LAMA\|BERHASIL\|GAGAL |
+| `pesan` | text | ya |  |  |
+| `ringkasan` | longtext | ya |  |  |
+| `ip_address` | varchar(45) | ya |  |  |
+| `created_at` | timestamp | ya |  |  |
+
+## `integrasi_peks3_psn`
+
+| Kolom | Tipe | Null | Relasi | Keterangan |
+|---|---|---|---|---|
+| `legacy_psn_id` | bigint(20) unsigned |  | PK | psn.id di SIRENDA PEKS3 |
+| `versi` | bigint(20) unsigned |  |  | versi paket (mikrodetik epoch); paket lebih lama diabaikan |
+| `sidik` | char(64) |  |  | SHA-256 isi paket; isi sama = tidak ada perubahan |
+| `jumlah_baris` | int(10) unsigned |  |  |  |
+| `dihapus` | tinyint(1) |  |  |  |
+| `diterima_at` | timestamp | ya |  |  |
+
+## `integrasi_peks3_status`
+
+| Kolom | Tipe | Null | Relasi | Keterangan |
+|---|---|---|---|---|
+| `id` | tinyint(3) unsigned |  | PK |  |
+| `tertunda_sejak` | timestamp | ya |  | perubahan pertama yang belum diterapkan; null = tidak ada antrean |
+| `perubahan_terakhir_at` | timestamp | ya |  |  |
+| `diterapkan_at` | timestamp | ya |  |  |
+| `durasi_detik` | decimal(8,1) | ya |  |  |
+| `hasil` | longtext | ya |  |  |
+| `galat` | text | ya |  |  |
+| `updated_at` | timestamp | ya |  |  |
+
 ## `integrasi_psi_log`
 
 | Kolom | Tipe | Null | Relasi | Keterangan |

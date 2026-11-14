@@ -398,6 +398,13 @@ Dit. PSI menyerahkan *Dokumen Integrasi API Usulan PSN untuk PMO* v1.3 dan *Tata
 - K1 kini menghitung seluruh PSN tercatat (RKP + Permenko, termasuk Keluar PSN), misalnya 380 = 377 aktif + 3 keluar pada cut-off Oktober 2026. Keterangan kartu menampilkan rincian aktif/keluar; klik kartu membuka Portofolio dengan `nonaktif=1`. Indikator lain dan persentase panel tetap berbasis PSN aktif.
 - Uji akurasi menambah kombinasi `sumber=rkp`, `sumber=permenko`, dan `sumber=rkp&prov=…`.
 
+### 8.12 Sinkron otomatis dari SIRENDA PEKS3
+
+- Tiga aplikasi: Perencanaan/SIF (Dit. PSI, usulan), SIRENDA (PEKS3, input profil PSN, sumber kebenaran), Dashboard (konsultan).
+- PEKS3 mengirim paket lengkap per PSN ke `POST /api/integrasi/peks3/v1/psn` (HMAC-SHA256) setiap ada perubahan (kit `dashboard:kirim`, cron tiap menit). Dashboard menyimpannya di basis data cermin (koneksi `legacy`), lalu `peks3:terapkan` menjalankan `LegacyImporter` + bangun ulang snapshot dalam satu transaksi; cache dibatalkan setelah commit.
+- `LegacyImporter::kosongkan(transaksional: true, pertahankanUsulan: true)`: DELETE alih-alih TRUNCATE; usulan dan penilaian dashboard tidak disentuh. ID PSN kini dipertahankan antar-impor (`/proyek/{id}` stabil), juga untuk `legacy:import --fresh`.
+- Prosedur lengkap: `docs/integrasi-peks3.md`.
+
 ## 9. Hasil impor awal (dump 7 Oktober 2026)
 
 Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan test`): jumlah PSN, lokasi, item profil, regulasi, KP/RO, agregat per provinsi, agregat per klaster, dan total nilai investasi **identik** dengan basis data lama.

@@ -13,3 +13,10 @@ Schedule::command('psi:sinkron')
     ->hourly()
     ->withoutOverlapping()
     ->when(fn () => config('psn_dashboard.psi.sif.sinkron_otomatis'));
+
+// Terapkan kiriman SIRENDA PEKS3 ke dashboard: dicek setiap menit, berjalan bila ada antrean yang sudah tenang
+// (PEKS3_JEDA_DETIK) atau sudah menunggu terlalu lama (PEKS3_TUNGGU_MAKS_DETIK).
+Schedule::command('peks3:terapkan')
+    ->everyMinute()
+    ->withoutOverlapping(30)
+    ->when(fn () => config('psn_dashboard.peks3.aktif'));

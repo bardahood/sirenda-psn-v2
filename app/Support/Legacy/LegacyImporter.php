@@ -40,6 +40,9 @@ class LegacyImporter
 
     protected Connection $legacy;
 
+    /** @var array<int,int> legacy psn.id -> psn.id v2 dari impor sebelumnya (diisi kosongkan()). */
+    protected array $idPsnTetap = [];
+
     /** @var array<string, array<string,int>> peta kode -> id per tabel referensi */
     protected array $ref = [];
 
@@ -71,16 +74,23 @@ class LegacyImporter
      * akun pengguna (kata sandi & peran yang sudah diatur di v2); dan jejak audit aksi aplikasi
      * di luar tabel data PSN.
      */
-    public function kosongkan(): void
+    public function kosongkan(bool $transaksional = false, bool $pertahankanUsulan = false): void
     {
-        // Usulan hasil impor (psn_2027): hapus dengan FK aktif agar penilaian/pleno terkait ikut terhapus (cascade).
-        DB::table('usulan_psn')->whereNotNull('legacy_id')->delete();
+        // ID PSN dipertahankan antar-impor agar tautan /proyek/{id} tidak berubah (lihat langkahPsn).
+        $this->idPsnTetap = DB::table('psn')->whereNotNull('legacy_id')->pluck('id', 'legacy_id')->map(fn ($id) => (int) $id)->all();
+
+        if (! $pertahankanUsulan) {
+            // Usulan hasil impor (psn_2027): hapus dengan FK aktif agar penilaian/pleno terkait ikut terhapus (cascade).
+            DB::table('usulan_psn')->whereNotNull('legacy_id')->delete();
+        }
         DB::table('audit_log')->where(fn ($q) => $q->where('sumber', 'IMPOR_LEGACY')
             ->orWhereIn('tabel', array_diff(self::TABEL_DATA, self::TABEL_DIPERTAHANKAN)))->delete();
 
+        // Mode transaksional (sinkron PEKS3): DELETE alih-alih TRUNCATE (TRUNCATE memicu commit implisit),
+        // sehingga pembaca tetap melihat data lama sampai seluruh impor & snapshot selesai di-commit.
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
         foreach (array_diff(self::TABEL_DATA, self::TABEL_DIPERTAHANKAN) as $tabel) {
-            DB::table($tabel)->truncate();
+            $transaksional ? DB::table($tabel)->delete() : DB::table($tabel)->truncate();
         }
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
     }
@@ -189,6 +199,8 @@ class LegacyImporter
         $min = config('psn_dashboard.investasi.min_rp');
         $max = config('psn_dashboard.investasi.max_rp');
 
+        // ID eksplisit: PSN lama memakai ID sebelumnya, PSN baru melanjutkan setelah ID terbesar.
+        $idBerikut = max([0, ...array_values($this->idPsnTetap), (int) DB::table('psn')->max('id')]) + 1;
         foreach ($this->legacy->table('psn')->orderBy('id')->get() as $p) {
             $nilai = $this->angka($p->nilai_investasi);
             $anomali = $nilai !== null && $nilai > 0 && ($nilai < $min || $nilai > $max);
@@ -197,6 +209,7 @@ class LegacyImporter
             }
 
             $id = DB::table('psn')->insertGetId([
+                'id' => $this->idPsnTetap[(int) $p->id] ?? $idBerikut++,
                 'legacy_id' => $p->id,
                 'uuid' => $p->uuid ?: (string) Str::uuid(),
                 'kode_psn' => $this->teks($p->kode_psn),

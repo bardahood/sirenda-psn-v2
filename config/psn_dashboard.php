@@ -273,4 +273,42 @@ return [
         'portofolio' => 300,
         'kualitas_data' => 86400,
     ],
+
+    // Sinkron data dari SIRENDA PEKS3 (aplikasi input profil PSN) ke dashboard. Lihat docs/integrasi-peks3.md.
+    // PEKS3 mengirim paket per PSN (HMAC-SHA256) -> basis data cermin (koneksi `legacy`) -> diterapkan atomik
+    // lewat LegacyImporter + bangun ulang snapshot semua cut-off.
+    'peks3' => [
+        'aktif' => (bool) env('PEKS3_AKTIF', false),
+        'client_id' => env('PEKS3_CLIENT_ID', 'sirenda-peks3'),
+        'rahasia' => env('PEKS3_RAHASIA'),                       // kunci HMAC bersama, min. 32 karakter
+        'ip_diizinkan' => array_values(array_filter(array_map('trim', explode(',', (string) env('PEKS3_IP_DIIZINKAN', ''))))),
+        'toleransi_detik' => 300,                                // selisih X-Timestamp yang diterima
+        'jeda_terapkan_detik' => (int) env('PEKS3_JEDA_DETIK', 60),          // tunggu tidak ada kiriman baru selama ini
+        'tunggu_maks_detik' => (int) env('PEKS3_TUNGGU_MAKS_DETIK', 600),    // terapkan paling lambat setelah ini
+        'maks_paket' => 50,
+        'maks_baris_referensi' => 5000,
+        // Rekonsiliasi ditolak bila akan menghapus lebih dari proporsi ini (indikasi daftar ID terpotong).
+        'maks_hapus_rekonsiliasi' => 0.2,
+
+        // Tabel per PSN -> kolom kunci PSN. Paket mengganti SELURUH baris tabel ini milik PSN tersebut.
+        'tabel_psn' => [
+            'psn' => 'id', 'psn_log' => 'id',
+            'lokasi_psn' => 'psn_id', 'unit_pengampu' => 'psn_id', 'psn_penanggung_jawab' => 'psn_id', 'psn_pendanaan' => 'psn_id',
+            'psn_sdgs' => 'psn_id', 'psn_item' => 'psn_id', 'target_psn' => 'psn_id', 'dukungan_psn' => 'psn_id',
+            'psn_fasilitas' => 'psn_id', 'psn_kebutuhan' => 'psn_id', 'psn_dokumentasi' => 'psn_id', 'psn_stakeholder' => 'psn_id',
+            'psn_indikator' => 'psn_id', 'psn_penerima' => 'psn_id', 'psn_trisula' => 'psn_id', 'psn_trisula_triwulan' => 'psn_id',
+            'psn_kegiatan' => 'psn_id', 'psn_kegiatan_detil' => 'psn_id', 'psn_kegiatan_cp' => 'psn_id', 'psn_kegiatan_detil_cp' => 'psn_id',
+            'psn_risiko' => 'psn_id', 'psn_pj_perlakuan' => 'psn_id', 'psn_regulasi' => 'psn_id', 'monev_header' => 'psn_id',
+            'psn_risiko_log' => 'psn_id', 'psn_regulasi_log' => 'psn_id', 'psn_kegiatan_log' => 'psn_id', 'psn_indikator_log' => 'psn_id',
+            'psn_penerima_log' => 'psn_id', 'psn_trisula_log' => 'psn_id', 'psn_item_log' => 'psn_id', 'psn_kebutuhan_log' => 'psn_id',
+            'psn_stakeholder_log' => 'psn_id', 'psn_dokumentasi_log' => 'psn_id', 'psn_fasilitas_log' => 'psn_id', 'psn_sdgs_log' => 'psn_id',
+            'psn_pj_perlakuan_log' => 'psn_id',
+        ],
+        // Anak monev_header (kunci monev_id), ikut diganti bersama paket PSN.
+        'tabel_monev' => ['monev_detil', 'monev_kelembagaan', 'monev_capaian', 'monev_anggaran', 'monev_risiko', 'monev_regulasi', 'monev_dokumentasi', 'monev_evaluasi'],
+        // Tabel referensi/global: upsert per kunci (tanpa hapus).
+        'tabel_referensi' => ['master' => ['tipe_tabel', 'kode_tabel'], 'users' => ['username'], 'psn_2027' => ['id'], 'peta' => ['code', 'hc-key']],
+        // Kolom yang tidak boleh dikirim/disimpan (kredensial aplikasi lama).
+        'kolom_dibuang' => ['users' => ['password', 'token', 'remember_token']],
+    ],
 ];

@@ -2030,3 +2030,54 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
+--
+-- Table structure for table `integrasi_peks3_log`
+--
+
+DROP TABLE IF EXISTS `integrasi_peks3_log`;
+CREATE TABLE `integrasi_peks3_log` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `jenis` varchar(20) NOT NULL COMMENT 'PSN|REFERENSI|REKONSILIASI|TERAPKAN',
+  `legacy_psn_id` bigint(20) unsigned DEFAULT NULL,
+  `hasil` varchar(20) NOT NULL COMMENT 'DITERIMA|TETAP|VERSI_LAMA|BERHASIL|GAGAL',
+  `pesan` text DEFAULT NULL,
+  `ringkasan` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`ringkasan`)),
+  `ip_address` varchar(45) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `integrasi_peks3_log_created_at_index` (`created_at`),
+  KEY `integrasi_peks3_log_legacy_psn_id_created_at_index` (`legacy_psn_id`,`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Table structure for table `integrasi_peks3_psn`
+--
+
+DROP TABLE IF EXISTS `integrasi_peks3_psn`;
+CREATE TABLE `integrasi_peks3_psn` (
+  `legacy_psn_id` bigint(20) unsigned NOT NULL COMMENT 'psn.id di SIRENDA PEKS3',
+  `versi` bigint(20) unsigned NOT NULL COMMENT 'versi paket (mikrodetik epoch); paket lebih lama diabaikan',
+  `sidik` char(64) NOT NULL COMMENT 'SHA-256 isi paket; isi sama = tidak ada perubahan',
+  `jumlah_baris` int(10) unsigned NOT NULL DEFAULT 0,
+  `dihapus` tinyint(1) NOT NULL DEFAULT 0,
+  `diterima_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`legacy_psn_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Table structure for table `integrasi_peks3_status`
+--
+
+DROP TABLE IF EXISTS `integrasi_peks3_status`;
+CREATE TABLE `integrasi_peks3_status` (
+  `id` tinyint(3) unsigned NOT NULL,
+  `tertunda_sejak` timestamp NULL DEFAULT NULL COMMENT 'perubahan pertama yang belum diterapkan; null = tidak ada antrean',
+  `perubahan_terakhir_at` timestamp NULL DEFAULT NULL,
+  `diterapkan_at` timestamp NULL DEFAULT NULL,
+  `durasi_detik` decimal(8,1) DEFAULT NULL,
+  `hasil` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`hasil`)),
+  `galat` text DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
