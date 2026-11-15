@@ -3,12 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Exports\EvaluasiStatusExport;
+use App\Exports\KertasKerjaExport;
 use App\Models\EvaluasiPsn;
 use App\Models\Psn;
 use App\Services\EvaluasiStatusService;
+use App\Support\Evaluasi\FormatRingkas;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -90,6 +94,34 @@ class EvaluasiStatusController extends Controller
                 'pic' => ['nullable', 'array'],
                 'pic.nama' => ['nullable', 'string', 'max:150'], 'pic.jabatan' => ['nullable', 'string', 'max:150'],
                 'pic.unit' => ['nullable', 'string', 'max:200'], 'pic.kontak' => ['nullable', 'string', 'max:150'], 'pic.tanggal' => ['nullable', 'date'],
+                // Rincian kertas kerja (Format Ringkas).
+                'b4_manfaat' => ['nullable', 'string', 'max:4000'],
+                'c1_tipologi' => ['nullable', 'array'], 'c1_tipologi.*' => [Rule::in(array_diff(array_keys($c['tipologi_isu']), ['11']))],
+                'c1_lainnya' => ['nullable', 'string', 'max:255'],
+                'info_tambahan' => ['nullable', 'string', 'max:4000'],
+                'capaian' => ['nullable', 'array'],
+                'capaian.*.satuan' => ['nullable', 'string', 'max:100'],
+                'capaian.*.target_akhir' => ['nullable', 'numeric', 'min:0', 'max:1e20'],
+                'capaian.*.target_kumulatif' => ['nullable', 'numeric', 'min:0', 'max:1e20'],
+                'capaian.*.realisasi_kumulatif' => ['nullable', 'numeric', 'min:0', 'max:1e20'],
+                'capaian.*.keterangan' => ['nullable', 'string', 'max:2000'],
+                'milestone' => ['nullable', 'array', 'max:30'],
+                'milestone.*.kode' => ['required', Rule::in(array_merge(...array_map('array_keys', array_values($c['milestone']))))],
+                'milestone.*.nama_lain' => ['nullable', 'string', 'max:255'],
+                'milestone.*.status' => ['nullable', Rule::in(array_keys($c['status_milestone']))],
+                'milestone.*.tanggal' => ['nullable', 'date'],
+                'milestone.*.keterangan' => ['nullable', 'string', 'max:1000'],
+                'isu' => ['nullable', 'array', 'max:'.$c['maks_isu']],
+                'isu.*.uraian' => ['nullable', 'string', 'max:2000'],
+                'isu.*.tipologi' => ['nullable', Rule::in(array_keys($c['tipologi_isu']))],
+                'isu.*.jalur_kritis' => ['nullable', Rule::in(['0', '1'])],
+                'isu.*.upaya' => ['nullable', 'string', 'max:2000'],
+                'isu.*.dukungan' => ['nullable', 'string', 'max:2000'],
+                'lampiran' => ['nullable', 'array', 'max:'.$c['maks_lampiran']],
+                'lampiran.*.jenis' => ['nullable', Rule::in(array_keys($c['lampiran_jenis']))],
+                'lampiran.*.judul' => ['nullable', 'string', 'max:255'],
+                'lampiran.*.bentuk' => ['nullable', Rule::in(array_keys($c['lampiran_bentuk']))],
+                'lampiran.*.tautan' => ['nullable', 'string', 'max:1000'],
             ];
         }
         if ($u->can('evaluasi.verifikasi')) {
@@ -115,8 +147,12 @@ class EvaluasiStatusController extends Controller
         // Kotak centang tidak terkirim bila kosong: bagian isian PJ dikirim utuh dengan penanda bagian_input.
         if ($u->can('evaluasi.input') && $r->boolean('bagian_input')) {
             $d['d2_fasilitas'] = array_values(array_unique($d['d2_fasilitas'] ?? [])) ?: null;
+            $d['c1_tipologi'] = array_values(array_unique($d['c1_tipologi'] ?? [])) ?: null;
             $d['tanpa_isu'] = $r->boolean('tanpa_isu');
         }
+        $rincian = $u->can('evaluasi.input') && $r->boolean('bagian_rincian')
+            ? collect(['capaian', 'milestone', 'isu', 'lampiran'])->filter(fn ($k) => array_key_exists($k, $d))->mapWithKeys(fn ($k) => [$k => $d[$k] ?? []])->all() : null;
+        unset($d['capaian'], $d['milestone'], $d['isu'], $d['lampiran']);
         if (isset($d['pic'])) {
             $d['pic'] = array_filter($d['pic'], fn ($v) => filled($v)) ?: null;
         }
@@ -131,11 +167,55 @@ class EvaluasiStatusController extends Controller
             $d['tindak_lanjut'] = $c['tindak_lanjut_otomatis'][$d['hasil_pengecekan'] ?? $e->hasil_pengecekan] ?? null;
         }
 
-        $this->layanan->simpan($e, $d, $ket);
+        $this->layanan->simpan($e, $d, $ket, $rincian);
         $peringatan = str_starts_with((string) $e->hasil_pengecekan, 'LENGKAP') && ! $this->layanan->satu($psn)['lengkap']
             ? ' Perhatian: Hasil Pengecekan "Lengkap" padahal cek otomatis masih menemukan isian wajib yang kosong.' : '';
 
         return redirect()->route('evaluasi.show', $psn)->with('status', 'Evaluasi tersimpan. Status akhir: '.$c['status'][$e->status_akhir].'.'.$peringatan);
+    }
+
+    /** Kertas kerja pengendalian: sheet "Format Ringkas" terisi dari profil dan isian setiap PSN. */
+    public function kertasKerja(Request $r, FormatRingkas $format)
+    {
+        $f = $this->filter($r);
+        $daftar = $this->layanan->daftar();
+        $baris = $this->saring($daftar, $f)->values();
+        $hal = LengthAwarePaginator::resolveCurrentPage();
+        $halaman = new LengthAwarePaginator($format->semua($baris->forPage($hal, 20)->values()), $baris->count(), 20, $hal, ['path' => $r->url(), 'query' => $r->query()]);
+        // Nomor urut mengikuti posisi pada daftar tersaring.
+        $halaman->getCollection()->transform(function ($b, $i) use ($halaman) {
+            $b['nilai']['no'] = $halaman->firstItem() + $i;
+
+            return $b;
+        });
+
+        return view('evaluasi.kertas-kerja', ['format' => $format, 'baris' => $halaman, 'filter' => $f, 'cfg' => config('psn_dashboard.evaluasi_status'),
+            'tahun' => $this->layanan->tahun(), 'cutoff' => $this->layanan->cutoff(),
+            'klaster' => $daftar->pluck('klaster')->filter()->unique()->sort()->values()]);
+    }
+
+    public function kertasKerjaXlsx(Request $r, FormatRingkas $format)
+    {
+        $baris = $format->semua($this->saring($this->layanan->daftar(), $this->filter($r))->values());
+
+        return Excel::download(new KertasKerjaExport($format, $baris), 'kertas-kerja-pengendalian-psn-rkp-'.$this->layanan->tahun().'_'.now()->format('Ymd').'.xlsx');
+    }
+
+    /** Grafik status harian (sheet "Grafik Status Harian"): 14 hari mulai tanggal pilihan + posisi saat ini. */
+    public function grafik(Request $r)
+    {
+        $hari = (int) config('psn_dashboard.evaluasi_status.hari_grafik');
+        $v = $r->validate(['mulai' => ['nullable', 'date_format:Y-m-d']]);
+        $mulai = isset($v['mulai']) ? CarbonImmutable::parse($v['mulai']) : CarbonImmutable::today()->subDays($hari - 1);
+        $daftar = $this->layanan->daftar();
+        $harian = $this->layanan->harian($daftar, $mulai->addDays($hari - 1));
+        $posisi = $daftar->countBy('status_akhir');
+        $terakhir = DB::table('evaluasi_psn_riwayat')->whereIn('evaluasi_psn_id', $daftar->pluck('evaluasi')->filter()->pluck('id')->all() ?: [0])->max('tanggal');
+
+        return view('evaluasi.grafik', ['harian' => $harian, 'mulai' => $mulai, 'posisi' => $posisi, 'terakhir' => $terakhir,
+            'cfg' => config('psn_dashboard.evaluasi_status'), 'tahun' => $this->layanan->tahun(), 'cutoff' => $this->layanan->cutoff(),
+            'cocok' => $this->layanan->harian($daftar, CarbonImmutable::today())[$hari - 1]['status']
+                === collect(array_keys(array_diff_key(config('psn_dashboard.evaluasi_status.status'), ['BELUM_DITERIMA' => 1])))->mapWithKeys(fn ($k) => [$k => $posisi[$k] ?? 0])->all()]);
     }
 
     protected function filter(Request $r): array

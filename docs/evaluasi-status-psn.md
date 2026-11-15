@@ -2,7 +2,7 @@
 
 Modul ini memindahkan kertas kerja **"Input Form Pengendalian PSN 2026 v4"** ke dalam dashboard. Tujuannya menentukan apakah setiap PSN **dipertahankan** atau **dikeluarkan** dari daftar PSN pada RKP berikutnya (bawaan RKP 2027, `EVALUASI_TAHUN_RKP`).
 
-Menu: **Evaluasi** (`/evaluasi-status`).
+Menu: **Evaluasi** (`/evaluasi-status`), dengan tiga halaman: **Pemantauan**, **Kertas Kerja (Format Ringkas)** (`/evaluasi-status/kertas-kerja`), dan **Grafik Status Harian** (`/evaluasi-status/grafik`).
 
 ## 1. Dari kertas kerja ke aplikasi
 
@@ -73,3 +73,35 @@ Izin `evaluasi.*` dibuat dan diberikan ke peran oleh migrasi `2026_11_15_100000`
 - `evaluasi_psn`: satu baris per PSN per tahun RKP (unik `tahun_rkp`, `psn_id`). `status_akhir` disimpan sebagai turunan untuk penyaringan.
 - `evaluasi_psn_riwayat`: perubahan status akhir (tanggal, status, keterangan, pengguna).
 - Evaluasi tidak ikut terhapus saat sinkron PEKS3 maupun `legacy:import --fresh`, karena ID PSN dipertahankan antar-impor.
+
+## 6. Kertas kerja (sheet "Format Ringkas") dan normalisasi data
+
+Halaman **Kertas Kerja** menampilkan 92 kolom yang sama persis dengan sheet "Format Ringkas" (kolom A sampai CN), 1 baris = 1 PSN. Unduhan **Unduh kertas kerja (Excel)** memakai tata letak yang sama: header bertingkat, kolom wajib berwarna, sel profil biru muda, isian wajib kosong kuning, dan kolom otomatis abu. Isian dilakukan per PSN di halaman evaluasi, dan setiap perubahan Status Akhir langsung tercermin di **Grafik Status Harian**.
+
+Grafik Status Harian meniru sheet aslinya: tanggal mulai dapat dipilih (14 hari), tabel jumlah PSN per status per hari, baris "posisi saat ini", tanggal riwayat terakhir, dan cek "riwayat hari ini = posisi kertas kerja".
+
+### 6.1 Asal setiap kelompok kolom
+
+| Kolom Format Ringkas | Sumber | Tabel/kolom |
+|---|---|---|
+| A1–A5, A7–A11, B1 | Profil SIRENDA | `psn`, `psn_lokasi`, `psn_kelembagaan`, `psn_sumber_dana`, `snapshot_psn` |
+| A6, A12 | Isian evaluasi | `evaluasi_psn.a6_tahun_penetapan`, `jenis_psn` |
+| B2.a/B2.b (7 komponen × satuan, target akhir, target kumulatif, realisasi, keterangan) | Isian; bila kosong memakai profil (progres fisik, pembiayaan, regulasi) | **`evaluasi_psn_capaian`** (baru) |
+| B3.a/B3.b milestone | Isian | **`evaluasi_psn_milestone`** (baru) |
+| B4 manfaat | Isian | `evaluasi_psn.b4_manfaat` (baru) |
+| C1 tipologi | Isian | `evaluasi_psn.c1_tipologi` (JSON kode), `c1_lainnya` (baru) |
+| C2 isu (uraian, tipologi, jalur kritis, upaya, dukungan) | Isian; bila belum ada memakai isu terbuka di profil | **`evaluasi_psn_isu`** (baru) |
+| D1–D3, PIC | Isian | `evaluasi_psn` |
+| Lampiran | Isian | **`evaluasi_psn_lampiran`** (baru) |
+| Informasi tambahan | Isian | `evaluasi_psn.info_tambahan` (baru) |
+| Cek otomatis, Status Akhir | Dihitung | `EvaluasiStatusService::analisis()`, `evaluasi_psn.status_akhir` |
+| Hasil pengecekan, tindak lanjut, catatan, indikasi | Isian | `evaluasi_psn` |
+
+### 6.2 Mengapa dinormalisasi
+
+Sheet Format Ringkas menyimpan kelompok berulang dalam satu baris: B2 berisi 7 komponen × 5 kolom (35 kolom yang sebagian besar kosong karena Fisik dan Non Fisik saling meniadakan), sementara B3, C2, dan lampiran ditulis sebagai teks bernomor "1. … 2. …" dalam satu sel. Bila disalin apa adanya ke tabel lebar, data tersebut tidak dapat dihitung, divalidasi, atau dipertahankan saat urutan berubah. Karena itu:
+
+1. **Kelompok berulang dipecah menjadi tabel anak memanjang** (`evaluasi_psn_capaian`, `_milestone`, `_isu`, `_lampiran`), satu baris per komponen/milestone/isu/lampiran, sejalan dengan aturan proyek untuk menyimpan data periodik secara memanjang. Keuntungannya: validasi per kolom (angka, tanggal, kode), deviasi dan agregasi dapat dihitung (misalnya jumlah isu jalur kritis per tipologi), dan tidak ada kolom kosong yang tidak relevan.
+2. **Pilihan majemuk berukuran kecil dan tetap** (C1 tipologi, D2 fasilitas) disimpan sebagai larik kode JSON di `evaluasi_psn`, karena selalu dibaca dan ditulis utuh. Bila nanti diperlukan rekap lintas PSN yang berat (misalnya "fasilitas paling banyak dibutuhkan"), keduanya dapat dipindahkan ke tabel pivot tanpa mengubah tampilan.
+3. **Data yang sudah ada di profil tidak digandakan.** Nilai B2 dan isu C2 dibaca dari profil selama isian kosong; isian hanya menyimpan angka yang berbeda menurut Form Pengendalian. Isu C2 menyimpan `isu_id` asal tanpa foreign key karena tabel `isu` dibangun ulang saat sinkron PEKS3.
+4. Tabel anak memakai `jejak(false)` (pencatat pembuat/pengubah tanpa soft delete) dan tercatat di `audit_log` dengan `psn_id` induknya; baris dicocokkan menurut posisi saat disimpan sehingga ID stabil.

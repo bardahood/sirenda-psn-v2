@@ -10,6 +10,7 @@ use Database\Seeders\PeranSeeder;
 use Database\Seeders\ReferensiSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use Tests\Support\BuatDataPsn;
 use Tests\TestCase;
 
@@ -27,7 +28,7 @@ class EvaluasiStatusTest extends TestCase
     protected function siapkan(): array
     {
         // Konstruksi, progres tertinggal 15 poin, isu jalur kritis terbuka dengan dukungan.
-        $a = $this->buatPsn(['nama' => 'Bendungan Evaluasi A', 'kode_psn' => 'R.1', 'tahun_selesai' => 2027, 'sumber_input' => 1], ['07']);
+        $a = $this->buatPsn(['nama' => 'Bendungan Evaluasi A', 'kode_psn' => 'R.1', 'tahun_selesai' => 2027, 'sumber_input' => 1, 'nilai_investasi_rp' => 500e9], ['07']);
         $cp = $this->buatKegiatan($a, [['periode' => 'BULANAN', 'periode_ke' => 10, 'target_persen' => 60, 'realisasi_persen' => 45, 'pagu_rp' => 100e9,
             'realisasi_anggaran_rp' => 30e9, 'dilaporkan_at' => '2026-10-20']], ['is_critical_path' => true]);
         DB::table('isu')->insert(['psn_id' => $a->id, 'kegiatan_id' => $cp->id, 'uraian' => 'Lahan belum bebas', 'status' => 'TERBUKA', 'kebutuhan_dukungan' => 'Konsinyasi']);
@@ -55,7 +56,7 @@ class EvaluasiStatusTest extends TestCase
         $this->actingAs($this->buatPengguna('Operator K/L', '07'));
         $this->get(route('evaluasi.show', $b))->assertNotFound(); // di luar cakupan unit
         $this->post(route('evaluasi.terima', $a), ['form_diterima_at' => '2026-11-10'])->assertRedirect(route('evaluasi.show', $a));
-        $this->put(route('evaluasi.update', $a), ['bagian_input' => 1, 'form_diterima_at' => '2026-11-10', 'a6_tahun_penetapan' => 2020, 'd1_kebutuhan' => 'MASIH',
+        $this->put(route('evaluasi.update', $a), ['bagian_input' => 1, 'c1_tipologi' => ['1'], 'form_diterima_at' => '2026-11-10', 'a6_tahun_penetapan' => 2020, 'd1_kebutuhan' => 'MASIH',
             'd2_fasilitas' => ['LMAN', 'HUKUM', 'LMAN'], 'd3_tahapan' => 'BEROPERASI_SEBAGIAN', 'd3_target' => 'Progres 80%', 'd3_tahun_selesai' => 2029,
             'indikasi_status' => 'DIPERTAHANKAN', 'hasil_pengecekan' => 'LENGKAP_BENAR'])->assertRedirect();
         $e = EvaluasiPsn::where('psn_id', $a->id)->firstOrFail();
@@ -133,5 +134,74 @@ class EvaluasiStatusTest extends TestCase
         $this->actingAs($this->buatPengguna('Pimpinan'));
         $this->get(route('evaluasi.index'))->assertOk();
         $this->post(route('evaluasi.terima', $a))->assertForbidden();
+    }
+
+    public function test_kertas_kerja_rincian_ekspor_dan_grafik(): void
+    {
+        [$a, $b] = $this->siapkan();
+        $this->actingAs($this->buatPengguna('Tim Koordinasi/PMO'));
+        $this->post(route('evaluasi.terima', $a));
+
+        // Isian rincian: capaian menimpa sebagian profil, milestone, isu (menggantikan isu profil), lampiran.
+        $this->put(route('evaluasi.update', $a), ['bagian_input' => 1, 'bagian_rincian' => 1, 'jenis_psn' => 'FISIK', 'a6_tahun_penetapan' => 2021,
+            'c1_tipologi' => ['1', '3'], 'c1_lainnya' => '', 'b4_manfaat' => 'Belum ada', 'info_tambahan' => 'Catatan PJ',
+            'capaian' => ['PROGRES_FISIK' => ['target_kumulatif' => '50', 'keterangan' => 'Kurva S Sep 2026'], 'OUTPUT_UTAMA' => ['satuan' => 'km', 'target_akhir' => '64', 'target_kumulatif' => '40', 'realisasi_kumulatif' => '36.2'],
+                'PERIZINAN' => ['target_akhir' => '', 'keterangan' => '']],
+            'milestone' => [['kode' => 'FS', 'status' => 'SELESAI', 'tanggal' => '2023-06-30', 'keterangan' => 'FS disetujui'], ['kode' => 'KKPR', 'status' => '', 'tanggal' => '', 'keterangan' => ''],
+                ['kode' => 'LAIN', 'nama_lain' => 'Izin pinjam pakai', 'status' => 'PROSES']],
+            'isu' => [['uraian' => '62 bidang belum bebas', 'tipologi' => '1', 'jalur_kritis' => '1', 'upaya' => 'Konsinyasi', 'dukungan' => 'Percepatan putusan PN'],
+                ['uraian' => '', 'tipologi' => '', 'jalur_kritis' => '', 'upaya' => '', 'dukungan' => '']],
+            'lampiran' => [['jenis' => 'DOKUMEN', 'judul' => 'Kurva S', 'bentuk' => 'FILE', 'tautan' => 'kurva.xlsx'], ['jenis' => '', 'judul' => '', 'bentuk' => '', 'tautan' => '']],
+        ])->assertRedirect()->assertSessionHasNoErrors();
+        $e = EvaluasiPsn::where('psn_id', $a->id)->firstOrFail();
+        $this->assertSame(['OUTPUT_UTAMA', 'PROGRES_FISIK'], $e->capaian()->orderBy('komponen')->pluck('komponen')->all());
+        $this->assertSame(['FS', 'LAIN'], $e->milestone()->pluck('kode')->all());
+        $this->assertSame(1, $e->isu()->count());
+        $this->assertSame(1, $e->lampiran()->count());
+
+        $layanan = app(EvaluasiStatusService::class);
+        $h = $layanan->satu($a);
+        $this->assertSame(50.0, $h['capaian']['PROGRES_FISIK']['target_kumulatif']);          // isian
+        $this->assertSame(45.0, $h['capaian']['PROGRES_FISIK']['realisasi_kumulatif']);       // profil
+        $this->assertSame(['target_akhir', 'realisasi_kumulatif'], array_values(array_diff($h['capaian']['PROGRES_FISIK']['dari_profil'], ['satuan'])));
+        $this->assertSame(-5.0, $h['indikator']['deviasi_fisik']);
+        $this->assertSame(['62 bidang belum bebas'], array_column($h['isu'], 'uraian'));
+
+        // Isian sebagian berikutnya: capaian dikosongkan seluruhnya kembali ke profil; baris isu bertambah memakai posisi.
+        $idIsu = $e->isu()->value('id');
+        $this->put(route('evaluasi.update', $a), ['bagian_input' => 1, 'bagian_rincian' => 1, 'c1_tipologi' => ['1'],
+            'capaian' => ['PROGRES_FISIK' => ['target_kumulatif' => '', 'keterangan' => '']],
+            'isu' => [['uraian' => '62 bidang belum bebas (diperbarui)', 'dukungan' => 'PN'], ['uraian' => 'Izin hutan', 'dukungan' => 'Kemenhut']]])->assertRedirect();
+        $this->assertSame(['OUTPUT_UTAMA'], $e->capaian()->pluck('komponen')->all());
+        $this->assertSame($idIsu, $e->isu()->value('id'));
+        $this->assertSame(2, $e->isu()->count());
+
+        $this->get(route('evaluasi.show', $a))->assertOk()->assertSee('B dan C. Capaian')->assertSee('Izin pinjam pakai', false)->assertSee('62 bidang belum bebas (diperbarui)');
+        $this->get(route('evaluasi.show', $b))->assertOk()->assertSee('Tandai form diterima');
+
+        // Kertas kerja (Format Ringkas) dan ekspor Excel 92 kolom dengan header bertingkat.
+        $html = $this->get(route('evaluasi.kertas-kerja'))->assertOk()->getContent();
+        foreach (['Bendungan Evaluasi A', 'B2.a Fisik – Output utama', 'Izin pinjam pakai', '62 bidang belum bebas (diperbarui)', 'Kertas Kerja (Format Ringkas)'] as $t) {
+            $this->assertStringContainsString($t, $html);
+        }
+        $this->get(route('evaluasi.kertas-kerja', ['status' => 'BELUM_DITERIMA']))->assertSee('Jalan Tol Evaluasi B')->assertDontSee('Bendungan Evaluasi A');
+        $xlsx = $this->get(route('evaluasi.kertas-kerja-xlsx'))->assertOk();
+        $berkas = tempnam(sys_get_temp_dir(), 'kk').'.xlsx';
+        copy($xlsx->baseResponse->getFile()->getPathname(), $berkas);
+        $ws = IOFactory::load($berkas)->getActiveSheet();
+        @unlink($berkas);
+        $this->assertSame('CN', $ws->getHighestColumn());
+        $this->assertSame('Kode PSN', $ws->getCell('B4')->getValue());
+        $this->assertSame('B2.a Fisik – Progres fisik', $ws->getCell('P3')->getValue());
+        $this->assertContains('P3:S3', array_keys($ws->getMergeCells()));
+        $baris = collect(range(5, 6))->first(fn ($r) => $ws->getCell("C{$r}")->getValue() === 'Bendungan Evaluasi A');
+        $this->assertSame('Proses Pengecekan', $ws->getCell("CN{$baris}")->getValue());
+        $this->assertSame('km', $ws->getCell("T{$baris}")->getValue());
+        $this->assertSame(45, (int) $ws->getCell("R{$baris}")->getValue()); // realisasi dari profil
+        $this->assertStringContainsString('1. Studi kelayakan', (string) $ws->getCell("BD{$baris}")->getValue());
+
+        // Grafik status harian: tabel 14 hari, posisi saat ini cocok dengan riwayat.
+        $this->get(route('evaluasi.grafik'))->assertOk()->assertSee('Tabel Status Harian')->assertSee('Cocok');
+        $this->get(route('evaluasi.grafik', ['mulai' => 'salah']))->assertSessionHasErrors('mulai');
     }
 }

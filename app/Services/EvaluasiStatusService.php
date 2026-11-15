@@ -57,30 +57,32 @@ class EvaluasiStatusService
             ->leftJoin('ref_klaster as k', 'k.id', '=', 's.klaster_id')
             ->where('s.is_aktif', true)
             ->orderBy('psn.nama')->orderBy('psn.id')
-            ->get(['psn.id', 'psn.nama', 'psn.kode_psn', 'psn.tahun_selesai', 's.sumber', 's.progres_rencana_persen', 's.progres_realisasi_persen',
+            ->get(['psn.id', 'psn.nama', 'psn.kode_psn', 'psn.tahun_selesai', 'psn.nilai_investasi_rp', 's.sumber', 's.progres_rencana_persen', 's.progres_realisasi_persen',
                 's.pagu_rp', 's.realisasi_anggaran_rp', 's.jumlah_ro', 's.jumlah_ro_tercapai', 's.unit_kerja_id', 'st.kode as status_kode', 'k.nama as klaster']);
         $id = $psn->pluck('id')->all();
         if (! $id) {
             return collect();
         }
 
-        $isu = DB::table('isu as i')->leftJoin('kegiatan as kg', 'kg.id', '=', 'i.kegiatan_id')
+        // Isu terbuka profil (jalur kritis dulu, lalu tenggat terdekat) sebagai isian C2 bawaan.
+        $maksIsu = (int) config('psn_dashboard.evaluasi_status.maks_isu');
+        $isuProfil = DB::table('isu as i')->leftJoin('kegiatan as kg', 'kg.id', '=', 'i.kegiatan_id')
             ->whereIn('i.psn_id', $id)->whereNull('i.deleted_at')->where('i.status', '<>', 'SELESAI')
-            ->groupBy('i.psn_id')
-            ->selectRaw("i.psn_id, COUNT(*) AS terbuka, SUM(COALESCE(TRIM(i.kebutuhan_dukungan), '') <> '') AS dengan_dukungan,
-                SUM(COALESCE(kg.is_critical_path, 0) = 1) AS jalur_kritis")
-            ->get()->keyBy('psn_id');
+            ->orderBy('i.psn_id')->orderByRaw('COALESCE(kg.is_critical_path, 0) DESC')->orderByRaw('i.tenggat IS NULL')->orderBy('i.tenggat')->orderBy('i.id')
+            ->get(['i.psn_id', 'i.uraian', 'i.tindak_lanjut', 'i.kebutuhan_dukungan', 'i.pic_nama', 'kg.is_critical_path'])
+            ->groupBy('psn_id');
         $kegiatan = DB::table('kegiatan')->whereIn('psn_id', $id)->whereNull('deleted_at')->groupBy('psn_id')
             ->selectRaw('psn_id, COUNT(*) AS n')->pluck('n', 'psn_id');
         $manfaat = DB::table('penerima_manfaat')->whereIn('psn_id', $id)->whereNull('deleted_at')->groupBy('psn_id')->selectRaw('psn_id, COUNT(*) AS n')->pluck('n', 'psn_id');
         foreach (DB::table('indikator')->whereIn('psn_id', $id)->whereNull('deleted_at')->groupBy('psn_id')->selectRaw('psn_id, COUNT(*) AS n')->pluck('n', 'psn_id') as $p => $n) {
             $manfaat[$p] = ($manfaat[$p] ?? 0) + $n;
         }
-        $regulasi = DB::table('regulasi')->whereIn('psn_id', $id)->whereNull('deleted_at')->where('tahap', '<>', 'DITETAPKAN')
-            ->groupBy('psn_id')->selectRaw('psn_id, COUNT(*) AS n')->pluck('n', 'psn_id');
-        $evaluasi = EvaluasiPsn::where('tahun_rkp', $this->tahun())->whereIn('psn_id', $id)->get()->keyBy('psn_id');
+        $regulasi = DB::table('regulasi')->whereIn('psn_id', $id)->whereNull('deleted_at')->groupBy('psn_id')
+            ->selectRaw("psn_id, COUNT(*) AS total, SUM(tahap = 'DITETAPKAN') AS ditetapkan")->get()->keyBy('psn_id');
+        $evaluasi = EvaluasiPsn::where('tahun_rkp', $this->tahun())->whereIn('psn_id', $id)
+            ->with(['capaian', 'milestone', 'isu', 'lampiran'])->get()->keyBy('psn_id');
 
-        return $psn->map(function ($p) use ($tahapan, $isu, $kegiatan, $manfaat, $regulasi, $evaluasi) {
+        return $psn->map(function ($p) use ($tahapan, $isuProfil, $maksIsu, $kegiatan, $manfaat, $regulasi, $evaluasi) {
             $data = [
                 'tahapan' => $tahapan[(string) $p->status_kode] ?? null,
                 'tahun_selesai' => $p->tahun_selesai ? (int) $p->tahun_selesai : null,
@@ -89,12 +91,16 @@ class EvaluasiStatusService
                 'pagu_rp' => $p->pagu_rp !== null ? (float) $p->pagu_rp : null,
                 'realisasi_anggaran_rp' => $p->realisasi_anggaran_rp !== null ? (float) $p->realisasi_anggaran_rp : null,
                 'ro' => [(int) $p->jumlah_ro_tercapai, (int) $p->jumlah_ro],
-                'isu_terbuka' => (int) ($isu[$p->id]->terbuka ?? 0),
-                'isu_dengan_dukungan' => (int) ($isu[$p->id]->dengan_dukungan ?? 0),
-                'isu_jalur_kritis' => (int) ($isu[$p->id]->jalur_kritis ?? 0),
+                'isu_terbuka' => count($isuProfil[$p->id] ?? []),
+                'isu_profil' => collect($isuProfil[$p->id] ?? [])->take($maksIsu)->map(fn ($i) => ['uraian' => $i->uraian, 'tipologi' => null,
+                    'jalur_kritis' => $i->is_critical_path === null ? null : (bool) $i->is_critical_path, 'upaya' => $i->tindak_lanjut,
+                    'dukungan' => trim(($i->kebutuhan_dukungan ?? '').($i->pic_nama ? " ({$i->pic_nama})" : '')) ?: null, 'dari_profil' => true])->values()->all(),
                 'kegiatan' => (int) ($kegiatan[$p->id] ?? 0),
                 'manfaat' => (int) ($manfaat[$p->id] ?? 0),
-                'regulasi_belum' => (int) ($regulasi[$p->id] ?? 0),
+                'regulasi_total' => (int) ($regulasi[$p->id]->total ?? 0),
+                'regulasi_ditetapkan' => (int) ($regulasi[$p->id]->ditetapkan ?? 0),
+                'regulasi_belum' => (int) (($regulasi[$p->id]->total ?? 0) - ($regulasi[$p->id]->ditetapkan ?? 0)),
+                'nilai_investasi_rp' => $p->nilai_investasi_rp !== null ? (float) $p->nilai_investasi_rp : null,
             ];
             $e = $evaluasi[$p->id] ?? null;
 
@@ -117,25 +123,40 @@ class EvaluasiStatusService
     {
         $t = $d['tahapan'];
         $berjalan = in_array($t, ['PENYIAPAN', 'TRANSAKSI', 'KONSTRUKSI', 'BEROPERASI_SEBAGIAN'], true);
+        $jenis = $e?->jenis_psn ?: 'FISIK';
+        $capaian = $this->capaian($d, $e);
+        $isuEfektif = $this->isuEfektif($d, $e);
+        $tanpaIsu = $e?->tanpa_isu || str_contains(mb_strtolower((string) $e?->c1_lainnya), 'tidak ada');
+        $terisi = fn (string $k, array $kolom) => collect($kolom)->every(fn ($c) => filled($capaian[$k][$c] ?? null));
         $kurang = [];
 
-        // Aturan wajib isi (kertas kerja sheet "Aturan Wajib Isi"), dipetakan ke data profil.
+        // Aturan wajib isi (kertas kerja sheet "Aturan Wajib Isi"). Nilai B2 = isian kertas kerja, bila kosong data profil.
         $e?->a6_tahun_penetapan || $kurang[] = 'A6 Tahun penetapan PSN';
         $d['tahun_selesai'] || $kurang[] = 'A7 Target tahun selesai';
         $t || $kurang[] = 'B1 Tahapan';
         if (in_array($t, ['KONSTRUKSI', 'BEROPERASI_SEBAGIAN', 'KUMULATIF_SELESAI'], true)) {
-            ($d['progres_rencana'] !== null && $d['progres_realisasi'] !== null) || $kurang[] = 'B2 Progres fisik/output';
-            ($d['pagu_rp'] && $d['realisasi_anggaran_rp'] !== null) || $kurang[] = 'B2 Pembiayaan';
+            $tiga = ['target_akhir', 'target_kumulatif', 'realisasi_kumulatif'];
+            $empat = ['satuan', ...$tiga];
+            if ($jenis === 'FISIK') {
+                ($terisi('PROGRES_FISIK', $tiga) || $terisi('OUTPUT_UTAMA', $empat)) || $kurang[] = 'B2 Progres fisik/output';
+            } else {
+                $terisi('OUTPUT_UTAMA', $empat) || $kurang[] = 'B2 Progres fisik/output';
+            }
+            $terisi('PEMBIAYAAN', $tiga) || $kurang[] = 'B2 Pembiayaan';
         }
-        if (in_array($t, ['PENYIAPAN', 'TRANSAKSI'], true) && ! $d['kegiatan']) {
-            $kurang[] = 'B3 Milestone (KP/RO)';
+        if (in_array($t, ['PENYIAPAN', 'TRANSAKSI'], true)
+            && ! collect($e?->milestone ?? [])->contains(fn ($m) => filled($m->status) && array_key_exists($m->kode, config("psn_dashboard.evaluasi_status.milestone.{$jenis}")))) {
+            $kurang[] = 'B3 Milestone';
         }
-        if (in_array($t, ['BEROPERASI_SEBAGIAN', 'KUMULATIF_SELESAI'], true) && ! $d['manfaat']) {
+        if (in_array($t, ['BEROPERASI_SEBAGIAN', 'KUMULATIF_SELESAI'], true) && blank($e?->b4_manfaat)) {
             $kurang[] = 'B4 Manfaat';
         }
-        if ($berjalan && ! $e?->tanpa_isu) {
-            $d['isu_terbuka'] || $kurang[] = 'C1 Tipologi isu';
-            $d['isu_dengan_dukungan'] || $kurang[] = 'C2 Isu dan dukungan yang dibutuhkan';
+        if ($berjalan && ! $e?->c1_tipologi && blank($e?->c1_lainnya) && ! $tanpaIsu) {
+            $kurang[] = 'C1 Tipologi isu';
+        }
+        if (($berjalan || $e?->c1_tipologi) && ! $tanpaIsu
+            && ! collect($isuEfektif)->contains(fn ($i) => filled($i['uraian']) && filled($i['dukungan']))) {
+            $kurang[] = 'C2 Isu dan dukungan yang dibutuhkan';
         }
         $e?->d1_kebutuhan || $kurang[] = 'D1 Kebutuhan status PSN';
         if ($e?->d1_kebutuhan === 'MASIH') {
@@ -147,12 +168,15 @@ class EvaluasiStatusService
 
         // Indikator.
         $a = config('psn_dashboard.evaluasi_status.ambang');
-        $deviasi = $d['progres_rencana'] !== null && $d['progres_realisasi'] !== null ? round($d['progres_realisasi'] - $d['progres_rencana'], 1) : null;
-        $serapan = $d['pagu_rp'] ? round(100 * ($d['realisasi_anggaran_rp'] ?? 0) / $d['pagu_rp'], 1) : null;
+        $pf = $capaian['PROGRES_FISIK'];
+        $deviasi = $pf['target_kumulatif'] !== null && $pf['realisasi_kumulatif'] !== null ? round($pf['realisasi_kumulatif'] - $pf['target_kumulatif'], 1) : null;
+        $pb = $capaian['PEMBIAYAAN'];
+        $serapan = $pb['target_kumulatif'] ? round(100 * ($pb['realisasi_kumulatif'] ?? 0) / $pb['target_kumulatif'], 1) : null;
+        $jalurKritis = collect($isuEfektif)->where('jalur_kritis', true)->count();
         $mundur = $e?->d3_tahun_selesai && $d['tahun_selesai'] ? $e->d3_tahun_selesai - $d['tahun_selesai'] : null;
         $umur = $e?->a6_tahun_penetapan ? $this->tahun() - $e->a6_tahun_penetapan : null;
         $indikator = ['deviasi_fisik' => $deviasi, 'serapan' => $serapan, 'mundur_tahun' => $mundur, 'umur_psn' => $umur,
-            'isu_terbuka' => $d['isu_terbuka'], 'isu_jalur_kritis' => $d['isu_jalur_kritis'], 'regulasi_belum' => $d['regulasi_belum']];
+            'isu_terbuka' => count($isuEfektif), 'isu_jalur_kritis' => $jalurKritis, 'regulasi_belum' => $d['regulasi_belum']];
 
         // Rekomendasi sistem dan sinyal pendukungnya.
         $sinyal = [];
@@ -161,7 +185,7 @@ class EvaluasiStatusService
         $mundur !== null && $mundur >= $a['mundur_tahun'] && $sinyal[] = "Proyeksi selesai mundur {$mundur} tahun dari target";
         $umur !== null && in_array($t, ['PENYIAPAN', 'TRANSAKSI'], true) && $umur >= $a['penyiapan_maks_tahun']
             && $sinyal[] = 'Masih tahap '.mb_strtolower(config("psn_dashboard.evaluasi_status.tahapan.{$t}"))." {$umur} tahun sejak ditetapkan";
-        $d['isu_jalur_kritis'] && $sinyal[] = "{$d['isu_jalur_kritis']} isu terbuka menghambat jalur kritis";
+        $jalurKritis && $sinyal[] = "{$jalurKritis} isu terbuka menghambat jalur kritis";
         $e?->d1_kebutuhan === 'MASIH' && ! $e->d2_fasilitas && $sinyal[] = 'Membutuhkan status PSN tanpa fasilitas yang dipilih';
 
         $rekomendasi = match (true) {
@@ -177,13 +201,57 @@ class EvaluasiStatusService
             array_unshift($sinyal, 'Tahapan kumulatif selesai');
         }
 
-        return ['data' => $d, 'kurang' => $kurang, 'lengkap' => $kurang === [], 'indikator' => $indikator, 'rekomendasi' => $rekomendasi, 'sinyal' => $sinyal];
+        return ['data' => $d, 'kurang' => $kurang, 'lengkap' => $kurang === [], 'indikator' => $indikator, 'rekomendasi' => $rekomendasi, 'sinyal' => $sinyal,
+            'capaian' => $capaian, 'isu' => $isuEfektif, 'jenis' => $jenis];
+    }
+
+    /**
+     * Nilai efektif B2 per komponen: isian kertas kerja; bila kosong, data profil (snapshot cut-off).
+     *
+     * @return array<string, array{satuan:?string, target_akhir:?float, target_kumulatif:?float, realisasi_kumulatif:?float, keterangan:?string, dari_profil:string[]}>
+     */
+    public function capaian(array $d, ?EvaluasiPsn $e): array
+    {
+        $miliar = fn ($v) => $v === null ? null : round($v / 1e9, 2);
+        $profil = [
+            'PROGRES_FISIK' => ['satuan' => '%', 'target_akhir' => $d['progres_rencana'] !== null ? 100.0 : null, 'target_kumulatif' => $d['progres_rencana'], 'realisasi_kumulatif' => $d['progres_realisasi']],
+            'PEMBIAYAAN' => ['satuan' => 'Rp miliar', 'target_akhir' => $miliar($d['nilai_investasi_rp'] ?? null), 'target_kumulatif' => $miliar($d['pagu_rp']), 'realisasi_kumulatif' => $miliar($d['realisasi_anggaran_rp'])],
+            'REGULASI' => ['satuan' => 'dokumen', 'target_akhir' => ($d['regulasi_total'] ?? 0) ?: null, 'target_kumulatif' => null, 'realisasi_kumulatif' => ($d['regulasi_total'] ?? 0) ? (float) $d['regulasi_ditetapkan'] : null],
+        ];
+        $isian = collect($e?->capaian ?? [])->keyBy('komponen');
+        $hasil = [];
+        foreach (config('psn_dashboard.evaluasi_status.capaian') as $k => [, $satuanTetap]) {
+            $baris = ['keterangan' => $isian[$k]->keterangan ?? null, 'dari_profil' => []];
+            foreach (['satuan', 'target_akhir', 'target_kumulatif', 'realisasi_kumulatif'] as $kol) {
+                $v = $isian[$k]->{$kol} ?? null;
+                if (blank($v) && isset($profil[$k][$kol])) {
+                    $v = $profil[$k][$kol];
+                    $baris['dari_profil'][] = $kol;
+                }
+                $baris[$kol] = $v;
+            }
+            $baris['satuan'] ??= $satuanTetap;
+            $hasil[$k] = $baris;
+        }
+
+        return $hasil;
+    }
+
+    /** Isu C2: isian kertas kerja; bila belum ada, isu terbuka di profil (jalur kritis dari KP/RO). */
+    public function isuEfektif(array $d, ?EvaluasiPsn $e): array
+    {
+        if ($e && $e->isu->isNotEmpty()) {
+            return $e->isu->map(fn ($i) => ['uraian' => $i->uraian, 'tipologi' => $i->tipologi, 'jalur_kritis' => $i->jalur_kritis, 'upaya' => $i->upaya,
+                'dukungan' => $i->dukungan, 'dari_profil' => false])->all();
+        }
+
+        return $d['isu_profil'] ?? [];
     }
 
     /** Simpan isian evaluasi; status akhir dihitung ulang dan setiap perubahannya dicatat di riwayat. */
-    public function simpan(EvaluasiPsn $e, array $isian, ?string $keterangan = null): EvaluasiPsn
+    public function simpan(EvaluasiPsn $e, array $isian, ?string $keterangan = null, ?array $rincian = null): EvaluasiPsn
     {
-        return DB::transaction(function () use ($e, $isian, $keterangan) {
+        return DB::transaction(function () use ($e, $isian, $keterangan, $rincian) {
             $e->fill($isian);
             if ($e->isDirty('hasil_pengecekan') && ! array_key_exists('tindak_lanjut', $isian)) {
                 $e->tindak_lanjut = config("psn_dashboard.evaluasi_status.tindak_lanjut_otomatis.{$e->hasil_pengecekan}");
@@ -191,6 +259,9 @@ class EvaluasiStatusService
             $lama = $e->exists ? $e->getOriginal('status_akhir') : null;
             $e->status_akhir = $e->hitungStatusAkhir();
             $e->save();
+            if ($rincian !== null) {
+                $this->simpanRincian($e, $rincian);
+            }
             if ($lama !== $e->status_akhir) {
                 $e->riwayat()->create(['tanggal' => now()->toDateString(), 'status_akhir' => $e->status_akhir,
                     'keterangan' => $keterangan ?? ($lama ? null : 'Form diterima'), 'user_id' => Auth::id()]);
@@ -198,6 +269,44 @@ class EvaluasiStatusService
 
             return $e;
         });
+    }
+
+    /**
+     * Rincian kertas kerja (tabel anak). Baris dicocokkan menurut posisi agar ID stabil; baris kosong dibuang,
+     * capaian yang seluruh kolomnya kosong dihapus (kembali memakai data profil).
+     */
+    protected function simpanRincian(EvaluasiPsn $e, array $r): void
+    {
+        $kosong = fn (array $b, array $kol) => collect($kol)->every(fn ($k) => blank($b[$k] ?? null));
+        $kolCap = ['satuan', 'target_akhir', 'target_kumulatif', 'realisasi_kumulatif', 'keterangan'];
+        $ada = $e->capaian()->get()->keyBy('komponen');
+        // Hanya komponen yang dikirim yang diproses (formulir selalu mengirim semua komponen).
+        foreach (array_intersect(array_keys(config('psn_dashboard.evaluasi_status.capaian')), array_keys($r['capaian'] ?? [])) as $k) {
+            $b = $r['capaian'][$k] ?? [];
+            if ($kosong($b, $kolCap)) {
+                $ada->get($k)?->delete();
+
+                continue;
+            }
+            $nilai = collect($kolCap)->mapWithKeys(fn ($c) => [$c => blank($b[$c] ?? null) ? null : $b[$c]])->all();
+            $ada->has($k) ? $ada->get($k)->update($nilai) : $e->capaian()->create(['komponen' => $k] + $nilai);
+        }
+
+        $sinkron = function (string $relasi, array $baris, array $kolom, array $wajib) use ($e, $kosong) {
+            $baris = array_values(array_filter($baris, fn ($b) => ! $kosong($b, $wajib)));
+            $lama = $e->{$relasi}()->get()->values();
+            foreach ($baris as $i => $b) {
+                $nilai = collect($kolom)->mapWithKeys(fn ($c) => [$c => blank($b[$c] ?? null) ? null : $b[$c]])->all() + ['urutan' => $i + 1];
+                isset($lama[$i]) ? $lama[$i]->update($nilai) : $e->{$relasi}()->create($nilai);
+            }
+            $lama->slice(count($baris))->each->delete();
+        };
+        // Kelompok yang tidak dikirim tidak disentuh.
+        isset($r['milestone']) && $sinkron('milestone', array_map(fn ($m) => $m + ['status' => null], $r['milestone']), ['kode', 'nama_lain', 'status', 'tanggal', 'keterangan'], ['status', 'tanggal', 'keterangan', 'nama_lain']);
+        isset($r['isu']) && $sinkron('isu', array_map(fn ($i) => array_merge($i, ['jalur_kritis' => ($i['jalur_kritis'] ?? '') === '' ? null : (bool) $i['jalur_kritis']]), $r['isu']),
+            ['uraian', 'tipologi', 'jalur_kritis', 'upaya', 'dukungan'], ['uraian']);
+        isset($r['lampiran']) && $sinkron('lampiran', $r['lampiran'], ['jenis', 'judul', 'bentuk', 'tautan'], ['judul']);
+        $e->unsetRelation('capaian')->unsetRelation('milestone')->unsetRelation('isu')->unsetRelation('lampiran');
     }
 
     /** Ringkasan untuk visual alur (gaya "PSN dalam daftar" RKP). */

@@ -40,6 +40,9 @@ Route::middleware(['auth', 'akun.aktif'])->group(function () {
     // Evaluasi keberlanjutan status PSN (docs/evaluasi-status-psn.md).
     Route::get('/evaluasi-status', [EvaluasiStatusController::class, 'index'])->middleware('can:evaluasi.lihat')->name('evaluasi.index');
     Route::get('/evaluasi-status/ekspor.xlsx', [EvaluasiStatusController::class, 'ekspor'])->middleware('can:evaluasi.lihat')->name('evaluasi.ekspor');
+    Route::get('/evaluasi-status/kertas-kerja', [EvaluasiStatusController::class, 'kertasKerja'])->middleware('can:evaluasi.lihat')->name('evaluasi.kertas-kerja');
+    Route::get('/evaluasi-status/kertas-kerja.xlsx', [EvaluasiStatusController::class, 'kertasKerjaXlsx'])->middleware('can:evaluasi.lihat')->name('evaluasi.kertas-kerja-xlsx');
+    Route::get('/evaluasi-status/grafik', [EvaluasiStatusController::class, 'grafik'])->middleware('can:evaluasi.lihat')->name('evaluasi.grafik');
     Route::get('/evaluasi-status/{psn}', [EvaluasiStatusController::class, 'show'])->middleware('can:evaluasi.lihat')->whereNumber('psn')->name('evaluasi.show');
     Route::post('/evaluasi-status/{psn}/terima', [EvaluasiStatusController::class, 'terima'])->middleware('can:evaluasi.input')->whereNumber('psn')->name('evaluasi.terima');
     Route::put('/evaluasi-status/{psn}', [EvaluasiStatusController::class, 'update'])->middleware('can:evaluasi.input')->whereNumber('psn')->name('evaluasi.update');

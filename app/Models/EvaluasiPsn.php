@@ -26,6 +26,7 @@ class EvaluasiPsn extends Model
             'tanpa_isu' => 'boolean',
             'd2_fasilitas' => 'array',
             'pic' => 'array',
+            'c1_tipologi' => 'array',
         ];
     }
 
@@ -37,6 +38,26 @@ class EvaluasiPsn extends Model
     public function riwayat(): HasMany
     {
         return $this->hasMany(EvaluasiPsnRiwayat::class)->orderByDesc('tanggal')->orderByDesc('id');
+    }
+
+    public function capaian(): HasMany
+    {
+        return $this->hasMany(EvaluasiPsnCapaian::class);
+    }
+
+    public function milestone(): HasMany
+    {
+        return $this->hasMany(EvaluasiPsnMilestone::class)->orderBy('urutan')->orderBy('id');
+    }
+
+    public function isu(): HasMany
+    {
+        return $this->hasMany(EvaluasiPsnIsu::class)->orderBy('urutan')->orderBy('id');
+    }
+
+    public function lampiran(): HasMany
+    {
+        return $this->hasMany(EvaluasiPsnLampiran::class)->orderBy('urutan')->orderBy('id');
     }
 
     /** Status Akhir: Indikasi Status bila sudah diisi; bila belum, Tindak Lanjut; bila belum, Proses Pengecekan. */

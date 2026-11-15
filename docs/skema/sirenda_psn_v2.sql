@@ -2094,6 +2094,9 @@ CREATE TABLE `evaluasi_psn` (
   `a6_tahun_penetapan` smallint(5) unsigned DEFAULT NULL COMMENT 'A6 tahun pertama kali ditetapkan sebagai PSN',
   `jenis_psn` varchar(10) DEFAULT NULL COMMENT 'A12 FISIK|NON_FISIK',
   `tanpa_isu` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'C1 Lainnya: "Tidak ada isu"',
+  `b4_manfaat` text DEFAULT NULL COMMENT 'B4 manfaat yang sudah terwujud s.d. akhir triwulan',
+  `c1_tipologi` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'C1 kode tipologi isu 1-10 (config evaluasi_status.tipologi_isu)' CHECK (json_valid(`c1_tipologi`)),
+  `c1_lainnya` varchar(255) DEFAULT NULL COMMENT 'C1 tipologi 11 Lainnya; "Tidak ada isu" bila tanpa isu',
   `d1_kebutuhan` varchar(10) DEFAULT NULL COMMENT 'D1 MASIH|TIDAK',
   `d1_alasan` varchar(20) DEFAULT NULL COMMENT 'SELESAI|BATAL|TANPA_FASILITAS|LAINNYA',
   `d1_alasan_lain` text DEFAULT NULL,
@@ -2103,6 +2106,7 @@ CREATE TABLE `evaluasi_psn` (
   `d3_target` text DEFAULT NULL,
   `d3_tahun_selesai` smallint(5) unsigned DEFAULT NULL COMMENT 'proyeksi tahun selesai berdasarkan capaian aktual',
   `pic` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'nama, jabatan, unit, kontak, tanggal' CHECK (json_valid(`pic`)),
+  `info_tambahan` text DEFAULT NULL,
   `hasil_pengecekan` varchar(20) DEFAULT NULL COMMENT 'LENGKAP_BENAR|LENGKAP_ADA_SALAH|BELUM_LENGKAP|PROSES',
   `tindak_lanjut` varchar(20) DEFAULT NULL COMMENT 'SIAP_DIANALISIS|VERIFIKASI_PJ|BUTUH_DATA',
   `catatan_analisis` text DEFAULT NULL,
@@ -2145,5 +2149,113 @@ CREATE TABLE `evaluasi_psn_riwayat` (
   KEY `evaluasi_psn_riwayat_evaluasi_psn_id_tanggal_index` (`evaluasi_psn_id`,`tanggal`),
   CONSTRAINT `evaluasi_psn_riwayat_evaluasi_psn_id_foreign` FOREIGN KEY (`evaluasi_psn_id`) REFERENCES `evaluasi_psn` (`id`) ON DELETE CASCADE,
   CONSTRAINT `evaluasi_psn_riwayat_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Table structure for table `evaluasi_psn_capaian`
+--
+
+DROP TABLE IF EXISTS `evaluasi_psn_capaian`;
+CREATE TABLE `evaluasi_psn_capaian` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `evaluasi_psn_id` bigint(20) unsigned NOT NULL,
+  `komponen` varchar(20) NOT NULL COMMENT 'PROGRES_FISIK|OUTPUT_UTAMA|PEMBIAYAAN|PERIZINAN|PENGADAAN_LAHAN|REGULASI|SARANA',
+  `satuan` varchar(100) DEFAULT NULL,
+  `target_akhir` decimal(24,4) DEFAULT NULL COMMENT 'pembiayaan dalam Rp miliar, progres dalam %',
+  `target_kumulatif` decimal(24,4) DEFAULT NULL COMMENT 's.d. akhir triwulan cut-off',
+  `realisasi_kumulatif` decimal(24,4) DEFAULT NULL,
+  `keterangan` text DEFAULT NULL COMMENT 'keterangan / sumber data',
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `evaluasi_psn_capaian_evaluasi_psn_id_komponen_unique` (`evaluasi_psn_id`,`komponen`),
+  KEY `evaluasi_psn_capaian_created_by_foreign` (`created_by`),
+  KEY `evaluasi_psn_capaian_updated_by_foreign` (`updated_by`),
+  CONSTRAINT `evaluasi_psn_capaian_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `evaluasi_psn_capaian_evaluasi_psn_id_foreign` FOREIGN KEY (`evaluasi_psn_id`) REFERENCES `evaluasi_psn` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `evaluasi_psn_capaian_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Table structure for table `evaluasi_psn_milestone`
+--
+
+DROP TABLE IF EXISTS `evaluasi_psn_milestone`;
+CREATE TABLE `evaluasi_psn_milestone` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `evaluasi_psn_id` bigint(20) unsigned NOT NULL,
+  `kode` varchar(30) NOT NULL COMMENT 'kode milestone (config evaluasi_status.milestone_fisik / milestone_non_fisik)',
+  `nama_lain` varchar(255) DEFAULT NULL COMMENT 'nama milestone untuk kode LAIN',
+  `status` varchar(10) DEFAULT NULL COMMENT 'SELESAI|PROSES|BELUM|NA',
+  `tanggal` date DEFAULT NULL COMMENT 'tanggal selesai / target',
+  `keterangan` text DEFAULT NULL,
+  `urutan` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `evaluasi_psn_milestone_created_by_foreign` (`created_by`),
+  KEY `evaluasi_psn_milestone_updated_by_foreign` (`updated_by`),
+  KEY `evaluasi_psn_milestone_evaluasi_psn_id_urutan_index` (`evaluasi_psn_id`,`urutan`),
+  CONSTRAINT `evaluasi_psn_milestone_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `evaluasi_psn_milestone_evaluasi_psn_id_foreign` FOREIGN KEY (`evaluasi_psn_id`) REFERENCES `evaluasi_psn` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `evaluasi_psn_milestone_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Table structure for table `evaluasi_psn_isu`
+--
+
+DROP TABLE IF EXISTS `evaluasi_psn_isu`;
+CREATE TABLE `evaluasi_psn_isu` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `evaluasi_psn_id` bigint(20) unsigned NOT NULL,
+  `isu_id` bigint(20) unsigned DEFAULT NULL COMMENT 'isu profil asal (tanpa FK: isu dibangun ulang saat sinkron)',
+  `uraian` text NOT NULL,
+  `tipologi` varchar(4) DEFAULT NULL COMMENT 'kode C1 1-11',
+  `jalur_kritis` tinyint(1) DEFAULT NULL COMMENT 'menghambat jalur kritis / capaian sasaran',
+  `upaya` text DEFAULT NULL,
+  `dukungan` text DEFAULT NULL COMMENT 'dukungan yang dibutuhkan (apa dan dari siapa)',
+  `urutan` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `evaluasi_psn_isu_created_by_foreign` (`created_by`),
+  KEY `evaluasi_psn_isu_updated_by_foreign` (`updated_by`),
+  KEY `evaluasi_psn_isu_evaluasi_psn_id_urutan_index` (`evaluasi_psn_id`,`urutan`),
+  CONSTRAINT `evaluasi_psn_isu_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `evaluasi_psn_isu_evaluasi_psn_id_foreign` FOREIGN KEY (`evaluasi_psn_id`) REFERENCES `evaluasi_psn` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `evaluasi_psn_isu_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Table structure for table `evaluasi_psn_lampiran`
+--
+
+DROP TABLE IF EXISTS `evaluasi_psn_lampiran`;
+CREATE TABLE `evaluasi_psn_lampiran` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `evaluasi_psn_id` bigint(20) unsigned NOT NULL,
+  `jenis` varchar(10) DEFAULT NULL COMMENT 'DOKUMEN|FOTO|VIDEO|LAINNYA',
+  `judul` varchar(255) NOT NULL,
+  `bentuk` varchar(10) DEFAULT NULL COMMENT 'TAUTAN|FILE',
+  `tautan` varchar(1000) DEFAULT NULL COMMENT 'tautan (link) / nama file',
+  `urutan` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `evaluasi_psn_lampiran_created_by_foreign` (`created_by`),
+  KEY `evaluasi_psn_lampiran_updated_by_foreign` (`updated_by`),
+  KEY `evaluasi_psn_lampiran_evaluasi_psn_id_urutan_index` (`evaluasi_psn_id`,`urutan`),
+  CONSTRAINT `evaluasi_psn_lampiran_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `evaluasi_psn_lampiran_evaluasi_psn_id_foreign` FOREIGN KEY (`evaluasi_psn_id`) REFERENCES `evaluasi_psn` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `evaluasi_psn_lampiran_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

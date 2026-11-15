@@ -6,10 +6,11 @@ use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithStrictNullComparison;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
 /** Ekspor daftar evaluasi status PSN (kolom mengikuti "Format Ringkas" kertas kerja + hasil analisis sistem). */
-class EvaluasiStatusExport implements FromCollection, ShouldAutoSize, WithHeadings, WithTitle
+class EvaluasiStatusExport implements FromCollection, ShouldAutoSize, WithHeadings, WithStrictNullComparison, WithTitle
 {
     public function __construct(protected Collection $baris) {}
 
@@ -37,7 +38,7 @@ class EvaluasiStatusExport implements FromCollection, ShouldAutoSize, WithHeadin
             $d = $r['data'];
 
             return [$i + 1, $r['kode'], $r['nama'], $r['sumber'], $r['klaster'], $l('tahapan', $d['tahapan']), $d['tahun_selesai'], $e?->a6_tahun_penetapan,
-                $d['progres_rencana'], $d['progres_realisasi'], $r['indikator']['deviasi_fisik'], $r['indikator']['serapan'], $d['isu_terbuka'], $d['isu_jalur_kritis'],
+                $d['progres_rencana'], $d['progres_realisasi'], $r['indikator']['deviasi_fisik'], $r['indikator']['serapan'], $r['indikator']['isu_terbuka'], $r['indikator']['isu_jalur_kritis'],
                 $e?->form_diterima_at?->format('Y-m-d'), implode('; ', $r['kurang']), $r['lengkap'] ? 'Lengkap' : 'Belum Lengkap',
                 $l('d1', $e?->d1_kebutuhan), $e?->d1_alasan === 'LAINNYA' ? $e->d1_alasan_lain : $l('d1_alasan', $e?->d1_alasan),
                 collect($e?->d2_fasilitas ?? [])->map(fn ($k) => $c['d2_fasilitas'][$k] ?? $k)->implode('; '), $l('tahapan', $e?->d3_tahapan), $e?->d3_target, $e?->d3_tahun_selesai,

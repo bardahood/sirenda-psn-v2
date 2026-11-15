@@ -409,6 +409,7 @@ Dit. PSI menyerahkan *Dokumen Integrasi API Usulan PSN untuk PMO* v1.3 dan *Tata
 
 - Menu **Evaluasi** (`/evaluasi-status`) menggantikan kertas kerja "Input Form Pengendalian PSN 2026 v4": data A–C dibaca dari profil, isian D1–D3/A6/A12 dan keputusan dicatat per PSN, cek kelengkapan otomatis, rekomendasi sistem, riwayat status otomatis, grafik status harian, visual alur bertangga (aktif → form → pengecekan → indikasi → proyeksi RKP berikutnya), dan unduhan Excel.
 - Tabel `evaluasi_psn` dan `evaluasi_psn_riwayat`; izin `evaluasi.*`. Rincian: `docs/evaluasi-status-psn.md`.
+- Kertas kerja lengkap (92 kolom "Format Ringkas") dan halaman Grafik Status Harian; kelompok berulang dinormalisasi ke `evaluasi_psn_capaian`, `evaluasi_psn_milestone`, `evaluasi_psn_isu`, `evaluasi_psn_lampiran` (migrasi `2026_11_16_100000`).
 
 ## 9. Hasil impor awal (dump 7 Oktober 2026)
 

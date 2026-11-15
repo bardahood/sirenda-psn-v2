@@ -10,10 +10,18 @@
     $nilai = fn (string $k, $bawaan = null) => old($k, $bawaan);
     $kelompokKurang = collect($h['kurang']);
     $cekAturan = [
-        'A6 Tahun penetapan PSN', 'A7 Target tahun selesai', 'B1 Tahapan', 'B2 Progres fisik/output', 'B2 Pembiayaan', 'B3 Milestone (KP/RO)', 'B4 Manfaat',
+        'A6 Tahun penetapan PSN', 'A7 Target tahun selesai', 'B1 Tahapan', 'B2 Progres fisik/output', 'B2 Pembiayaan', 'B3 Milestone', 'B4 Manfaat',
         'C1 Tipologi isu', 'C2 Isu dan dukungan yang dibutuhkan', 'D1 Kebutuhan status PSN', 'D2 Fasilitas', 'D3 Target selanjutnya',
     ];
     $input = 'mt-1 w-full rounded-lg border-slate-300 py-1.5 text-isi focus:border-aksen focus:ring-aksen disabled:bg-slate-50 disabled:text-slate-500';
+    // Kertas kerja (rincian B dan C).
+    $lampIsi = old('lampiran', $e?->lampiran->map(fn ($l) => $l->only(['jenis', 'judul', 'bentuk', 'tautan']))->all() ?? []);
+                        $cap = $h['capaian'];
+                        $isianCap = $e?->capaian->keyBy('komponen') ?? collect();
+                        $isuIsi = old('isu', $e && $e->isu->isNotEmpty() ? $e->isu->map(fn ($i) => ['uraian' => $i->uraian, 'tipologi' => $i->tipologi, 'jalur_kritis' => $i->jalur_kritis === null ? '' : (string) (int) $i->jalur_kritis, 'upaya' => $i->upaya, 'dukungan' => $i->dukungan])->all()
+                            : collect($h['isu'])->map(fn ($i) => ['uraian' => $i['uraian'], 'tipologi' => $i['tipologi'], 'jalur_kritis' => $i['jalur_kritis'] === null ? '' : (string) (int) $i['jalur_kritis'], 'upaya' => $i['upaya'], 'dukungan' => $i['dukungan']])->all());
+                        $msIsi = $e?->milestone->keyBy('kode') ?? collect();
+                        $fmt = fn ($v) => $v === null ? '' : rtrim(rtrim(number_format((float) $v, 2, '.', ''), '0'), '.');
 @endphp
 <x-app-layout :judul="$psn->nama" subjudul="Evaluasi status PSN untuk RKP {{ $tahun }} · {{ $psn->kode_psn }}">
     <x-slot:aksi>
@@ -73,7 +81,7 @@
                         ['KP/RO tercapai', $d['ro'][1] ? $d['ro'][0].' dari '.$d['ro'][1] : '–'],
                         ['B3 Kegiatan (KP/RO) tercatat', $d['kegiatan']],
                         ['B4 Indikator & penerima manfaat', $d['manfaat']],
-                        ['C Isu terbuka / jalur kritis / dengan dukungan', $d['isu_terbuka'].' / '.$d['isu_jalur_kritis'].' / '.$d['isu_dengan_dukungan']],
+                        ['C Isu terbuka di profil / dipakai di kertas kerja / menghambat jalur kritis', $d['isu_terbuka'].' / '.$ind['isu_terbuka'].' / '.$ind['isu_jalur_kritis']],
                         ['Regulasi belum ditetapkan', $d['regulasi_belum']],
                         ['Usia sebagai PSN', $ind['umur_psn'] === null ? '– (isi A6)' : $ind['umur_psn'].' tahun'],
                     ] as [$lbl, $v])
@@ -98,7 +106,7 @@
                     </div>
                 @else
                     <form method="POST" action="{{ route('evaluasi.update', $psn) }}" class="mt-3 space-y-5"
-                          x-data="{ d1: @js($nilai('d1_kebutuhan', $e->d1_kebutuhan)), alasan: @js($nilai('d1_alasan', $e->d1_alasan)) }">
+                          x-data="{ d1: @js($nilai('d1_kebutuhan', $e->d1_kebutuhan)), alasan: @js($nilai('d1_alasan', $e->d1_alasan)), jenis: @js($nilai('jenis_psn', $e->jenis_psn) ?: 'FISIK') }">
                         @csrf @method('PUT')
                         <fieldset class="grid grid-cols-1 gap-3 md:grid-cols-4" @disabled(! $bisaInput)>
                             <legend class="mb-1 text-[13px] font-bold text-slate-800">Identitas tambahan</legend>
@@ -107,9 +115,106 @@
                             <label class="text-isi"><span class="label block">A6 Tahun penetapan PSN *</span>
                                 <input type="number" name="a6_tahun_penetapan" min="2000" max="{{ $tahun }}" value="{{ $nilai('a6_tahun_penetapan', $e->a6_tahun_penetapan) }}" class="{{ $input }}"></label>
                             <label class="text-isi"><span class="label block">A12 Jenis PSN</span>
-                                <select name="jenis_psn" class="{{ $input }}"><option value="">–</option>
+                                <select name="jenis_psn" x-model="jenis" class="{{ $input }}"><option value="">–</option>
                                     @foreach ($cfg['jenis_psn'] as $k => $l)<option value="{{ $k }}" @selected($nilai('jenis_psn', $e->jenis_psn) === $k)>{{ $l }}</option>@endforeach</select></label>
                             <label class="flex items-center gap-2 self-end pb-2 text-isi"><input type="checkbox" name="tanpa_isu" value="1" @checked($nilai('tanpa_isu', $e->tanpa_isu)) class="rounded border-slate-300 text-aksen">C1 "Tidak ada isu"</label>
+                        </fieldset>
+
+                        <fieldset class="space-y-4 rounded-kartu border border-slate-200 p-4" @disabled(! $bisaInput)>
+                            <legend class="px-1 text-[13px] font-bold text-slate-800">B dan C. Capaian, milestone, manfaat, dan isu (kertas kerja)</legend>
+                            <input type="hidden" name="bagian_rincian" value="1">
+                            <p class="text-[12px] text-slate-500">Kolom berlatar biru muda berisi data profil SIRENDA. Isi hanya bila Form Pengendalian memuat angka yang berbeda; kosongkan untuk tetap memakai data profil.</p>
+
+                            <div>
+                                <span class="label block" x-text="jenis === 'NON_FISIK' ? 'B2.b Capaian PSN Non Fisik s.d. akhir triwulan' : 'B2.a Capaian PSN Fisik s.d. akhir triwulan'"></span>
+                                <div class="mt-1 overflow-x-auto">
+                                    <table class="w-full text-isi">
+                                        <thead class="text-label text-slate-500"><tr><th class="py-1 pr-2 text-left">Komponen</th><th class="py-1 pr-2 text-left">Satuan</th><th class="py-1 pr-2 text-left">Target akhir</th><th class="py-1 pr-2 text-left">Target kumulatif</th><th class="py-1 pr-2 text-left">Realisasi kumulatif</th><th class="py-1 text-left">Keterangan / sumber data</th></tr></thead>
+                                        <tbody>
+                                            @foreach ($cfg['capaian'] as $komp => [$labelKomp, $satuanTetap, $sumberProfil])
+                                                @php($jenisKomp = collect($cfg['capaian_jenis'])->filter(fn ($l) => in_array($komp, $l, true))->keys()->all())
+                                                <tr x-show="@js($jenisKomp).includes(jenis || 'FISIK')" class="align-top">
+                                                    <td class="py-1 pr-2 font-semibold text-slate-700">{{ $labelKomp }} @if ($sumberProfil)<span class="block text-[11px] font-normal text-sky-700">ada di profil</span>@endif</td>
+                                                    @foreach (['satuan', 'target_akhir', 'target_kumulatif', 'realisasi_kumulatif'] as $kol)
+                                                        @php($profil = in_array($kol, $cap[$komp]['dari_profil'], true) ? $cap[$komp][$kol] : null)
+                                                        <td class="py-1 pr-2">
+                                                            @if ($kol === 'satuan' && $satuanTetap)
+                                                                <span class="block pt-2 text-slate-600">{{ $satuanTetap }}</span>
+                                                            @else
+                                                                <input type="{{ $kol === 'satuan' ? 'text' : 'number' }}" step="any" min="0" name="capaian[{{ $komp }}][{{ $kol }}]"
+                                                                       value="{{ old("capaian.$komp.$kol", $kol === 'satuan' ? ($isianCap[$komp]->satuan ?? '') : $fmt($isianCap[$komp]->{$kol} ?? null)) }}"
+                                                                       placeholder="{{ $profil !== null ? ($kol === 'satuan' ? $profil : $fmt($profil)) : '' }}"
+                                                                       @class([$input, 'w-28' => $kol !== 'satuan', 'w-24' => $kol === 'satuan', 'bg-sky-50 placeholder:text-sky-800' => $profil !== null])>
+                                                            @endif
+                                                        </td>
+                                                    @endforeach
+                                                    <td class="py-1"><input type="text" name="capaian[{{ $komp }}][keterangan]" maxlength="2000" value="{{ old("capaian.$komp.keterangan", $isianCap[$komp]->keterangan ?? '') }}" class="{{ $input }} min-w-[14rem]"></td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div>
+                                <span class="label block" x-text="jenis === 'NON_FISIK' ? 'B3.b Milestone persiapan program (wajib bila tahap Penyiapan/Transaksi; minimal 1)' : 'B3.a Milestone pra konstruksi (wajib bila tahap Penyiapan/Transaksi; minimal 1)'"></span>
+                                @php($baris = 0)
+                                @foreach ($cfg['milestone'] as $jenisMs => $daftarMs)
+                                    <fieldset x-show="(jenis || 'FISIK') === @js($jenisMs)" :disabled="(jenis || 'FISIK') !== @js($jenisMs)" class="mt-1 overflow-x-auto">
+                                        <table class="w-full text-isi">
+                                            <thead class="text-label text-slate-500"><tr><th class="py-1 pr-2 text-left">Milestone</th><th class="py-1 pr-2 text-left">Realisasi</th><th class="py-1 pr-2 text-left">Tanggal selesai / target</th><th class="py-1 text-left">Keterangan</th></tr></thead>
+                                            <tbody>
+                                                @foreach ($daftarMs as $kodeMs => $labelMs)
+                                                    <tr class="align-top">
+                                                        <td class="py-1 pr-2 text-slate-700">{{ $loop->iteration }}. {{ $labelMs }}
+                                                            <input type="hidden" name="milestone[{{ $baris }}][kode]" value="{{ $kodeMs }}">
+                                                            @if (str_starts_with($kodeMs, 'LAIN'))<input type="text" name="milestone[{{ $baris }}][nama_lain]" maxlength="255" placeholder="Nama milestone" value="{{ old("milestone.$baris.nama_lain", $msIsi[$kodeMs]->nama_lain ?? '') }}" class="{{ $input }}">@endif
+                                                        </td>
+                                                        <td class="py-1 pr-2"><select name="milestone[{{ $baris }}][status]" class="{{ $input }} w-28"><option value="">–</option>
+                                                            @foreach ($cfg['status_milestone'] as $k => $l)<option value="{{ $k }}" @selected(old("milestone.$baris.status", $msIsi[$kodeMs]->status ?? '') === $k)>{{ $l }}</option>@endforeach</select></td>
+                                                        <td class="py-1 pr-2"><input type="date" name="milestone[{{ $baris }}][tanggal]" value="{{ old("milestone.$baris.tanggal", $msIsi->get($kodeMs)?->tanggal?->toDateString()) }}" class="{{ $input }} w-40"></td>
+                                                        <td class="py-1"><input type="text" name="milestone[{{ $baris }}][keterangan]" maxlength="1000" value="{{ old("milestone.$baris.keterangan", $msIsi[$kodeMs]->keterangan ?? '') }}" class="{{ $input }} min-w-[14rem]"></td>
+                                                    </tr>
+                                                    @php($baris++)
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </fieldset>
+                                @endforeach
+                            </div>
+
+                            <label class="block text-isi"><span class="label block">B4 Manfaat yang sudah terwujud s.d. akhir triwulan (wajib bila Beroperasi sebagian/Kumulatif selesai)</span>
+                                <textarea name="b4_manfaat" rows="2" maxlength="4000" class="{{ $input }}">{{ $nilai('b4_manfaat', $e->b4_manfaat) }}</textarea></label>
+
+                            <div>
+                                <span class="label block">C1 Tipologi isu (boleh lebih dari satu)</span>
+                                <div class="mt-1 grid grid-cols-1 gap-1 text-isi md:grid-cols-3">
+                                    @foreach (array_diff_key($cfg['tipologi_isu'], ['11' => 1]) as $k => $l)
+                                        <label class="flex items-center gap-2"><input type="checkbox" name="c1_tipologi[]" value="{{ $k }}" @checked(in_array((string) $k, array_map('strval', $nilai('c1_tipologi', $e->c1_tipologi ?? []) ?? []), true)) class="rounded border-slate-300 text-aksen">{{ $k }}. {{ $l }}</label>
+                                    @endforeach
+                                    <label class="text-isi md:col-span-3"><span class="label">11. Lainnya (sebutkan; tulis "Tidak ada isu" bila tidak ada)</span>
+                                        <input type="text" name="c1_lainnya" maxlength="255" value="{{ $nilai('c1_lainnya', $e->c1_lainnya) }}" class="{{ $input }}"></label>
+                                </div>
+                            </div>
+
+                            <div>
+                                <span class="label block">C2 Uraian isu (maks. {{ $cfg['maks_isu'] }}). @if ($e->isu->isEmpty() && $h['isu'])<span class="text-sky-700">Terisi dari isu terbuka di profil; periksa dan lengkapi tipologinya.</span>@endif</span>
+                                <div class="mt-1 space-y-2">
+                                    @for ($i = 0; $i < $cfg['maks_isu']; $i++)
+                                        @php($is = $isuIsi[$i] ?? [])
+                                        <div class="grid grid-cols-1 gap-2 rounded-lg border border-slate-200 p-2 md:grid-cols-12">
+                                            <span class="angka pt-2 text-[12px] font-bold text-slate-500 md:col-span-1">#{{ $i + 1 }}</span>
+                                            <label class="md:col-span-5"><span class="sr-only">Uraian isu {{ $i + 1 }}</span><textarea name="isu[{{ $i }}][uraian]" rows="2" maxlength="2000" placeholder="Uraian isu / permasalahan" class="{{ $input }}">{{ $is['uraian'] ?? '' }}</textarea></label>
+                                            <label class="md:col-span-3"><span class="sr-only">Tipologi</span><select name="isu[{{ $i }}][tipologi]" class="{{ $input }}"><option value="">Tipologi (no. C1)</option>
+                                                @foreach ($cfg['tipologi_isu'] as $k => $l)<option value="{{ $k }}" @selected((string) ($is['tipologi'] ?? '') === (string) $k)>{{ $k }}. {{ $l }}</option>@endforeach</select></label>
+                                            <label class="md:col-span-3"><span class="sr-only">Menghambat jalur kritis</span><select name="isu[{{ $i }}][jalur_kritis]" class="{{ $input }}"><option value="">Menghambat jalur kritis?</option>
+                                                <option value="1" @selected(($is['jalur_kritis'] ?? '') === '1')>Ya, menghambat</option><option value="0" @selected(($is['jalur_kritis'] ?? '') === '0')>Tidak</option></select></label>
+                                            <label class="md:col-span-5 md:col-start-2"><span class="sr-only">Upaya</span><input type="text" name="isu[{{ $i }}][upaya]" maxlength="2000" placeholder="Upaya yang sudah dilakukan (opsional)" value="{{ $is['upaya'] ?? '' }}" class="{{ $input }}"></label>
+                                            <label class="md:col-span-6"><span class="sr-only">Dukungan</span><input type="text" name="isu[{{ $i }}][dukungan]" maxlength="2000" placeholder="Dukungan yang dibutuhkan (apa dan dari siapa)" value="{{ $is['dukungan'] ?? '' }}" class="{{ $input }}"></label>
+                                        </div>
+                                    @endfor
+                                </div>
+                            </div>
                         </fieldset>
 
                         <fieldset class="space-y-3 rounded-kartu border border-slate-200 p-4" @disabled(! $bisaInput)>
@@ -157,6 +262,29 @@
                                 @endforeach
                                 <label class="text-isi"><span class="sr-only">Tanggal</span><input type="date" name="pic[tanggal]" value="{{ $nilai('pic.tanggal', $e->pic['tanggal'] ?? null) }}" class="{{ $input }}"></label>
                             </div>
+                        </fieldset>
+
+                        <fieldset class="space-y-3 rounded-kartu border border-slate-200 p-4" @disabled(! $bisaInput)>
+                            <legend class="px-1 text-[13px] font-bold text-slate-800">Lampiran dan informasi tambahan</legend>
+                                                        <div class="overflow-x-auto">
+                                <table class="w-full text-isi">
+                                    <thead class="text-label text-slate-500"><tr><th class="py-1 pr-2 text-left">#</th><th class="py-1 pr-2 text-left">Jenis</th><th class="py-1 pr-2 text-left">Judul / uraian singkat</th><th class="py-1 pr-2 text-left">Bentuk</th><th class="py-1 text-left">Tautan / nama file</th></tr></thead>
+                                    <tbody>
+                                        @for ($i = 0; $i < $cfg['maks_lampiran']; $i++)
+                                            @php($l = $lampIsi[$i] ?? [])
+                                            <tr x-data="{ buka: {{ $i < max(2, count($lampIsi) + 1) ? 'true' : 'false' }} }" x-show="buka">
+                                                <td class="angka py-1 pr-2 text-slate-500">{{ $i + 1 }}</td>
+                                                <td class="py-1 pr-2"><select name="lampiran[{{ $i }}][jenis]" class="{{ $input }} w-32"><option value="">–</option>@foreach ($cfg['lampiran_jenis'] as $k => $v)<option value="{{ $k }}" @selected(($l['jenis'] ?? '') === $k)>{{ $v }}</option>@endforeach</select></td>
+                                                <td class="py-1 pr-2"><input type="text" name="lampiran[{{ $i }}][judul]" maxlength="255" value="{{ $l['judul'] ?? '' }}" class="{{ $input }} min-w-[14rem]"></td>
+                                                <td class="py-1 pr-2"><select name="lampiran[{{ $i }}][bentuk]" class="{{ $input }} w-28"><option value="">–</option>@foreach ($cfg['lampiran_bentuk'] as $k => $v)<option value="{{ $k }}" @selected(($l['bentuk'] ?? '') === $k)>{{ $v }}</option>@endforeach</select></td>
+                                                <td class="py-1"><input type="text" name="lampiran[{{ $i }}][tautan]" maxlength="1000" value="{{ $l['tautan'] ?? '' }}" class="{{ $input }} min-w-[16rem]"></td>
+                                            </tr>
+                                        @endfor
+                                    </tbody>
+                                </table>
+                            </div>
+                            <label class="block text-isi"><span class="label block">Informasi tambahan</span>
+                                <textarea name="info_tambahan" rows="2" maxlength="4000" class="{{ $input }}">{{ $nilai('info_tambahan', $e->info_tambahan) }}</textarea></label>
                         </fieldset>
 
                         <fieldset class="grid grid-cols-1 gap-3 rounded-kartu border border-slate-200 p-4 md:grid-cols-2" @disabled(! $bisaVerif)>

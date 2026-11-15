@@ -31,6 +31,9 @@
 | `a6_tahun_penetapan` | smallint(5) unsigned | ya |  | A6 tahun pertama kali ditetapkan sebagai PSN |
 | `jenis_psn` | varchar(10) | ya |  | A12 FISIK\|NON_FISIK |
 | `tanpa_isu` | tinyint(1) |  |  | C1 Lainnya: "Tidak ada isu" |
+| `b4_manfaat` | text | ya |  | B4 manfaat yang sudah terwujud s.d. akhir triwulan |
+| `c1_tipologi` | longtext | ya |  | C1 kode tipologi isu 1-10 (config evaluasi_status.tipologi_isu) |
+| `c1_lainnya` | varchar(255) | ya |  | C1 tipologi 11 Lainnya; "Tidak ada isu" bila tanpa isu |
 | `d1_kebutuhan` | varchar(10) | ya |  | D1 MASIH\|TIDAK |
 | `d1_alasan` | varchar(20) | ya |  | SELESAI\|BATAL\|TANPA_FASILITAS\|LAINNYA |
 | `d1_alasan_lain` | text | ya |  |  |
@@ -40,6 +43,7 @@
 | `d3_target` | text | ya |  |  |
 | `d3_tahun_selesai` | smallint(5) unsigned | ya |  | proyeksi tahun selesai berdasarkan capaian aktual |
 | `pic` | longtext | ya |  | nama, jabatan, unit, kontak, tanggal |
+| `info_tambahan` | text | ya |  |  |
 | `hasil_pengecekan` | varchar(20) | ya |  | LENGKAP_BENAR\|LENGKAP_ADA_SALAH\|BELUM_LENGKAP\|PROSES |
 | `tindak_lanjut` | varchar(20) | ya |  | SIAP_DIANALISIS\|VERIFIKASI_PJ\|BUTUH_DATA |
 | `catatan_analisis` | text | ya |  |  |
@@ -51,6 +55,74 @@
 | `updated_at` | timestamp | ya |  |  |
 | `deleted_by` | bigint(20) unsigned | ya | → `users.id` |  |
 | `deleted_at` | timestamp | ya |  |  |
+
+## `evaluasi_psn_capaian`
+
+| Kolom | Tipe | Null | Relasi | Keterangan |
+|---|---|---|---|---|
+| `id` | bigint(20) unsigned |  | PK |  |
+| `evaluasi_psn_id` | bigint(20) unsigned |  | → `evaluasi_psn.id` |  |
+| `komponen` | varchar(20) |  |  | PROGRES_FISIK\|OUTPUT_UTAMA\|PEMBIAYAAN\|PERIZINAN\|PENGADAAN_LAHAN\|REGULASI\|SARANA |
+| `satuan` | varchar(100) | ya |  |  |
+| `target_akhir` | decimal(24,4) | ya |  | pembiayaan dalam Rp miliar, progres dalam % |
+| `target_kumulatif` | decimal(24,4) | ya |  | s.d. akhir triwulan cut-off |
+| `realisasi_kumulatif` | decimal(24,4) | ya |  |  |
+| `keterangan` | text | ya |  | keterangan / sumber data |
+| `created_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `updated_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `created_at` | timestamp | ya |  |  |
+| `updated_at` | timestamp | ya |  |  |
+
+## `evaluasi_psn_isu`
+
+| Kolom | Tipe | Null | Relasi | Keterangan |
+|---|---|---|---|---|
+| `id` | bigint(20) unsigned |  | PK |  |
+| `evaluasi_psn_id` | bigint(20) unsigned |  | → `evaluasi_psn.id` |  |
+| `isu_id` | bigint(20) unsigned | ya |  | isu profil asal (tanpa FK: isu dibangun ulang saat sinkron) |
+| `uraian` | text |  |  |  |
+| `tipologi` | varchar(4) | ya |  | kode C1 1-11 |
+| `jalur_kritis` | tinyint(1) | ya |  | menghambat jalur kritis / capaian sasaran |
+| `upaya` | text | ya |  |  |
+| `dukungan` | text | ya |  | dukungan yang dibutuhkan (apa dan dari siapa) |
+| `urutan` | smallint(5) unsigned |  |  |  |
+| `created_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `updated_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `created_at` | timestamp | ya |  |  |
+| `updated_at` | timestamp | ya |  |  |
+
+## `evaluasi_psn_lampiran`
+
+| Kolom | Tipe | Null | Relasi | Keterangan |
+|---|---|---|---|---|
+| `id` | bigint(20) unsigned |  | PK |  |
+| `evaluasi_psn_id` | bigint(20) unsigned |  | → `evaluasi_psn.id` |  |
+| `jenis` | varchar(10) | ya |  | DOKUMEN\|FOTO\|VIDEO\|LAINNYA |
+| `judul` | varchar(255) |  |  |  |
+| `bentuk` | varchar(10) | ya |  | TAUTAN\|FILE |
+| `tautan` | varchar(1000) | ya |  | tautan (link) / nama file |
+| `urutan` | smallint(5) unsigned |  |  |  |
+| `created_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `updated_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `created_at` | timestamp | ya |  |  |
+| `updated_at` | timestamp | ya |  |  |
+
+## `evaluasi_psn_milestone`
+
+| Kolom | Tipe | Null | Relasi | Keterangan |
+|---|---|---|---|---|
+| `id` | bigint(20) unsigned |  | PK |  |
+| `evaluasi_psn_id` | bigint(20) unsigned |  | → `evaluasi_psn.id` |  |
+| `kode` | varchar(30) |  |  | kode milestone (config evaluasi_status.milestone_fisik / milestone_non_fisik) |
+| `nama_lain` | varchar(255) | ya |  | nama milestone untuk kode LAIN |
+| `status` | varchar(10) | ya |  | SELESAI\|PROSES\|BELUM\|NA |
+| `tanggal` | date | ya |  | tanggal selesai / target |
+| `keterangan` | text | ya |  |  |
+| `urutan` | smallint(5) unsigned |  |  |  |
+| `created_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `updated_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `created_at` | timestamp | ya |  |  |
+| `updated_at` | timestamp | ya |  |  |
 
 ## `evaluasi_psn_riwayat`
 

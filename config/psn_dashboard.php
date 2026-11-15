@@ -354,6 +354,48 @@ return [
             'RENCANA_INDUK' => 'Perencanaan dalam rencana induk sektor', 'HUKUM' => 'Penyelesaian masalah hukum', 'LMAN' => 'Pendanaan pengadaan lahan melalui LMAN',
         ],
 
+        // Kertas kerja (sheet "Format Ringkas"): komponen B2 per jenis PSN. [label, satuan tetap|null, sumber profil]
+        'capaian' => [
+            'PROGRES_FISIK' => ['Progres fisik', '%', 'progres'],
+            'OUTPUT_UTAMA' => ['Output utama', null, null],
+            'PEMBIAYAAN' => ['Pembiayaan (penyerapan)', 'Rp miliar', 'pembiayaan'],
+            'PERIZINAN' => ['Perizinan', 'izin', null],
+            'PENGADAAN_LAHAN' => ['Pengadaan lahan', null, null],
+            'REGULASI' => ['Regulasi dan petunjuk teknis', 'dokumen', 'regulasi'],
+            'SARANA' => ['Sarana / sistem pendukung', null, null],
+        ],
+        'capaian_jenis' => [
+            'FISIK' => ['PROGRES_FISIK', 'OUTPUT_UTAMA', 'PEMBIAYAAN', 'PERIZINAN', 'PENGADAAN_LAHAN'],
+            'NON_FISIK' => ['OUTPUT_UTAMA', 'PEMBIAYAAN', 'REGULASI', 'SARANA'],
+        ],
+        'milestone' => [
+            'FISIK' => [
+                'FS' => 'Studi kelayakan (Pra-FS / FS; OBC untuk KPBU)', 'KKPR' => 'Kesesuaian kegiatan pemanfaatan ruang (KKPR)',
+                'LINGKUNGAN' => 'Persetujuan lingkungan (AMDAL / UKL-UPL)', 'PENLOK' => 'Penetapan lokasi pengadaan tanah (Penlok)',
+                'DED' => 'Desain teknis (Basic Design / DED)', 'PENDANAAN' => 'Kepastian skema dan sumber pendanaan (FBC / penjaminan KPBU)',
+                'PENGADAAN' => 'Pengadaan badan usaha / kontraktor', 'KONTRAK' => 'Penandatanganan kontrak / PPJT / financial close (FID)',
+                'GROUNDBREAKING' => 'Dimulainya konstruksi (groundbreaking)', 'LAIN' => 'Milestone lain sesuai sektor',
+            ],
+            'NON_FISIK' => [
+                'KAJIAN' => 'Kajian / desain program (naskah kebijakan, peta jalan)', 'REGULASI_DASAR' => 'Penetapan regulasi dasar (Perpres / PP / Permen)',
+                'JUKNIS' => 'Petunjuk teknis / NSPK pelaksanaan', 'KELEMBAGAAN' => 'Penetapan kelembagaan dan pelaksana (K/L, BUMN, satgas, mitra)',
+                'SASARAN' => 'Penetapan sasaran dan basis data penerima (mis. DTSEN)', 'PENDANAAN_NF' => 'Kepastian skema dan sumber pendanaan (alokasi anggaran / DIPA)',
+                'PBJ_MITRA' => 'Pengadaan barang/jasa / perjanjian kerja sama mitra', 'SISTEM' => 'Sistem informasi, monitoring, dan pelaporan',
+                'PILOT' => 'Uji coba / pilot', 'PELUNCURAN' => 'Peluncuran / pelaksanaan penuh program', 'LAIN_NF' => 'Milestone lain sesuai program',
+            ],
+        ],
+        'status_milestone' => ['SELESAI' => 'Selesai', 'PROSES' => 'Proses', 'BELUM' => 'Belum', 'NA' => 'N/A'],
+        'tipologi_isu' => [
+            '1' => 'Pengadaan Tanah dan Legalitas Lahan', '2' => 'Perizinan dan Regulasi', '3' => 'Tata Ruang, Kawasan Hutan, dan Lingkungan',
+            '4' => 'Pendanaan, Pembiayaan, dan Investasi', '5' => 'Teknis, Konstruksi, dan Pelaksanaan', '6' => 'Pengadaan Barang/Jasa dan Kontrak',
+            '7' => 'Kelembagaan, Koordinasi, dan Kerja Sama', '8' => 'Sosial dan Kemasyarakatan', '9' => 'Infrastruktur Pendukung, Utilitas, dan Konektivitas',
+            '10' => 'Operasional dan Optimalisasi Pemanfaatan', '11' => 'Lainnya',
+        ],
+        'maks_isu' => 5,
+        'maks_lampiran' => 8,
+        'lampiran_jenis' => ['DOKUMEN' => 'Dokumen', 'FOTO' => 'Foto', 'VIDEO' => 'Video', 'LAINNYA' => 'Lainnya'],
+        'lampiran_bentuk' => ['TAUTAN' => 'Tautan', 'FILE' => 'File'],
+
         // Rekomendasi sistem (alat bantu analis; keputusan tetap pada Indikasi Status yang diisi analis).
         'rekomendasi' => [
             'DIPERTAHANKAN' => 'Indikasi dipertahankan',

@@ -13,6 +13,7 @@
     </x-slot:aksi>
 
     <div class="mx-auto max-w-[1600px] space-y-5">
+        @include('evaluasi._tab')
         @if (session('status'))<div class="rounded-kartu border border-green-200 bg-green-50 p-3 text-green-800" role="status">{{ session('status') }}</div>@endif
 
         {{-- Alur keberlanjutan PSN: daftar RKP berjalan -> form -> pengecekan -> indikasi -> proyeksi daftar RKP berikutnya --}}
