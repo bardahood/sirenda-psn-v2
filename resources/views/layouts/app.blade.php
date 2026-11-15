@@ -21,6 +21,7 @@
         ['Dashboard', 'Dashboard', '/dashboard', 'ringkasan.lihat', 'M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z'],
         ['Portofolio PSN', 'Portofolio', '/proyek', 'portofolio.lihat', 'M4 6h16M4 12h16M4 18h10'],
         ['Perencanaan', 'Perencanaan', '/perencanaan', 'perencanaan.lihat', 'M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'],
+        ['Evaluasi Status PSN', 'Evaluasi', '/evaluasi-status', 'evaluasi.lihat', 'M9 12l2 2 4-4M7.8 4.7a3.4 3.4 0 0 0 1.9-.8 3.4 3.4 0 0 1 4.6 0 3.4 3.4 0 0 0 1.9.8 3.4 3.4 0 0 1 3.1 3.1c.1.7.4 1.4.8 1.9a3.4 3.4 0 0 1 0 4.6 3.4 3.4 0 0 0-.8 1.9 3.4 3.4 0 0 1-3.1 3.1 3.4 3.4 0 0 0-1.9.8 3.4 3.4 0 0 1-4.6 0 3.4 3.4 0 0 0-1.9-.8 3.4 3.4 0 0 1-3.1-3.1 3.4 3.4 0 0 0-.8-1.9 3.4 3.4 0 0 1 0-4.6c.4-.5.7-1.2.8-1.9a3.4 3.4 0 0 1 3.1-3.1Z'],
         ['Pengisian & Verifikasi', 'Pengisian', '/pengisian', 'detail.input', 'M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z'],
         ['Risiko, Isu & Regulasi', 'Risiko & Isu', '/risiko', 'risiko.lihat', 'M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z'],
         ['Peta Sebaran', 'Peta', '/peta', 'ringkasan.lihat', 'M9 20l-5.4-2.7A1 1 0 0 1 3 16.4V5.6a1 1 0 0 1 1.4-.9L9 7m0 13 6-3m-6 3V7m6 10 4.6 2.3a1 1 0 0 0 1.4-.9V7.6a1 1 0 0 0-.6-.9L15 4m0 13V4m0 0L9 7'],

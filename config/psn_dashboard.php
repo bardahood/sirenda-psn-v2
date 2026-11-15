@@ -311,4 +311,61 @@ return [
         // Kolom yang tidak boleh dikirim/disimpan (kredensial aplikasi lama).
         'kolom_dibuang' => ['users' => ['password', 'token', 'remember_token']],
     ],
+
+    // Evaluasi keberlanjutan status PSN (kertas kerja "Input Form Pengendalian PSN 2026 v4"). docs/evaluasi-status-psn.md
+    'evaluasi_status' => [
+        'tahun_rkp' => (int) env('EVALUASI_TAHUN_RKP', 2027),
+        'hari_grafik' => 14,
+
+        // Status akhir = Indikasi Status bila sudah diisi; bila belum, Tindak Lanjut; bila belum, Proses Pengecekan.
+        'status' => [
+            'BELUM_DITERIMA' => 'Form belum diterima',
+            'PROSES_PENGECEKAN' => 'Proses Pengecekan',
+            'BUTUH_DATA' => 'Butuh Data Tambahan',
+            'VERIFIKASI_PJ' => 'Perlu Verifikasi ke PJ',
+            'SIAP_DIANALISIS' => 'Siap Dianalisis',
+            'DIPERTAHANKAN' => 'Dipertahankan',
+            'DIKELUARKAN' => 'Dikeluarkan',
+        ],
+        'hasil_pengecekan' => [
+            'LENGKAP_BENAR' => 'Lengkap dan Benar Semua',
+            'LENGKAP_ADA_SALAH' => 'Lengkap, Data Masih Ada yang Salah',
+            'BELUM_LENGKAP' => 'Data Belum Lengkap',
+            'PROSES' => 'Proses Pengecekan',
+        ],
+        // Hasil Pengecekan -> Tindak Lanjut (bawaan otomatis; dapat diubah pemeriksa).
+        'tindak_lanjut_otomatis' => ['LENGKAP_BENAR' => 'SIAP_DIANALISIS', 'LENGKAP_ADA_SALAH' => 'VERIFIKASI_PJ', 'BELUM_LENGKAP' => 'BUTUH_DATA', 'PROSES' => null],
+        'tindak_lanjut' => ['SIAP_DIANALISIS' => 'Siap Dianalisis', 'VERIFIKASI_PJ' => 'Perlu Verifikasi ke PJ', 'BUTUH_DATA' => 'Butuh Data Tambahan'],
+        'indikasi' => ['DIPERTAHANKAN' => 'Dipertahankan', 'DIKELUARKAN' => 'Dikeluarkan'],
+
+        'jenis_psn' => ['FISIK' => 'Fisik', 'NON_FISIK' => 'Non-Fisik'],
+        'tahapan' => ['PENYIAPAN' => 'Penyiapan', 'TRANSAKSI' => 'Transaksi', 'KONSTRUKSI' => 'Konstruksi', 'BEROPERASI_SEBAGIAN' => 'Beroperasi sebagian', 'KUMULATIF_SELESAI' => 'Kumulatif selesai'],
+        'd1' => ['MASIH' => 'Masih membutuhkan status PSN', 'TIDAK' => 'Tidak lagi membutuhkan status PSN'],
+        'd1_alasan' => [
+            'SELESAI' => 'Proyek/program telah selesai atau mencapai sasaran',
+            'BATAL' => 'Proyek/program tidak dilanjutkan/dibatalkan',
+            'TANPA_FASILITAS' => 'Dapat dilanjutkan tanpa fasilitas PSN (termasuk program reguler/prioritas K/L)',
+            'LAINNYA' => 'Lainnya',
+        ],
+        // D2: fasilitas kemudahan PP 42/2021.
+        'd2_fasilitas' => [
+            'PERIZINAN' => 'Perizinan usaha', 'PEMBIAYAAN' => 'Pembiayaan proyek', 'PBJ' => 'Percepatan pengadaan barang/jasa',
+            'TATA_RUANG' => 'Rencana tata ruang dan ruang laut', 'PENYIAPAN' => 'Penyiapan proyek', 'DAMPAK_SOSIAL' => 'Penanganan dampak sosial',
+            'RENCANA_INDUK' => 'Perencanaan dalam rencana induk sektor', 'HUKUM' => 'Penyelesaian masalah hukum', 'LMAN' => 'Pendanaan pengadaan lahan melalui LMAN',
+        ],
+
+        // Rekomendasi sistem (alat bantu analis; keputusan tetap pada Indikasi Status yang diisi analis).
+        'rekomendasi' => [
+            'DIPERTAHANKAN' => 'Indikasi dipertahankan',
+            'PERLU_PENDALAMAN' => 'Perlu pendalaman',
+            'DIKELUARKAN' => 'Indikasi dikeluarkan',
+            'BELUM_CUKUP_DATA' => 'Data belum cukup',
+        ],
+        'ambang' => [
+            'deviasi_fisik_poin' => 10,        // realisasi tertinggal >= 10 poin dari rencana s.d. cut-off
+            'serapan_min_persen' => 50,        // realisasi anggaran < 50% pagu s.d. cut-off
+            'mundur_tahun' => 2,               // proyeksi selesai (D3) mundur >= 2 tahun dari target (A7)
+            'penyiapan_maks_tahun' => 3,       // masih Penyiapan/Transaksi >= 3 tahun sejak ditetapkan (A6)
+        ],
+    ],
 ];

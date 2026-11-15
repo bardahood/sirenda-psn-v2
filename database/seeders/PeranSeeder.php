@@ -15,14 +15,14 @@ use Spatie\Permission\PermissionRegistrar;
  */
 class PeranSeeder extends Seeder
 {
-    public const MODUL = ['ringkasan', 'portofolio', 'detail', 'perencanaan', 'risiko', 'kualitas', 'laporan', 'pengaturan'];
+    public const MODUL = ['ringkasan', 'portofolio', 'detail', 'perencanaan', 'risiko', 'kualitas', 'laporan', 'pengaturan', 'evaluasi'];
 
     public const MATRIKS = [
         'Super Admin' => ['*' => 'kelola'],
-        'Pimpinan' => ['ringkasan' => 'lihat', 'portofolio' => 'lihat', 'detail' => 'lihat', 'perencanaan' => 'lihat', 'risiko' => 'lihat', 'kualitas' => 'lihat', 'laporan' => 'lihat'],
-        'Tim Koordinasi/PMO' => ['ringkasan' => 'lihat', 'portofolio' => 'lihat', 'detail' => 'lihat', 'perencanaan' => 'kelola', 'risiko' => 'lihat', 'kualitas' => 'lihat', 'laporan' => 'kelola'],
-        'Direktorat Sektor' => ['ringkasan' => 'lihat', 'portofolio' => 'lihat', 'detail' => 'verifikasi', 'perencanaan' => 'verifikasi', 'risiko' => 'input', 'kualitas' => 'lihat', 'laporan' => 'lihat'],
-        'Operator K/L' => ['ringkasan' => 'lihat', 'portofolio' => 'lihat', 'detail' => 'input', 'perencanaan' => 'input', 'risiko' => 'input', 'kualitas' => 'lihat'],
+        'Pimpinan' => ['ringkasan' => 'lihat', 'portofolio' => 'lihat', 'detail' => 'lihat', 'perencanaan' => 'lihat', 'risiko' => 'lihat', 'kualitas' => 'lihat', 'laporan' => 'lihat', 'evaluasi' => 'lihat'],
+        'Tim Koordinasi/PMO' => ['ringkasan' => 'lihat', 'portofolio' => 'lihat', 'detail' => 'lihat', 'perencanaan' => 'kelola', 'risiko' => 'lihat', 'kualitas' => 'lihat', 'laporan' => 'kelola', 'evaluasi' => 'kelola'],
+        'Direktorat Sektor' => ['ringkasan' => 'lihat', 'portofolio' => 'lihat', 'detail' => 'verifikasi', 'perencanaan' => 'verifikasi', 'risiko' => 'input', 'kualitas' => 'lihat', 'laporan' => 'lihat', 'evaluasi' => 'verifikasi'],
+        'Operator K/L' => ['ringkasan' => 'lihat', 'portofolio' => 'lihat', 'detail' => 'input', 'perencanaan' => 'input', 'risiko' => 'input', 'kualitas' => 'lihat', 'evaluasi' => 'input'],
     ];
 
     /** Aksi bersifat kumulatif: kelola mencakup verifikasi, input, dan lihat. */

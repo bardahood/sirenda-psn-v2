@@ -20,6 +20,50 @@
 | `sumber` | varchar(20) |  |  | APLIKASI\|IMPOR_LEGACY |
 | `created_at` | timestamp | ya |  | null = riwayat sistem lama tanpa stempel waktu |
 
+## `evaluasi_psn`
+
+| Kolom | Tipe | Null | Relasi | Keterangan |
+|---|---|---|---|---|
+| `id` | bigint(20) unsigned |  | PK |  |
+| `tahun_rkp` | smallint(5) unsigned |  |  | RKP yang diputuskan, mis. 2027 |
+| `psn_id` | bigint(20) unsigned |  | → `psn.id` |  |
+| `form_diterima_at` | date | ya |  | tanggal Form Pengendalian diterima dari PJ |
+| `a6_tahun_penetapan` | smallint(5) unsigned | ya |  | A6 tahun pertama kali ditetapkan sebagai PSN |
+| `jenis_psn` | varchar(10) | ya |  | A12 FISIK\|NON_FISIK |
+| `tanpa_isu` | tinyint(1) |  |  | C1 Lainnya: "Tidak ada isu" |
+| `d1_kebutuhan` | varchar(10) | ya |  | D1 MASIH\|TIDAK |
+| `d1_alasan` | varchar(20) | ya |  | SELESAI\|BATAL\|TANPA_FASILITAS\|LAINNYA |
+| `d1_alasan_lain` | text | ya |  |  |
+| `d2_fasilitas` | longtext | ya |  | kode fasilitas PP 42/2021 (config evaluasi_status.d2_fasilitas) |
+| `d2_justifikasi` | text | ya |  |  |
+| `d3_tahapan` | varchar(30) | ya |  | tahapan target akhir tahun RKP |
+| `d3_target` | text | ya |  |  |
+| `d3_tahun_selesai` | smallint(5) unsigned | ya |  | proyeksi tahun selesai berdasarkan capaian aktual |
+| `pic` | longtext | ya |  | nama, jabatan, unit, kontak, tanggal |
+| `hasil_pengecekan` | varchar(20) | ya |  | LENGKAP_BENAR\|LENGKAP_ADA_SALAH\|BELUM_LENGKAP\|PROSES |
+| `tindak_lanjut` | varchar(20) | ya |  | SIAP_DIANALISIS\|VERIFIKASI_PJ\|BUTUH_DATA |
+| `catatan_analisis` | text | ya |  |  |
+| `indikasi_status` | varchar(20) | ya |  | DIPERTAHANKAN\|DIKELUARKAN |
+| `status_akhir` | varchar(20) |  |  | turunan: indikasi > tindak lanjut > PROSES_PENGECEKAN |
+| `created_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `updated_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `created_at` | timestamp | ya |  |  |
+| `updated_at` | timestamp | ya |  |  |
+| `deleted_by` | bigint(20) unsigned | ya | → `users.id` |  |
+| `deleted_at` | timestamp | ya |  |  |
+
+## `evaluasi_psn_riwayat`
+
+| Kolom | Tipe | Null | Relasi | Keterangan |
+|---|---|---|---|---|
+| `id` | bigint(20) unsigned |  | PK |  |
+| `evaluasi_psn_id` | bigint(20) unsigned |  | → `evaluasi_psn.id` |  |
+| `tanggal` | date |  |  |  |
+| `status_akhir` | varchar(20) |  |  |  |
+| `keterangan` | varchar(255) | ya |  |  |
+| `user_id` | bigint(20) unsigned | ya | → `users.id` |  |
+| `created_at` | timestamp | ya |  |  |
+
 ## `indikator`
 
 | Kolom | Tipe | Null | Relasi | Keterangan |

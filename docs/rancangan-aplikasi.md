@@ -405,6 +405,11 @@ Dit. PSI menyerahkan *Dokumen Integrasi API Usulan PSN untuk PMO* v1.3 dan *Tata
 - `LegacyImporter::kosongkan(transaksional: true, pertahankanUsulan: true)`: DELETE alih-alih TRUNCATE; usulan dan penilaian dashboard tidak disentuh. ID PSN kini dipertahankan antar-impor (`/proyek/{id}` stabil), juga untuk `legacy:import --fresh`.
 - Prosedur lengkap: `docs/integrasi-peks3.md`.
 
+### 8.13 Evaluasi Status PSN (keberlanjutan pada RKP berikutnya)
+
+- Menu **Evaluasi** (`/evaluasi-status`) menggantikan kertas kerja "Input Form Pengendalian PSN 2026 v4": data A–C dibaca dari profil, isian D1–D3/A6/A12 dan keputusan dicatat per PSN, cek kelengkapan otomatis, rekomendasi sistem, riwayat status otomatis, grafik status harian, visual alur bertangga (aktif → form → pengecekan → indikasi → proyeksi RKP berikutnya), dan unduhan Excel.
+- Tabel `evaluasi_psn` dan `evaluasi_psn_riwayat`; izin `evaluasi.*`. Rincian: `docs/evaluasi-status-psn.md`.
+
 ## 9. Hasil impor awal (dump 7 Oktober 2026)
 
 Hasil `php artisan legacy:import` dan uji akurasinya (`LEGACY_TEST=1 php artisan test`): jumlah PSN, lokasi, item profil, regulasi, KP/RO, agregat per provinsi, agregat per klaster, dan total nilai investasi **identik** dengan basis data lama.

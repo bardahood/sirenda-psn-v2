@@ -11,7 +11,7 @@ export default {
         './app/Enums/*.php',
     ],
     // Kelas status dibentuk dinamis ('badge-' + kode) sehingga harus di-safelist.
-    safelist: [{ pattern: /^(badge|titik)-(ON_TRACK|BERISIKO|TERLAMBAT|TANPA_DATA|BELUM|DRAFT|DIAJUKAN|DIVERIFIKASI|DIKEMBALIKAN|ALUR_[A-Z]+)$/ }],
+    safelist: [{ pattern: /^(badge|titik)-(ON_TRACK|BERISIKO|TERLAMBAT|TANPA_DATA|BELUM|DRAFT|DIAJUKAN|DIVERIFIKASI|DIKEMBALIKAN|ALUR_[A-Z]+|EV_[A-Z_]+|REK_[A-Z_]+)$/ }],
     theme: {
         extend: {
             // Mode satu layar dashboard: lebar >= 1280 px dan tinggi >= 720 px.

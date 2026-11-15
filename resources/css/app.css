@@ -69,4 +69,27 @@
     .titik-ALUR_REKOMENDASI { @apply h-2 w-2 rounded-full bg-green-600; }
     .titik-ALUR_TERKIRIM { @apply h-2 w-2 rounded-full bg-emerald-700; }
     .titik-ALUR_DITARIK { @apply h-2 w-2 rounded-full bg-red-600; }
+    /* Evaluasi status PSN (status akhir & rekomendasi sistem) */
+    .badge-EV_BELUM_DITERIMA { @apply badge bg-slate-100 text-slate-700 ring-slate-500/40; }
+    .badge-EV_PROSES_PENGECEKAN { @apply badge bg-sky-50 text-sky-900 ring-sky-600/40; }
+    .badge-EV_BUTUH_DATA { @apply badge bg-amber-50 text-amber-900 ring-amber-600/40; }
+    .badge-EV_VERIFIKASI_PJ { @apply badge bg-orange-50 text-orange-900 ring-orange-600/40; }
+    .badge-EV_SIAP_DIANALISIS { @apply badge bg-indigo-50 text-indigo-900 ring-indigo-600/40; }
+    .badge-EV_DIPERTAHANKAN { @apply badge bg-green-50 text-green-800 ring-green-600/40; }
+    .badge-EV_DIKELUARKAN { @apply badge bg-red-50 text-red-800 ring-red-600/40; }
+    .titik-EV_BELUM_DITERIMA { @apply h-2 w-2 rounded-full bg-slate-400; }
+    .titik-EV_PROSES_PENGECEKAN { @apply h-2 w-2 rounded-full bg-sky-600; }
+    .titik-EV_BUTUH_DATA { @apply h-2 w-2 rounded-full bg-amber-600; }
+    .titik-EV_VERIFIKASI_PJ { @apply h-2 w-2 rounded-full bg-orange-600; }
+    .titik-EV_SIAP_DIANALISIS { @apply h-2 w-2 rounded-full bg-indigo-600; }
+    .titik-EV_DIPERTAHANKAN { @apply h-2 w-2 rounded-full bg-green-600; }
+    .titik-EV_DIKELUARKAN { @apply h-2 w-2 rounded-full bg-red-600; }
+    .badge-REK_DIPERTAHANKAN { @apply badge bg-green-50 text-green-800 ring-green-600/40; }
+    .badge-REK_PERLU_PENDALAMAN { @apply badge bg-amber-50 text-amber-900 ring-amber-600/40; }
+    .badge-REK_DIKELUARKAN { @apply badge bg-red-50 text-red-800 ring-red-600/40; }
+    .badge-REK_BELUM_CUKUP_DATA { @apply badge bg-slate-100 text-slate-700 ring-slate-500/40; }
+    .titik-REK_DIPERTAHANKAN { @apply h-2 w-2 rounded-full bg-green-600; }
+    .titik-REK_PERLU_PENDALAMAN { @apply h-2 w-2 rounded-full bg-amber-600; }
+    .titik-REK_DIKELUARKAN { @apply h-2 w-2 rounded-full bg-red-600; }
+    .titik-REK_BELUM_CUKUP_DATA { @apply h-2 w-2 rounded-full bg-slate-500; }
 }

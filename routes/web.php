@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\ReferensiController;
 use App\Http\Controllers\Api\V1\RisikoController;
 use App\Http\Controllers\Api\V1\UsulanController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\EvaluasiStatusController;
 use App\Http\Controllers\FormPengendalianController;
 use App\Http\Controllers\IntegrasiSifController;
 use App\Http\Controllers\LaporanController;
@@ -36,6 +37,12 @@ Route::middleware(['auth', 'akun.aktif'])->group(function () {
     Route::get('/proyek', [ProyekController::class, 'index'])->middleware('can:portofolio.lihat')->name('proyek.index');
     Route::get('/proyek/{psn}', [ProyekController::class, 'show'])->middleware('can:detail.lihat')->whereNumber('psn')->name('proyek.show');
     Route::get('/proyek/{psn}/form-pengendalian', [FormPengendalianController::class, 'show'])->middleware('can:detail.lihat')->whereNumber('psn')->name('proyek.form-pengendalian');
+    // Evaluasi keberlanjutan status PSN (docs/evaluasi-status-psn.md).
+    Route::get('/evaluasi-status', [EvaluasiStatusController::class, 'index'])->middleware('can:evaluasi.lihat')->name('evaluasi.index');
+    Route::get('/evaluasi-status/ekspor.xlsx', [EvaluasiStatusController::class, 'ekspor'])->middleware('can:evaluasi.lihat')->name('evaluasi.ekspor');
+    Route::get('/evaluasi-status/{psn}', [EvaluasiStatusController::class, 'show'])->middleware('can:evaluasi.lihat')->whereNumber('psn')->name('evaluasi.show');
+    Route::post('/evaluasi-status/{psn}/terima', [EvaluasiStatusController::class, 'terima'])->middleware('can:evaluasi.input')->whereNumber('psn')->name('evaluasi.terima');
+    Route::put('/evaluasi-status/{psn}', [EvaluasiStatusController::class, 'update'])->middleware('can:evaluasi.input')->whereNumber('psn')->name('evaluasi.update');
     Route::get('/form-pengendalian/lama/{id}', [FormPengendalianController::class, 'dariIdLama'])->middleware('can:detail.lihat')->whereNumber('id')->name('form-pengendalian.lama');
     Route::view('/kualitas-data', 'kualitas-data.index')->middleware('can:kualitas.lihat')->name('kualitas-data');
     Route::view('/risiko', 'risiko.index')->middleware('can:risiko.lihat')->name('risiko');

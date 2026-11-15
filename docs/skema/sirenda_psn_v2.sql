@@ -2081,3 +2081,69 @@ CREATE TABLE `integrasi_peks3_status` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Table structure for table `evaluasi_psn`
+--
+
+DROP TABLE IF EXISTS `evaluasi_psn`;
+CREATE TABLE `evaluasi_psn` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `tahun_rkp` smallint(5) unsigned NOT NULL COMMENT 'RKP yang diputuskan, mis. 2027',
+  `psn_id` bigint(20) unsigned NOT NULL,
+  `form_diterima_at` date DEFAULT NULL COMMENT 'tanggal Form Pengendalian diterima dari PJ',
+  `a6_tahun_penetapan` smallint(5) unsigned DEFAULT NULL COMMENT 'A6 tahun pertama kali ditetapkan sebagai PSN',
+  `jenis_psn` varchar(10) DEFAULT NULL COMMENT 'A12 FISIK|NON_FISIK',
+  `tanpa_isu` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'C1 Lainnya: "Tidak ada isu"',
+  `d1_kebutuhan` varchar(10) DEFAULT NULL COMMENT 'D1 MASIH|TIDAK',
+  `d1_alasan` varchar(20) DEFAULT NULL COMMENT 'SELESAI|BATAL|TANPA_FASILITAS|LAINNYA',
+  `d1_alasan_lain` text DEFAULT NULL,
+  `d2_fasilitas` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'kode fasilitas PP 42/2021 (config evaluasi_status.d2_fasilitas)' CHECK (json_valid(`d2_fasilitas`)),
+  `d2_justifikasi` text DEFAULT NULL,
+  `d3_tahapan` varchar(30) DEFAULT NULL COMMENT 'tahapan target akhir tahun RKP',
+  `d3_target` text DEFAULT NULL,
+  `d3_tahun_selesai` smallint(5) unsigned DEFAULT NULL COMMENT 'proyeksi tahun selesai berdasarkan capaian aktual',
+  `pic` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'nama, jabatan, unit, kontak, tanggal' CHECK (json_valid(`pic`)),
+  `hasil_pengecekan` varchar(20) DEFAULT NULL COMMENT 'LENGKAP_BENAR|LENGKAP_ADA_SALAH|BELUM_LENGKAP|PROSES',
+  `tindak_lanjut` varchar(20) DEFAULT NULL COMMENT 'SIAP_DIANALISIS|VERIFIKASI_PJ|BUTUH_DATA',
+  `catatan_analisis` text DEFAULT NULL,
+  `indikasi_status` varchar(20) DEFAULT NULL COMMENT 'DIPERTAHANKAN|DIKELUARKAN',
+  `status_akhir` varchar(20) NOT NULL DEFAULT 'PROSES_PENGECEKAN' COMMENT 'turunan: indikasi > tindak lanjut > PROSES_PENGECEKAN',
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_by` bigint(20) unsigned DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `evaluasi_psn_tahun_rkp_psn_id_unique` (`tahun_rkp`,`psn_id`),
+  KEY `evaluasi_psn_psn_id_foreign` (`psn_id`),
+  KEY `evaluasi_psn_created_by_foreign` (`created_by`),
+  KEY `evaluasi_psn_updated_by_foreign` (`updated_by`),
+  KEY `evaluasi_psn_deleted_by_foreign` (`deleted_by`),
+  KEY `evaluasi_psn_tahun_rkp_status_akhir_index` (`tahun_rkp`,`status_akhir`),
+  CONSTRAINT `evaluasi_psn_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `evaluasi_psn_deleted_by_foreign` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `evaluasi_psn_psn_id_foreign` FOREIGN KEY (`psn_id`) REFERENCES `psn` (`id`),
+  CONSTRAINT `evaluasi_psn_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Table structure for table `evaluasi_psn_riwayat`
+--
+
+DROP TABLE IF EXISTS `evaluasi_psn_riwayat`;
+CREATE TABLE `evaluasi_psn_riwayat` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `evaluasi_psn_id` bigint(20) unsigned NOT NULL,
+  `tanggal` date NOT NULL,
+  `status_akhir` varchar(20) NOT NULL,
+  `keterangan` varchar(255) DEFAULT NULL,
+  `user_id` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `evaluasi_psn_riwayat_user_id_foreign` (`user_id`),
+  KEY `evaluasi_psn_riwayat_evaluasi_psn_id_tanggal_index` (`evaluasi_psn_id`,`tanggal`),
+  CONSTRAINT `evaluasi_psn_riwayat_evaluasi_psn_id_foreign` FOREIGN KEY (`evaluasi_psn_id`) REFERENCES `evaluasi_psn` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `evaluasi_psn_riwayat_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
