@@ -43,7 +43,7 @@ class EvaluasiStatusService
      *
      * @return Collection<int, array>
      */
-    public function daftar(): Collection
+    public function daftar(?array $hanyaId = null): Collection
     {
         $c = $this->cutoff();
         if (! $c) {
@@ -56,6 +56,7 @@ class EvaluasiStatusService
             ->leftJoin('ref_status_psn as st', 'st.id', '=', 's.status_psn_id')
             ->leftJoin('ref_klaster as k', 'k.id', '=', 's.klaster_id')
             ->where('s.is_aktif', true)
+            ->when($hanyaId !== null, fn ($q) => $q->whereIn('psn.id', $hanyaId ?: [0]))
             ->orderBy('psn.nama')->orderBy('psn.id')
             ->get(['psn.id', 'psn.nama', 'psn.kode_psn', 'psn.tahun_selesai', 'psn.nilai_investasi_rp', 's.sumber', 's.progres_rencana_persen', 's.progres_realisasi_persen',
                 's.pagu_rp', 's.realisasi_anggaran_rp', 's.jumlah_ro', 's.jumlah_ro_tercapai', 's.unit_kerja_id', 'st.kode as status_kode', 'k.nama as klaster']);
@@ -112,7 +113,7 @@ class EvaluasiStatusService
     /** Analisis satu PSN untuk halaman detail. */
     public function satu(Psn $psn): ?array
     {
-        return $this->daftar()->firstWhere('psn_id', $psn->id);
+        return $this->daftar([$psn->id])->first();
     }
 
     /**

@@ -201,6 +201,101 @@ class FormatRingkas
         return ['nilai' => $n, 'asal' => $asal];
     }
 
+    /**
+     * Sel yang dapat diisi langsung di kertas kerja: kunci => [tipe, izin, opsi]. Tipe: angka, teks, panjang, tanggal,
+     * pilihan, multi (kotak centang), rincian (diisi lewat formulir per PSN). Kolom profil (A1-A5, A7-A11, B1) tidak dapat diubah
+     * di sini karena sumbernya SIRENDA PEKS3; kolom B2 yang berasal dari profil dapat ditimpa dengan angka Form Pengendalian.
+     */
+    public function editor(): array
+    {
+        $c = config('psn_dashboard.evaluasi_status');
+        $ed = [
+            'a6' => ['angka', 'input'], 'a12' => ['pilihan', 'input', $c['jenis_psn']],
+            'b4' => ['panjang', 'input'], 'c1' => ['multi', 'input', array_diff_key($c['tipologi_isu'], ['11' => 1])],
+            'd1' => ['pilihan', 'input', $c['d1']], 'd1_alasan' => ['pilihan', 'input', $c['d1_alasan']], 'd1_alasan_lain' => ['teks', 'input'],
+            'd2' => ['multi', 'input', $c['d2_fasilitas']], 'd2_justifikasi' => ['panjang', 'input'],
+            'd3_tahapan' => ['pilihan', 'input', $c['tahapan']], 'd3_target' => ['teks', 'input'], 'd3_tahun' => ['angka', 'input'],
+            'pic_nama' => ['teks', 'input'], 'pic_jabatan' => ['teks', 'input'], 'pic_unit' => ['teks', 'input'], 'pic_kontak' => ['teks', 'input'], 'pic_tanggal' => ['tanggal', 'input'],
+            'info' => ['panjang', 'input'],
+            'hasil' => ['pilihan', 'verifikasi', $c['hasil_pengecekan']], 'tl' => ['pilihan', 'verifikasi', $c['tindak_lanjut']], 'catatan' => ['panjang', 'verifikasi'],
+            'indikasi' => ['pilihan', 'kelola', $c['indikasi']],
+        ];
+        foreach (['b3a_jenis', 'b3a_status', 'b3a_tanggal', 'b3a_ket', 'b3b_jenis', 'b3b_status', 'b3b_tanggal', 'b3b_ket'] as $k) {
+            $ed[$k] = ['rincian', 'input', 'b3'];
+        }
+        foreach (['c2_uraian', 'c2_dukungan'] as $k) {
+            $ed[$k] = ['rincian', 'input', 'c2'];
+        }
+        foreach (['lamp_jenis', 'lamp_judul', 'lamp_bentuk', 'lamp_tautan'] as $k) {
+            $ed[$k] = ['rincian', 'input', 'lampiran'];
+        }
+        foreach (['FISIK', 'NON_FISIK'] as $jenis) {
+            foreach ($c['capaian_jenis'][$jenis] as $komp) {
+                foreach (['satuan', 'target_akhir', 'target_kumulatif', 'realisasi_kumulatif', 'keterangan'] as $kol) {
+                    $k = strtolower("{$jenis}_{$komp}_{$kol}");
+                    if (in_array($k, array_column($this->kolom, 'kunci'), true)) {
+                        $ed[$k] = [in_array($kol, ['satuan', 'keterangan'], true) ? 'teks' : 'angka', 'input', null, $jenis, $komp, $kol];
+                    }
+                }
+            }
+        }
+
+        return array_map(fn ($e) => ['tipe' => $e[0], 'izin' => $e[1], 'opsi' => $e[2] ?? null, 'jenis' => $e[3] ?? null, 'komponen' => $e[4] ?? null, 'kolom' => $e[5] ?? null], $ed);
+    }
+
+    /** Nilai mentah (kode, angka, tanggal ISO) untuk diedit langsung; label hanya untuk tampilan. */
+    public function mentah(array $r): array
+    {
+        $e = $r['evaluasi'];
+        $m = [
+            'a6' => $e?->a6_tahun_penetapan, 'a12' => $e?->jenis_psn, 'b4' => $e?->b4_manfaat, 'c1' => $e?->c1_tipologi ?? [], 'c1_lainnya' => $e?->c1_lainnya,
+            'd1' => $e?->d1_kebutuhan, 'd1_alasan' => $e?->d1_alasan, 'd1_alasan_lain' => $e?->d1_alasan_lain, 'd2' => $e?->d2_fasilitas ?? [], 'd2_justifikasi' => $e?->d2_justifikasi,
+            'd3_tahapan' => $e?->d3_tahapan, 'd3_target' => $e?->d3_target, 'd3_tahun' => $e?->d3_tahun_selesai, 'info' => $e?->info_tambahan,
+            'hasil' => $e?->hasil_pengecekan, 'tl' => $e?->tindak_lanjut, 'catatan' => $e?->catatan_analisis, 'indikasi' => $e?->indikasi_status,
+        ];
+        foreach (['nama', 'jabatan', 'unit', 'kontak', 'tanggal'] as $k) {
+            $m["pic_{$k}"] = $e?->pic[$k] ?? null;
+        }
+        foreach ($this->editor() as $k => $ed) {
+            if ($ed['komponen']) {
+                $m[$k] = $r['capaian'][$ed['komponen']][$ed['kolom']] ?? null;
+            }
+        }
+
+        return $m;
+    }
+
+    /** Tampilan nilai sel. */
+    public static function tampil(string $k, $v): string
+    {
+        if ($v === null || $v === '') {
+            return '';
+        }
+        if ($k === 'a9') {
+            return 'Rp '.number_format((float) $v, 0, ',', '.');
+        }
+        if (preg_match('/_(target_akhir|target_kumulatif|realisasi_kumulatif)$/', $k)) {
+            return number_format((float) $v, fmod((float) $v, 1) == 0 ? 0 : 2, ',', '.');
+        }
+
+        return (string) $v;
+    }
+
+    public static function angka(string $k): bool
+    {
+        return (bool) preg_match('/_(target_akhir|target_kumulatif|realisasi_kumulatif)$/', $k) || in_array($k, ['no', 'a9'], true);
+    }
+
+    public static function lebar(string $k): string
+    {
+        return match (true) {
+            $k === 'no' => 'min-w-[4.5rem]',
+            in_array($k, ['a6', 'a7', 'd3_tahun'], true) => 'min-w-[6.5rem]',
+            in_array($k, ['a1', 'a4', 'a10', 'c2_uraian', 'c2_dukungan', 'catatan', 'b3a_jenis', 'b3b_jenis', 'b4', 'd2', 'c1', 'cek_kurang'], true) || str_ends_with($k, 'keterangan') => 'min-w-[16rem] max-w-[22rem]',
+            default => 'min-w-[8.5rem] max-w-[14rem]',
+        };
+    }
+
     /** Kunci kolom yang wajib tetapi masih kosong (dari hasil cek kelengkapan), untuk penandaan sel. */
     public function selKurang(array $r): array
     {
@@ -230,6 +325,6 @@ class FormatRingkas
     {
         $profil = $this->profilA($daftar->pluck('psn_id')->all());
 
-        return $daftar->values()->map(fn ($r, $i) => ['r' => $r, 'kurang' => $this->selKurang($r)] + $this->baris($r, $profil[$r['psn_id']] ?? [], $i + 1));
+        return $daftar->values()->map(fn ($r, $i) => ['r' => $r, 'kurang' => $this->selKurang($r), 'mentah' => $this->mentah($r)] + $this->baris($r, $profil[$r['psn_id']] ?? [], $i + 1));
     }
 }

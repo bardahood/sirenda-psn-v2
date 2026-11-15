@@ -1,19 +1,9 @@
 @php
     $labelSumber = config('psn_dashboard.label_sumber_psn');
     $kolom = $format->kolom();
-    $angkaKunci = fn ($k) => preg_match('/_(target_akhir|target_kumulatif|realisasi_kumulatif)$/', $k);
-    $tampil = function ($k, $v) use ($angkaKunci) {
-        if ($v === null || $v === '') return '';
-        if ($k === 'a9') return 'Rp '.number_format((float) $v, 0, ',', '.');
-        if ($angkaKunci($k)) return number_format((float) $v, fmod((float) $v, 1) == 0 ? 0 : 2, ',', '.');
-        return (string) $v;
-    };
-    $lebar = fn ($k) => match (true) {
-        $k === 'no' => 'min-w-[4.5rem]',
-        in_array($k, ['a6', 'a7', 'd3_tahun'], true) => 'min-w-[6.5rem]',
-        in_array($k, ['a1', 'a4', 'a10', 'c2_uraian', 'c2_dukungan', 'catatan', 'b3a_jenis', 'b3b_jenis', 'b4', 'd2', 'c1', 'cek_kurang'], true) || str_ends_with($k, 'keterangan') => 'min-w-[16rem] max-w-[22rem]',
-        default => 'min-w-[8.5rem] max-w-[14rem]',
-    };
+    $editor = $format->editor();
+    $angkaKunci = fn ($k) => $format::angka($k);
+    $lebar = fn ($k) => $format::lebar($k);
 @endphp
 <x-app-layout judul="Kertas Kerja Pengendalian PSN · RKP {{ $tahun }}" subjudul="Format ringkas: 1 baris = 1 PSN, terisi dari profil SIRENDA dan isian evaluasi setiap PSN">
     <x-slot:infoJudul>Data profil per {{ $cutoff?->tanggal_cutoff?->translatedFormat('j F Y') ?? '–' }}</x-slot:infoJudul>
@@ -47,10 +37,13 @@
                 <span class="flex items-center gap-1.5"><span class="h-3 w-5 rounded-sm border border-amber-300 bg-amber-100"></span>Isian wajib masih kosong</span>
                 <span class="flex items-center gap-1.5"><span class="h-3 w-5 rounded-sm border border-slate-200 bg-slate-100"></span>Kolom otomatis</span>
                 <span><span class="font-semibold text-orange-800">Judul kolom berwarna</span> = wajib (bersyarat)</span>
-                <span>Klik nama PSN untuk mengisi atau mengubah.</span>
+                @can('evaluasi.input')<span><b>Klik sel</b> untuk mengisi langsung; sel B3, C2, dan lampiran membuka formulir PSN.</span>@else<span>Klik nama PSN untuk melihat rincian.</span>@endcan
             </p>
 
-            <div class="max-h-[70vh] overflow-auto rounded-lg border border-slate-200">
+            <div x-data="kertasKerja(@js(collect($editor)->map(fn ($e) => ['tipe' => $e['tipe'], 'opsi' => $e['opsi']])), @js(route('evaluasi.sel', ['psn' => '__ID__'])))"
+                 @click="klik($event)" @keydown.enter="klik($event)" class="relative">
+            <div role="status" aria-live="polite" x-show="pesan" x-cloak x-text="pesan" class="mb-2 rounded-lg px-3 py-1.5 text-[12.5px]" :class="galat ? 'bg-red-50 text-red-800' : 'bg-green-50 text-green-800'"></div>
+            <div x-ref="gulir" class="max-h-[70vh] overflow-auto rounded-lg border border-slate-200">
                 <table class="border-separate border-spacing-0 text-left text-[12px]">
                     <thead class="sticky top-0 z-20">
                         <tr>
@@ -68,31 +61,51 @@
                     </thead>
                     <tbody>
                         @forelse ($baris as $b)
-                            @foreach ($kolom as $ki => $k)
-                                @if ($ki === 0)<tr class="align-top">@endif
-                                @php($kunci = $k['kunci'])
-                                @php($v = $b['nilai'][$kunci] ?? null)
-                                @php($asal = $b['asal'][$kunci] ?? 'ISIAN')
-                                @php($kurang = in_array($kunci, $b['kurang'], true))
-                                <td @class(['border-b border-r border-slate-100 px-2 py-1.5', $lebar($kunci),
-                                    'bg-amber-100' => $kurang, 'bg-sky-50' => ! $kurang && $asal === 'PROFIL' && $ki >= 3, 'bg-slate-100' => ! $kurang && $asal === 'OTOMATIS' && $ki >= 3,
-                                    'sticky z-10 bg-white' => $ki < 3, 'left-0' => $ki === 0, 'left-[4.5rem]' => $ki === 1, 'left-[13rem] shadow-[2px_0_0_#e2e8f0]' => $ki === 2,
-                                    'text-right angka' => $angkaKunci($kunci) || in_array($kunci, ['no', 'a9'], true)])>
-                                    @if ($kunci === 'a1')
-                                        <a href="{{ route('evaluasi.show', $b['r']['psn_id']) }}#h-isian" class="font-semibold text-slate-900 hover:underline">{{ $v }}</a>
-                                    @elseif ($kunci === 'status_akhir')
-                                        <span class="badge-EV_{{ $b['r']['status_akhir'] }}"><span class="titik-EV_{{ $b['r']['status_akhir'] }}"></span>{{ $v }}</span>
-                                    @else
-                                        <span class="line-clamp-5 whitespace-pre-line" title="{{ is_string($v) && strlen($v) > 120 ? $v : '' }}">{{ $tampil($kunci, $v) }}</span>
-                                    @endif
-                                </td>
-                                @if ($loop->last)</tr>@endif
-                            @endforeach
+                            @include('evaluasi._baris-kk', ['b' => $b, 'kolom' => $kolom, 'editor' => $editor])
                         @empty
                             <tr><td colspan="{{ count($kolom) }}" class="px-3 py-6 text-center text-slate-500">Tidak ada PSN yang sesuai filter.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+
+            {{-- Editor sel mengambang --}}
+            <div x-show="buka" x-cloak x-ref="editor" @click.stop @keydown.escape.prevent="tutup()" @click.outside="tutup()"
+                 class="fixed z-50 w-[22rem] max-w-[92vw] rounded-kartu border border-slate-300 bg-white p-3 shadow-xl" :style="`top:${posisi.top}px;left:${posisi.left}px`"
+                 role="dialog" aria-label="Isi sel kertas kerja">
+                <p class="mb-2 text-[12px] font-semibold text-slate-700" x-text="judul"></p>
+                <template x-if="tipe === 'teks' || tipe === 'angka' || tipe === 'tanggal'">
+                    <input x-ref="masukan" :type="tipe === 'angka' ? 'number' : (tipe === 'tanggal' ? 'date' : 'text')" step="any" x-model="nilai" @keydown.enter.prevent="simpan()"
+                           class="w-full rounded-lg border-slate-300 py-1.5 text-isi focus:border-aksen focus:ring-aksen">
+                </template>
+                <template x-if="tipe === 'panjang'">
+                    <textarea x-ref="masukan" rows="4" x-model="nilai" @keydown.ctrl.enter.prevent="simpan()" @keydown.enter.stop
+                              class="w-full rounded-lg border-slate-300 py-1.5 text-isi focus:border-aksen focus:ring-aksen"></textarea>
+                </template>
+                <template x-if="tipe === 'pilihan'">
+                    <select x-ref="masukan" x-model="nilai" @keydown.enter.prevent="simpan()" class="w-full rounded-lg border-slate-300 py-1.5 text-isi focus:border-aksen focus:ring-aksen">
+                        <option value="">(kosongkan)</option>
+                        <template x-for="[k, l] in Object.entries(opsi || {})" :key="k"><option :value="k" x-text="l" :selected="k === nilai"></option></template>
+                    </select>
+                </template>
+                <template x-if="tipe === 'multi'">
+                    <div class="max-h-60 space-y-1 overflow-auto text-isi">
+                        <template x-for="([k, l], i) in Object.entries(opsi || {})" :key="k">
+                            <label class="flex items-start gap-2"><input type="checkbox" :value="k" x-model="multi" class="mt-0.5 rounded border-slate-300 text-aksen"><span x-text="`${i + 1}. ${l}`"></span></label>
+                        </template>
+                        <template x-if="kunci === 'c1'">
+                            <label class="block pt-1"><span class="label">11. Lainnya (tulis "Tidak ada isu" bila tidak ada)</span>
+                                <input type="text" x-model="lain" class="mt-1 w-full rounded-lg border-slate-300 py-1.5 text-isi"></label>
+                        </template>
+                    </div>
+                </template>
+                <p x-show="galatEditor" x-text="galatEditor" class="mt-2 text-[12px] font-semibold text-red-700"></p>
+                <div class="mt-3 flex items-center justify-end gap-2">
+                    <span class="mr-auto text-[11px] text-slate-500" x-text="tipe === 'panjang' ? 'Ctrl+Enter simpan · Esc batal' : (tipe === 'multi' ? 'Klik Simpan · Esc batal' : 'Enter simpan · Esc batal')"></span>
+                    <button type="button" class="tombol-garis py-1" @click="tutup()">Batal</button>
+                    <button type="button" class="tombol-primer py-1" :disabled="menyimpan" @click="simpan()" x-text="menyimpan ? 'Menyimpan…' : 'Simpan'"></button>
+                </div>
+            </div>
             </div>
             <div class="mt-3">{{ $baris->links() }}</div>
         </section>

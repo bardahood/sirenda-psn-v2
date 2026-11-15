@@ -8,7 +8,7 @@ import { halamanKualitas } from './kualitas';
 import { grafikKurvaS, grafikPerbandingan } from './proyek';
 import { petaSebaran } from './peta';
 import { halamanRisiko } from './risiko';
-import { grafikStatusHarian } from './evaluasi';
+import { grafikStatusHarian, kertasKerja } from './evaluasi';
 
 window.Alpine = Alpine;
 Alpine.store('filter', filterStore());
@@ -23,4 +23,5 @@ Alpine.data('grafikPerbandingan', grafikPerbandingan);
 Alpine.data('petaSebaran', petaSebaran);
 Alpine.data('halamanRisiko', halamanRisiko);
 Alpine.data('grafikStatusHarian', grafikStatusHarian);
+Alpine.data('kertasKerja', kertasKerja);
 Alpine.start();

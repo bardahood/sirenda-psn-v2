@@ -105,3 +105,17 @@ Sheet Format Ringkas menyimpan kelompok berulang dalam satu baris: B2 berisi 7 k
 2. **Pilihan majemuk berukuran kecil dan tetap** (C1 tipologi, D2 fasilitas) disimpan sebagai larik kode JSON di `evaluasi_psn`, karena selalu dibaca dan ditulis utuh. Bila nanti diperlukan rekap lintas PSN yang berat (misalnya "fasilitas paling banyak dibutuhkan"), keduanya dapat dipindahkan ke tabel pivot tanpa mengubah tampilan.
 3. **Data yang sudah ada di profil tidak digandakan.** Nilai B2 dan isu C2 dibaca dari profil selama isian kosong; isian hanya menyimpan angka yang berbeda menurut Form Pengendalian. Isu C2 menyimpan `isu_id` asal tanpa foreign key karena tabel `isu` dibangun ulang saat sinkron PEKS3.
 4. Tabel anak memakai `jejak(false)` (pencatat pembuat/pengubah tanpa soft delete) dan tercatat di `audit_log` dengan `psn_id` induknya; baris dicocokkan menurut posisi saat disimpan sehingga ID stabil.
+
+### 6.3 Isian langsung di kertas kerja
+
+Sel yang boleh diisi pengguna dapat diklik langsung di halaman Kertas Kerja (atau dipilih dengan Tab lalu Enter). Editor kecil muncul sesuai jenis kolom: angka, teks, tanggal, pilihan, atau kotak centang (C1, D2). Tekan Enter atau klik **Simpan**: isian dikirim ke `PATCH /evaluasi-status/{psn}/sel`, dan baris yang sudah dihitung ulang (kelengkapan, rekomendasi, status akhir) langsung menggantikan baris lama. Riwayat status dan Grafik Status Harian ikut diperbarui.
+
+| Kolom | Dapat diisi langsung oleh |
+|---|---|
+| A6, A12, B2 (semua komponen sesuai jenis PSN), B4, C1, D1–D3, PIC, informasi tambahan | Operator K/L, Direktorat Sektor, PMO, Super Admin (dalam cakupan unitnya) |
+| Hasil pengecekan, tindak lanjut, catatan analisis | Direktorat Sektor, PMO, Super Admin |
+| Indikasi status (wajib ada catatan analisis) | PMO, Super Admin |
+| B3 milestone, C2 isu, lampiran | Klik sel membuka bagian formulir PSN yang sesuai (berisi beberapa baris) |
+| A1–A5, A7–A11, B1, kolom otomatis | Tidak dapat diubah (sumbernya SIRENDA PEKS3 atau hasil hitung) |
+
+Bila form PSN belum ditandai diterima, isian sel pertama sekaligus menandainya diterima hari ini (riwayat: "Form diterima (isian kertas kerja)"). Sel B2 berlatar biru (data profil) dapat ditimpa dengan angka Form Pengendalian; mengosongkannya mengembalikan nilai profil.

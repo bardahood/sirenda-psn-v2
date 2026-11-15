@@ -204,4 +204,53 @@ class EvaluasiStatusTest extends TestCase
         $this->get(route('evaluasi.grafik'))->assertOk()->assertSee('Tabel Status Harian')->assertSee('Cocok');
         $this->get(route('evaluasi.grafik', ['mulai' => 'salah']))->assertSessionHasErrors('mulai');
     }
+
+    public function test_isian_langsung_sel_kertas_kerja(): void
+    {
+        [$a, $b] = $this->siapkan();
+        $sel = fn ($psn, array $isi) => $this->patchJson(route('evaluasi.sel', $psn), $isi);
+
+        // Operator K/L: isian pertama sekaligus menandai form diterima; kolom verifikasi/keputusan ditolak.
+        $this->actingAs($this->buatPengguna('Operator K/L', '07'));
+        $r = $sel($a, ['kunci' => 'a6', 'nilai' => '2020', 'no' => 3])->assertOk();
+        $this->assertStringContainsString('data-no="3"', $r->json('html'));
+        $e = EvaluasiPsn::where('psn_id', $a->id)->firstOrFail();
+        $this->assertSame([2020, 'PROSES_PENGECEKAN'], [$e->a6_tahun_penetapan, $e->status_akhir]);
+        $this->assertSame('Form diterima (isian kertas kerja)', $e->riwayat()->value('keterangan'));
+        $sel($a, ['kunci' => 'hasil', 'nilai' => 'LENGKAP_BENAR'])->assertForbidden();
+        $sel($a, ['kunci' => 'a1', 'nilai' => 'Ubah nama'])->assertStatus(422);            // kolom profil
+        $sel($a, ['kunci' => 'c2_uraian', 'nilai' => 'x'])->assertStatus(422);             // diisi lewat formulir
+        $sel($b, ['kunci' => 'a6', 'nilai' => '2020'])->assertNotFound();                   // di luar cakupan unit
+        $sel($a, ['kunci' => 'a6', 'nilai' => '1990'])->assertStatus(422)->assertJsonValidationErrors('nilai');
+
+        // Pilihan majemuk dan capaian B2 (menimpa profil; kosong = kembali ke profil; jenis harus sesuai).
+        $sel($a, ['kunci' => 'c1', 'nilai' => ['1', '3'], 'nilai_lain' => 'Cuaca'])->assertOk();
+        $sel($a, ['kunci' => 'd2', 'nilai' => ['LMAN', 'XX']])->assertStatus(422);
+        $sel($a, ['kunci' => 'd2', 'nilai' => ['LMAN']])->assertOk();
+        $sel($a, ['kunci' => 'pic_nama', 'nilai' => 'Ir. Uji'])->assertOk();
+        $sel($a, ['kunci' => 'fisik_progres_fisik_realisasi_kumulatif', 'nilai' => '50'])->assertOk()->assertJsonPath('message', fn ($m) => str_contains($m, 'Tersimpan'));
+        $sel($a, ['kunci' => 'non_fisik_output_utama_satuan', 'nilai' => 'unit'])->assertStatus(422);
+        $e->refresh();
+        $this->assertSame([['1', '3'], 'Cuaca', ['LMAN'], ['nama' => 'Ir. Uji']], [$e->c1_tipologi, $e->c1_lainnya, $e->d2_fasilitas, $e->pic]);
+        $h = app(EvaluasiStatusService::class)->satu($a);
+        $this->assertSame([60.0, 50.0], [$h['capaian']['PROGRES_FISIK']['target_kumulatif'], $h['capaian']['PROGRES_FISIK']['realisasi_kumulatif']]);
+        $sel($a, ['kunci' => 'fisik_progres_fisik_realisasi_kumulatif', 'nilai' => ''])->assertOk();
+        $this->assertSame(0, $e->capaian()->count());
+
+        // Direktorat Sektor: hasil pengecekan; PMO: indikasi butuh catatan.
+        $this->actingAs($this->buatPengguna('Direktorat Sektor', '07'));
+        $sel($a, ['kunci' => 'hasil', 'nilai' => 'BELUM_LENGKAP'])->assertOk()->assertJsonPath('message', 'Tersimpan. Status akhir: Butuh Data Tambahan.');
+        $this->actingAs($this->buatPengguna('Tim Koordinasi/PMO'));
+        $sel($a, ['kunci' => 'indikasi', 'nilai' => 'DIPERTAHANKAN'])->assertStatus(422);
+        $sel($a, ['kunci' => 'catatan', 'nilai' => 'Lahan kritis'])->assertOk();
+        $html = $sel($a, ['kunci' => 'indikasi', 'nilai' => 'DIPERTAHANKAN'])->assertOk()->json('html');
+        $this->assertStringContainsString('badge-EV_DIPERTAHANKAN', $html);
+        $this->assertSame(['PROSES_PENGECEKAN', 'BUTUH_DATA', 'DIPERTAHANKAN'], $e->riwayat()->get()->sortBy('id')->pluck('status_akhir')->values()->all());
+
+        // Halaman kertas kerja memuat penanda sel yang dapat diisi; Pimpinan hanya melihat.
+        $this->get(route('evaluasi.kertas-kerja'))->assertOk()->assertSee('data-edit="1"', false);
+        $this->actingAs($this->buatPengguna('Pimpinan'));
+        $this->get(route('evaluasi.kertas-kerja'))->assertOk()->assertDontSee('data-edit="1"', false);
+        $sel($a, ['kunci' => 'a6', 'nilai' => '2020'])->assertForbidden();
+    }
 }

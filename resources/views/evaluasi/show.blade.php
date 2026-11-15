@@ -156,7 +156,7 @@
                                 </div>
                             </div>
 
-                            <div>
+                            <div id="b3" class="scroll-mt-24">
                                 <span class="label block" x-text="jenis === 'NON_FISIK' ? 'B3.b Milestone persiapan program (wajib bila tahap Penyiapan/Transaksi; minimal 1)' : 'B3.a Milestone pra konstruksi (wajib bila tahap Penyiapan/Transaksi; minimal 1)'"></span>
                                 @php($baris = 0)
                                 @foreach ($cfg['milestone'] as $jenisMs => $daftarMs)
@@ -197,7 +197,7 @@
                                 </div>
                             </div>
 
-                            <div>
+                            <div id="c2" class="scroll-mt-24">
                                 <span class="label block">C2 Uraian isu (maks. {{ $cfg['maks_isu'] }}). @if ($e->isu->isEmpty() && $h['isu'])<span class="text-sky-700">Terisi dari isu terbuka di profil; periksa dan lengkapi tipologinya.</span>@endif</span>
                                 <div class="mt-1 space-y-2">
                                     @for ($i = 0; $i < $cfg['maks_isu']; $i++)
@@ -264,7 +264,7 @@
                             </div>
                         </fieldset>
 
-                        <fieldset class="space-y-3 rounded-kartu border border-slate-200 p-4" @disabled(! $bisaInput)>
+                        <fieldset id="lampiran" class="scroll-mt-24 space-y-3 rounded-kartu border border-slate-200 p-4" @disabled(! $bisaInput)>
                             <legend class="px-1 text-[13px] font-bold text-slate-800">Lampiran dan informasi tambahan</legend>
                                                         <div class="overflow-x-auto">
                                 <table class="w-full text-isi">

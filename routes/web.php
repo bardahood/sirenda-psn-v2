@@ -45,6 +45,7 @@ Route::middleware(['auth', 'akun.aktif'])->group(function () {
     Route::get('/evaluasi-status/grafik', [EvaluasiStatusController::class, 'grafik'])->middleware('can:evaluasi.lihat')->name('evaluasi.grafik');
     Route::get('/evaluasi-status/{psn}', [EvaluasiStatusController::class, 'show'])->middleware('can:evaluasi.lihat')->whereNumber('psn')->name('evaluasi.show');
     Route::post('/evaluasi-status/{psn}/terima', [EvaluasiStatusController::class, 'terima'])->middleware('can:evaluasi.input')->whereNumber('psn')->name('evaluasi.terima');
+    Route::patch('/evaluasi-status/{psn}/sel', [EvaluasiStatusController::class, 'sel'])->middleware('can:evaluasi.input')->whereNumber('psn')->name('evaluasi.sel');
     Route::put('/evaluasi-status/{psn}', [EvaluasiStatusController::class, 'update'])->middleware('can:evaluasi.input')->whereNumber('psn')->name('evaluasi.update');
     Route::get('/form-pengendalian/lama/{id}', [FormPengendalianController::class, 'dariIdLama'])->middleware('can:detail.lihat')->whereNumber('id')->name('form-pengendalian.lama');
     Route::view('/kualitas-data', 'kualitas-data.index')->middleware('can:kualitas.lihat')->name('kualitas-data');
