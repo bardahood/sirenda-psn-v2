@@ -29,6 +29,7 @@
 | `psn_id` | bigint(20) unsigned |  | → `psn.id` |  |
 | `form_diterima_at` | date | ya |  | tanggal Form Pengendalian diterima dari PJ |
 | `a6_tahun_penetapan` | smallint(5) unsigned | ya |  | A6 tahun pertama kali ditetapkan sebagai PSN |
+| `a8_sumber_pendanaan` | varchar(15) | ya |  | APBN\|APBD\|BUMN\|BADAN_USAHA\|DANANTARA\|LAINNYA\|CAMPURAN; kosong = dari profil |
 | `jenis_psn` | varchar(10) | ya |  | A12 FISIK\|NON_FISIK |
 | `tanpa_isu` | tinyint(1) |  |  | C1 Lainnya: "Tidak ada isu" |
 | `b4_manfaat` | text | ya |  | B4 manfaat yang sudah terwujud s.d. akhir triwulan |

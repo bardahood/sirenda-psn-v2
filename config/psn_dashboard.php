@@ -339,6 +339,14 @@ return [
         'indikasi' => ['DIPERTAHANKAN' => 'Dipertahankan', 'DIKELUARKAN' => 'Dikeluarkan'],
 
         'jenis_psn' => ['FISIK' => 'Fisik', 'NON_FISIK' => 'Non-Fisik'],
+        // Seluruh daftar pilihan di bawah mengikuti sheet "Daftar Pilihan" kertas kerja (urutan dan teks sama persis).
+        'sumber_pendanaan' => ['APBN' => 'APBN', 'APBD' => 'APBD', 'BUMN' => 'BUMN', 'BADAN_USAHA' => 'Badan Usaha-Swasta',
+            'DANANTARA' => 'Danantara', 'LAINNYA' => 'Lainnya', 'CAMPURAN' => 'Campuran'],
+        // ref_sumber_dana.kode profil -> pilihan A8; lebih dari satu kategori = Campuran.
+        'peta_sumber_dana' => ['A' => 'APBN', 'B' => 'APBD', 'C' => 'BUMN', 'D' => 'BADAN_USAHA', 'E' => 'LAINNYA', 'F' => 'DANANTARA', 'G' => 'DANANTARA'],
+        'ya_tidak' => ['1' => 'Ya', '0' => 'Tidak'],
+        'tahun_min' => 2000,
+        'tahun_maks' => 2100,
         'tahapan' => ['PENYIAPAN' => 'Penyiapan', 'TRANSAKSI' => 'Transaksi', 'KONSTRUKSI' => 'Konstruksi', 'BEROPERASI_SEBAGIAN' => 'Beroperasi sebagian', 'KUMULATIF_SELESAI' => 'Kumulatif selesai'],
         'd1' => ['MASIH' => 'Masih membutuhkan status PSN', 'TIDAK' => 'Tidak lagi membutuhkan status PSN'],
         'd1_alasan' => [

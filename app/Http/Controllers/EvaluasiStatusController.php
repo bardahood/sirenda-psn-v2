@@ -53,7 +53,8 @@ class EvaluasiStatusController extends Controller
         $e = $hasil['evaluasi'];
 
         return view('evaluasi.show', ['psn' => $psn, 'h' => $hasil, 'e' => $e, 'cfg' => config('psn_dashboard.evaluasi_status'),
-            'tahun' => $this->layanan->tahun(), 'cutoff' => $this->layanan->cutoff(), 'riwayat' => $e?->riwayat()->with('user:id,name')->get() ?? collect()]);
+            'tahun' => $this->layanan->tahun(), 'cutoff' => $this->layanan->cutoff(), 'riwayat' => $e?->riwayat()->with('user:id,name')->get() ?? collect(),
+            'a8Profil' => app(FormatRingkas::class)->profilA([$psn->id])[$psn->id]['a8'] ?? null]);
     }
 
     public function terima(Request $r, Psn $psn)
@@ -79,7 +80,8 @@ class EvaluasiStatusController extends Controller
         if ($u->can('evaluasi.input')) {
             $aturan += [
                 'form_diterima_at' => ['sometimes', 'required', 'date', 'before_or_equal:today'],
-                'a6_tahun_penetapan' => ['nullable', 'integer', 'min:2000', 'max:'.$this->layanan->tahun()],
+                'a6_tahun_penetapan' => ['nullable', 'integer', 'min:'.$c['tahun_min'], 'max:'.$c['tahun_maks']],
+                'a8_sumber_pendanaan' => ['nullable', Rule::in(array_keys($c['sumber_pendanaan']))],
                 'jenis_psn' => ['nullable', Rule::in(array_keys($c['jenis_psn']))],
                 'tanpa_isu' => ['boolean'],
                 'd1_kebutuhan' => ['nullable', Rule::in(array_keys($c['d1']))],
@@ -90,7 +92,7 @@ class EvaluasiStatusController extends Controller
                 'd2_justifikasi' => ['nullable', 'string', 'max:4000'],
                 'd3_tahapan' => ['nullable', Rule::in(array_keys($c['tahapan']))],
                 'd3_target' => ['nullable', 'string', 'max:2000'],
-                'd3_tahun_selesai' => ['nullable', 'integer', 'min:2020', 'max:2100'],
+                'd3_tahun_selesai' => ['nullable', 'integer', 'min:'.$c['tahun_min'], 'max:'.$c['tahun_maks']],
                 'pic' => ['nullable', 'array'],
                 'pic.nama' => ['nullable', 'string', 'max:150'], 'pic.jabatan' => ['nullable', 'string', 'max:150'],
                 'pic.unit' => ['nullable', 'string', 'max:200'], 'pic.kontak' => ['nullable', 'string', 'max:150'], 'pic.tanggal' => ['nullable', 'date'],
@@ -220,7 +222,7 @@ class EvaluasiStatusController extends Controller
 
         $aturanNilai = match ($ed['tipe']) {
             'angka' => $ed['komponen'] ? ['nullable', 'numeric', 'min:0', 'max:1e20']
-                : (in_array($v['kunci'], ['a6', 'd3_tahun'], true) ? ['nullable', 'integer', 'min:2000', 'max:2100'] : ['nullable', 'numeric']),
+                : (in_array($v['kunci'], ['a6', 'd3_tahun'], true) ? ['nullable', 'integer', 'min:'.$c['tahun_min'], 'max:'.$c['tahun_maks']] : ['nullable', 'numeric']),
             'teks' => ['nullable', 'string', 'max:'.($ed['komponen'] ? 2000 : 255)],
             'panjang' => ['nullable', 'string', 'max:5000'],
             'tanggal' => ['nullable', 'date'],
@@ -250,7 +252,7 @@ class EvaluasiStatusController extends Controller
             $baris[$ed['kolom']] = $nilai;
             $rincian = ['capaian' => [$ed['komponen'] => $baris]];
         } else {
-            $kolom = ['a6' => 'a6_tahun_penetapan', 'a12' => 'jenis_psn', 'b4' => 'b4_manfaat', 'c1' => 'c1_tipologi', 'd1' => 'd1_kebutuhan',
+            $kolom = ['a6' => 'a6_tahun_penetapan', 'a8' => 'a8_sumber_pendanaan', 'a12' => 'jenis_psn', 'b4' => 'b4_manfaat', 'c1' => 'c1_tipologi', 'd1' => 'd1_kebutuhan',
                 'd1_alasan' => 'd1_alasan', 'd1_alasan_lain' => 'd1_alasan_lain', 'd2' => 'd2_fasilitas', 'd2_justifikasi' => 'd2_justifikasi',
                 'd3_tahapan' => 'd3_tahapan', 'd3_target' => 'd3_target', 'd3_tahun' => 'd3_tahun_selesai', 'info' => 'info_tambahan',
                 'hasil' => 'hasil_pengecekan', 'tl' => 'tindak_lanjut', 'catatan' => 'catatan_analisis', 'indikasi' => 'indikasi_status'];

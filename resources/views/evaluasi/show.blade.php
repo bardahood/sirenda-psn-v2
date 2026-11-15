@@ -108,12 +108,15 @@
                     <form method="POST" action="{{ route('evaluasi.update', $psn) }}" class="mt-3 space-y-5"
                           x-data="{ d1: @js($nilai('d1_kebutuhan', $e->d1_kebutuhan)), alasan: @js($nilai('d1_alasan', $e->d1_alasan)), jenis: @js($nilai('jenis_psn', $e->jenis_psn) ?: 'FISIK') }">
                         @csrf @method('PUT')
-                        <fieldset class="grid grid-cols-1 gap-3 md:grid-cols-4" @disabled(! $bisaInput)>
+                        <fieldset class="grid grid-cols-1 gap-3 md:grid-cols-5" @disabled(! $bisaInput)>
                             <legend class="mb-1 text-[13px] font-bold text-slate-800">Identitas tambahan</legend>
                             <label class="text-isi"><span class="label block">Tanggal form diterima *</span>
                                 <input type="date" name="form_diterima_at" value="{{ $nilai('form_diterima_at', $e->form_diterima_at?->toDateString()) }}" max="{{ now()->toDateString() }}" class="{{ $input }}"></label>
                             <label class="text-isi"><span class="label block">A6 Tahun penetapan PSN *</span>
-                                <input type="number" name="a6_tahun_penetapan" min="2000" max="{{ $tahun }}" value="{{ $nilai('a6_tahun_penetapan', $e->a6_tahun_penetapan) }}" class="{{ $input }}"></label>
+                                <input type="number" name="a6_tahun_penetapan" min="{{ $cfg['tahun_min'] }}" max="{{ $cfg['tahun_maks'] }}" value="{{ $nilai('a6_tahun_penetapan', $e->a6_tahun_penetapan) }}" class="{{ $input }}"></label>
+                            <label class="text-isi"><span class="label block">A8 Sumber pendanaan</span>
+                                <select name="a8_sumber_pendanaan" class="{{ $input }}"><option value="">Dari profil: {{ $cfg['sumber_pendanaan'][$a8Profil] ?? '–' }}</option>
+                                    @foreach ($cfg['sumber_pendanaan'] as $k => $l)<option value="{{ $k }}" @selected($nilai('a8_sumber_pendanaan', $e->a8_sumber_pendanaan) === $k)>{{ $l }}</option>@endforeach</select></label>
                             <label class="text-isi"><span class="label block">A12 Jenis PSN</span>
                                 <select name="jenis_psn" x-model="jenis" class="{{ $input }}"><option value="">–</option>
                                     @foreach ($cfg['jenis_psn'] as $k => $l)<option value="{{ $k }}" @selected($nilai('jenis_psn', $e->jenis_psn) === $k)>{{ $l }}</option>@endforeach</select></label>
@@ -208,7 +211,7 @@
                                             <label class="md:col-span-3"><span class="sr-only">Tipologi</span><select name="isu[{{ $i }}][tipologi]" class="{{ $input }}"><option value="">Tipologi (no. C1)</option>
                                                 @foreach ($cfg['tipologi_isu'] as $k => $l)<option value="{{ $k }}" @selected((string) ($is['tipologi'] ?? '') === (string) $k)>{{ $k }}. {{ $l }}</option>@endforeach</select></label>
                                             <label class="md:col-span-3"><span class="sr-only">Menghambat jalur kritis</span><select name="isu[{{ $i }}][jalur_kritis]" class="{{ $input }}"><option value="">Menghambat jalur kritis?</option>
-                                                <option value="1" @selected(($is['jalur_kritis'] ?? '') === '1')>Ya, menghambat</option><option value="0" @selected(($is['jalur_kritis'] ?? '') === '0')>Tidak</option></select></label>
+                                                @foreach ($cfg['ya_tidak'] as $k => $l)<option value="{{ $k }}" @selected(($is['jalur_kritis'] ?? '') === (string) $k)>{{ $l }}</option>@endforeach</select></label>
                                             <label class="md:col-span-5 md:col-start-2"><span class="sr-only">Upaya</span><input type="text" name="isu[{{ $i }}][upaya]" maxlength="2000" placeholder="Upaya yang sudah dilakukan (opsional)" value="{{ $is['upaya'] ?? '' }}" class="{{ $input }}"></label>
                                             <label class="md:col-span-6"><span class="sr-only">Dukungan</span><input type="text" name="isu[{{ $i }}][dukungan]" maxlength="2000" placeholder="Dukungan yang dibutuhkan (apa dan dari siapa)" value="{{ $is['dukungan'] ?? '' }}" class="{{ $input }}"></label>
                                         </div>
@@ -252,7 +255,7 @@
                                     <label class="text-isi md:col-span-1"><span class="label block">D3 Target progres/output akhir {{ $tahun }} *</span>
                                         <input type="text" name="d3_target" maxlength="2000" value="{{ $nilai('d3_target', $e->d3_target) }}" class="{{ $input }}"></label>
                                     <label class="text-isi"><span class="label block">D3 Proyeksi tahun selesai *</span>
-                                        <input type="number" name="d3_tahun_selesai" min="2020" max="2100" value="{{ $nilai('d3_tahun_selesai', $e->d3_tahun_selesai) }}" class="{{ $input }}"></label>
+                                        <input type="number" name="d3_tahun_selesai" min="{{ $cfg['tahun_min'] }}" max="{{ $cfg['tahun_maks'] }}" value="{{ $nilai('d3_tahun_selesai', $e->d3_tahun_selesai) }}" class="{{ $input }}"></label>
                                 </div>
                             </div>
                             <div class="grid grid-cols-1 gap-3 md:grid-cols-5">

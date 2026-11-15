@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\EvaluasiPsn;
 use App\Services\EvaluasiStatusService;
 use App\Services\SnapshotService;
+use App\Support\Evaluasi\FormatRingkas;
 use Carbon\CarbonImmutable;
 use Database\Seeders\PeranSeeder;
 use Database\Seeders\ReferensiSeeder;
@@ -188,6 +189,8 @@ class EvaluasiStatusTest extends TestCase
         $xlsx = $this->get(route('evaluasi.kertas-kerja-xlsx'))->assertOk();
         $berkas = tempnam(sys_get_temp_dir(), 'kk').'.xlsx';
         copy($xlsx->baseResponse->getFile()->getPathname(), $berkas);
+        $berkasSalin = $berkas.'.salin.xlsx';
+        copy($berkas, $berkasSalin);
         $ws = IOFactory::load($berkas)->getActiveSheet();
         @unlink($berkas);
         $this->assertSame('CN', $ws->getHighestColumn());
@@ -199,6 +202,15 @@ class EvaluasiStatusTest extends TestCase
         $this->assertSame('km', $ws->getCell("T{$baris}")->getValue());
         $this->assertSame(45, (int) $ws->getCell("R{$baris}")->getValue()); // realisasi dari profil
         $this->assertStringContainsString('1. Studi kelayakan', (string) $ws->getCell("BD{$baris}")->getValue());
+        // Daftar Pilihan ikut diekspor dan dipakai sebagai dropdown (sama dengan kertas kerja).
+        $buku = IOFactory::load($berkasSalin);
+        @unlink($berkasSalin);
+        $dp = $buku->getSheetByName('Daftar Pilihan');
+        $this->assertSame(['APBN', 'APBD', 'BUMN', 'Badan Usaha-Swasta', 'Danantara', 'Lainnya', 'Campuran'], array_map(fn ($r) => $dp->getCell("C{$r}")->getValue(), range(4, 10)));
+        $this->assertSame('1. Perizinan usaha', $dp->getCell('R4')->getValue());
+        $dv = $buku->getSheet(0)->getDataValidation('J5');
+        $this->assertSame("'Daftar Pilihan'!\$C\$4:\$C\$10", $dv->getFormula1());
+        $this->assertSame(['2000', '2100'], [$buku->getSheet(0)->getDataValidation('H5')->getFormula1(), $buku->getSheet(0)->getDataValidation('H5')->getFormula2()]);
 
         // Grafik status harian: tabel 14 hari, posisi saat ini cocok dengan riwayat.
         $this->get(route('evaluasi.grafik'))->assertOk()->assertSee('Tabel Status Harian')->assertSee('Cocok');
@@ -228,6 +240,8 @@ class EvaluasiStatusTest extends TestCase
         $sel($a, ['kunci' => 'd2', 'nilai' => ['LMAN', 'XX']])->assertStatus(422);
         $sel($a, ['kunci' => 'd2', 'nilai' => ['LMAN']])->assertOk();
         $sel($a, ['kunci' => 'pic_nama', 'nilai' => 'Ir. Uji'])->assertOk();
+        $sel($a, ['kunci' => 'a8', 'nilai' => 'Badan Usaha-Swasta'])->assertStatus(422);        // kode, bukan label
+        $this->assertStringContainsString('Danantara', $sel($a, ['kunci' => 'a8', 'nilai' => 'DANANTARA'])->assertOk()->json('html'));
         $sel($a, ['kunci' => 'fisik_progres_fisik_realisasi_kumulatif', 'nilai' => '50'])->assertOk()->assertJsonPath('message', fn ($m) => str_contains($m, 'Tersimpan'));
         $sel($a, ['kunci' => 'non_fisik_output_utama_satuan', 'nilai' => 'unit'])->assertStatus(422);
         $e->refresh();
@@ -252,5 +266,26 @@ class EvaluasiStatusTest extends TestCase
         $this->actingAs($this->buatPengguna('Pimpinan'));
         $this->get(route('evaluasi.kertas-kerja'))->assertOk()->assertDontSee('data-edit="1"', false);
         $sel($a, ['kunci' => 'a6', 'nilai' => '2020'])->assertForbidden();
+    }
+
+    public function test_a8_sumber_pendanaan_mengikuti_daftar_pilihan(): void
+    {
+        [$a] = $this->siapkan();
+        $f = new FormatRingkas;
+        $this->assertNull($f->sumberPendanaan([]));
+        $this->assertSame('BADAN_USAHA', $f->sumberPendanaan(['D']));
+        $this->assertSame('DANANTARA', $f->sumberPendanaan(['F', 'G']));   // DDMF bagian dari Danantara
+        $this->assertSame('CAMPURAN', $f->sumberPendanaan(['A', 'D']));
+        $this->assertSame('LAINNYA', $f->sumberPendanaan(['Z']));
+
+        DB::table('psn_sumber_dana')->insert([['psn_id' => $a->id, 'sumber_dana_id' => $this->ref('ref_sumber_dana', 'A')], ['psn_id' => $a->id, 'sumber_dana_id' => $this->ref('ref_sumber_dana', 'D')]]);
+        $this->actingAs($this->buatPengguna('Tim Koordinasi/PMO'));
+        $this->get(route('evaluasi.kertas-kerja'))->assertSee('Campuran');
+        $this->post(route('evaluasi.terima', $a));
+        $this->get(route('evaluasi.show', $a))->assertSee('Dari profil: Campuran');
+        $this->put(route('evaluasi.update', $a), ['bagian_input' => 1, 'a8_sumber_pendanaan' => 'APBN', 'a6_tahun_penetapan' => 2100])->assertSessionHasNoErrors();
+        $this->put(route('evaluasi.update', $a), ['a6_tahun_penetapan' => 2101])->assertSessionHasErrors('a6_tahun_penetapan');
+        $b = $f->semua(app(EvaluasiStatusService::class)->daftar([$a->id]))->first();
+        $this->assertSame(['APBN', 'ISIAN', 'APBN'], [$b['nilai']['a8'], $b['asal']['a8'], $b['mentah']['a8']]);
     }
 }

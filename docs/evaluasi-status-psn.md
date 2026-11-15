@@ -119,3 +119,11 @@ Sel yang boleh diisi pengguna dapat diklik langsung di halaman Kertas Kerja (ata
 | A1–A5, A7–A11, B1, kolom otomatis | Tidak dapat diubah (sumbernya SIRENDA PEKS3 atau hasil hitung) |
 
 Bila form PSN belum ditandai diterima, isian sel pertama sekaligus menandainya diterima hari ini (riwayat: "Form diterima (isian kertas kerja)"). Sel B2 berlatar biru (data profil) dapat ditimpa dengan angka Form Pengendalian; mengosongkannya mengembalikan nilai profil.
+
+### 6.4 Keselarasan dengan sheet "Daftar Pilihan"
+
+Semua pilihan di aplikasi memakai teks dan urutan yang sama dengan sheet "Daftar Pilihan" kertas kerja (`config/psn_dashboard.php` → `evaluasi_status`): Jenis PSN, Tahapan, Sumber Pendanaan, Status Milestone, Ya/Tidak, D1 Kebutuhan Status, D1 Alasan, Jenis dan Bentuk Lampiran, Hasil Pengecekan, Tindak Lanjut, Indikasi Status, Status Akhir, Milestone B3.a/B3.b, Tipologi Isu C1, dan Fasilitas D2. Status "Form belum diterima" adalah tambahan aplikasi untuk PSN yang belum punya isian (di kertas kerja Excel, PSN seperti ini belum memiliki baris).
+
+- **A8 Sumber pendanaan** kini berupa pilihan Daftar Pilihan (APBN, APBD, BUMN, Badan Usaha-Swasta, Danantara, Lainnya, Campuran). Nilai bawaan diturunkan dari sumber dana profil (`peta_sumber_dana`; DDMF termasuk Danantara; lebih dari satu kategori = Campuran) dan dapat ditimpa (`evaluasi_psn.a8_sumber_pendanaan`).
+- Tahun A6, A7, dan D3 dibatasi 2000 sampai 2100, sama dengan validasi kertas kerja.
+- Unduhan kertas kerja menyertakan sheet "Daftar Pilihan" dan dropdown/validasi pada kolom yang sama dengan template (J, N, O, BU, BP, BQ, CJ, CK, CM; tahun H, I, BW).

@@ -2092,6 +2092,7 @@ CREATE TABLE `evaluasi_psn` (
   `psn_id` bigint(20) unsigned NOT NULL,
   `form_diterima_at` date DEFAULT NULL COMMENT 'tanggal Form Pengendalian diterima dari PJ',
   `a6_tahun_penetapan` smallint(5) unsigned DEFAULT NULL COMMENT 'A6 tahun pertama kali ditetapkan sebagai PSN',
+  `a8_sumber_pendanaan` varchar(15) DEFAULT NULL COMMENT 'APBN|APBD|BUMN|BADAN_USAHA|DANANTARA|LAINNYA|CAMPURAN; kosong = dari profil',
   `jenis_psn` varchar(10) DEFAULT NULL COMMENT 'A12 FISIK|NON_FISIK',
   `tanpa_isu` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'C1 Lainnya: "Tidak ada isu"',
   `b4_manfaat` text DEFAULT NULL COMMENT 'B4 manfaat yang sudah terwujud s.d. akhir triwulan',

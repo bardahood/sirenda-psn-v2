@@ -98,7 +98,7 @@ class FormatRingkas
                 'a3' => $p->lokasi->map(fn ($l) => $l->provinsi_kode === '00' ? 'Nasional' : trim(($l->provinsi?->nama ?? $l->provinsi_kode).($l->kabupaten ? ' ('.$l->kabupaten->nama.')' : '')))->unique()->implode('; '),
                 'a4' => collect(['PJ' => $peran('PENANGGUNG_JAWAB'), 'Pengelola' => $peran('PENGELOLA'), 'Pelaksana' => $peran('PELAKSANA')])->filter()->map(fn ($v, $k) => "{$k}: {$v}")->implode('; '),
                 'a5' => $p->dasar_penetapan,
-                'a8' => $p->sumberDana->map(fn ($d) => $d->sumberDana?->nama)->filter()->unique()->implode(', '),
+                'a8' => $this->sumberPendanaan($p->sumberDana->map(fn ($d) => $d->sumberDana?->kode)->filter()->all()),
                 'a9' => $p->nilai_investasi_rp !== null ? (float) $p->nilai_investasi_rp : null,
                 'a10' => $p->deskripsi,
                 'a11' => $p->output,
@@ -131,7 +131,8 @@ class FormatRingkas
         $set('kode', $r['kode'], 'PROFIL');
         $set('a1', $r['nama'], 'PROFIL');
         $set('a2', $r['klaster'], 'PROFIL');
-        foreach (['a3', 'a4', 'a5', 'a8', 'a9', 'a10', 'a11'] as $k) {
+        $set('a8', $label('sumber_pendanaan', $e?->a8_sumber_pendanaan ?: ($profilA['a8'] ?? null)), $e?->a8_sumber_pendanaan ? 'ISIAN' : 'PROFIL');
+        foreach (['a3', 'a4', 'a5', 'a9', 'a10', 'a11'] as $k) {
             $set($k, $profilA[$k] ?? null, 'PROFIL');
         }
         $set('a6', $e?->a6_tahun_penetapan);
@@ -210,7 +211,7 @@ class FormatRingkas
     {
         $c = config('psn_dashboard.evaluasi_status');
         $ed = [
-            'a6' => ['angka', 'input'], 'a12' => ['pilihan', 'input', $c['jenis_psn']],
+            'a6' => ['angka', 'input'], 'a8' => ['pilihan', 'input', $c['sumber_pendanaan']], 'a12' => ['pilihan', 'input', $c['jenis_psn']],
             'b4' => ['panjang', 'input'], 'c1' => ['multi', 'input', array_diff_key($c['tipologi_isu'], ['11' => 1])],
             'd1' => ['pilihan', 'input', $c['d1']], 'd1_alasan' => ['pilihan', 'input', $c['d1_alasan']], 'd1_alasan_lain' => ['teks', 'input'],
             'd2' => ['multi', 'input', $c['d2_fasilitas']], 'd2_justifikasi' => ['panjang', 'input'],
@@ -244,11 +245,11 @@ class FormatRingkas
     }
 
     /** Nilai mentah (kode, angka, tanggal ISO) untuk diedit langsung; label hanya untuk tampilan. */
-    public function mentah(array $r): array
+    public function mentah(array $r, ?string $a8Profil = null): array
     {
         $e = $r['evaluasi'];
         $m = [
-            'a6' => $e?->a6_tahun_penetapan, 'a12' => $e?->jenis_psn, 'b4' => $e?->b4_manfaat, 'c1' => $e?->c1_tipologi ?? [], 'c1_lainnya' => $e?->c1_lainnya,
+            'a6' => $e?->a6_tahun_penetapan, 'a8' => $e?->a8_sumber_pendanaan ?: $a8Profil, 'a12' => $e?->jenis_psn, 'b4' => $e?->b4_manfaat, 'c1' => $e?->c1_tipologi ?? [], 'c1_lainnya' => $e?->c1_lainnya,
             'd1' => $e?->d1_kebutuhan, 'd1_alasan' => $e?->d1_alasan, 'd1_alasan_lain' => $e?->d1_alasan_lain, 'd2' => $e?->d2_fasilitas ?? [], 'd2_justifikasi' => $e?->d2_justifikasi,
             'd3_tahapan' => $e?->d3_tahapan, 'd3_target' => $e?->d3_target, 'd3_tahun' => $e?->d3_tahun_selesai, 'info' => $e?->info_tambahan,
             'hasil' => $e?->hasil_pengecekan, 'tl' => $e?->tindak_lanjut, 'catatan' => $e?->catatan_analisis, 'indikasi' => $e?->indikasi_status,
@@ -325,6 +326,20 @@ class FormatRingkas
     {
         $profil = $this->profilA($daftar->pluck('psn_id')->all());
 
-        return $daftar->values()->map(fn ($r, $i) => ['r' => $r, 'kurang' => $this->selKurang($r), 'mentah' => $this->mentah($r)] + $this->baris($r, $profil[$r['psn_id']] ?? [], $i + 1));
+        return $daftar->values()->map(fn ($r, $i) => ['r' => $r, 'kurang' => $this->selKurang($r), 'mentah' => $this->mentah($r, $profil[$r['psn_id']]['a8'] ?? null)]
+            + $this->baris($r, $profil[$r['psn_id']] ?? [], $i + 1));
+    }
+
+    /** Kode sumber dana profil -> kode pilihan A8 (Daftar Pilihan); lebih dari satu kategori = CAMPURAN. */
+    public function sumberPendanaan(array $kodeProfil): ?string
+    {
+        $peta = config('psn_dashboard.evaluasi_status.peta_sumber_dana');
+        $kat = array_values(array_unique(array_filter(array_map(fn ($k) => $peta[$k] ?? 'LAINNYA', $kodeProfil))));
+
+        return match (count($kat)) {
+            0 => null,
+            1 => $kat[0],
+            default => 'CAMPURAN',
+        };
     }
 }
