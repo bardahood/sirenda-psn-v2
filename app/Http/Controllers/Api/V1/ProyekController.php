@@ -107,7 +107,7 @@ class ProyekController extends Controller
             'kritis' => $r->boolean('kritis'),
             'nonaktif' => $r->boolean('nonaktif'),
             'tahap' => $r->query('tahap'),
-            'urut' => $r->query('urut', 'nama'),
+            'urut' => $r->query('urut', 'sirenda'),
             'arah' => $r->query('arah', 'asc'),
         ];
     }

@@ -17,8 +17,12 @@ use Illuminate\Support\Facades\DB;
  */
 class PortofolioService
 {
-    /** Kolom urut yang diizinkan => ekspresi SQL. */
+    /**
+     * Kolom urut yang diizinkan => ekspresi SQL. Bawaan 'sirenda' = urutan data di SIRENDA PEKS3 (psn.legacy_id,
+     * urutan input PSN), sama dengan menu Evaluasi; PSN tanpa legacy_id di akhir.
+     */
     public const URUTAN = [
+        'sirenda' => 'p.legacy_id',
         'nama' => 'p.nama',
         'kode' => 'p.kode_psn',
         'klaster' => 'k.nama',
@@ -64,7 +68,7 @@ class PortofolioService
             $q->where(fn ($w) => $w->where('p.nama', 'like', "%{$cari}%")->orWhere('p.kode_psn', 'like', "%{$cari}%"));
         }
 
-        $kolom = self::URUTAN[$opsi['urut'] ?? 'nama'] ?? 'p.nama';
+        $kolom = self::URUTAN[$opsi['urut'] ?? 'sirenda'] ?? 'p.legacy_id';
         $arah = ($opsi['arah'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
         // Nilai kosong selalu di akhir, apa pun arah urutannya.
         $q->orderByRaw("{$kolom} IS NULL")->orderBy(DB::raw($kolom), $arah)->orderBy('p.id');

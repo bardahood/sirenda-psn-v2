@@ -55,7 +55,7 @@
                 <table class="w-full min-w-[1180px] text-left text-isi">
                     <thead class="border-b border-slate-200 text-label text-slate-600">
                         <tr>
-                            @foreach ([['kode', 'Kode', ''], ['nama', 'Nama PSN', ''], ['klaster', 'Klaster', ''], [null, 'Lokasi', ''], ['investasi', 'Investasi (Rp T)', 'text-right'], ['progres', 'Realisasi', 'text-right'], ['deviasi', 'Deviasi', 'text-right'], ['status', 'Status', ''], ['risiko', 'Risiko', ''], ['kelengkapan', 'Kelengkapan', 'text-right']] as [$kunci, $label, $rata])
+                            @foreach ([['sirenda', 'No.', 'text-right'], ['kode', 'Kode', ''], ['nama', 'Nama PSN', ''], ['klaster', 'Klaster', ''], [null, 'Lokasi', ''], ['investasi', 'Investasi (Rp T)', 'text-right'], ['progres', 'Realisasi', 'text-right'], ['deviasi', 'Deviasi', 'text-right'], ['status', 'Status', ''], ['risiko', 'Risiko', ''], ['kelengkapan', 'Kelengkapan', 'text-right']] as [$kunci, $label, $rata])
                                 <th scope="col" class="py-2 pr-3 {{ $rata }}" @if ($kunci) :aria-sort="ariaSort('{{ $kunci }}')" @endif>
                                     @if ($kunci)
                                         <button type="button" class="inline-flex items-center gap-1 hover:text-slate-900" @click="urutkan('{{ $kunci }}')">
@@ -70,8 +70,9 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
-                        <template x-for="r in baris" :key="r.id">
+                        <template x-for="(r, i) in baris" :key="r.id">
                             <tr class="hover:bg-slate-50">
+                                <td class="angka whitespace-nowrap py-2 pr-3 text-right text-label text-slate-500" x-text="nomor(i)"></td>
                                 <td class="whitespace-nowrap py-2 pr-3 text-label text-slate-600" x-text="r.kode ?? '–'"></td>
                                 <td class="max-w-[20rem] py-2 pr-3">
                                     <a :href="tautanDetail(r.id)" class="font-medium text-aksen-700 hover:underline" x-text="r.nama"></a>

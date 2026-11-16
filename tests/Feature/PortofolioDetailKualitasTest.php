@@ -82,6 +82,13 @@ class PortofolioDetailKualitasTest extends TestCase
         $this->assertSame(4, $this->getJson('/api/v1/proyek?nonaktif=1')->json('meta.total'));
         $this->assertSame(['Charlie Pangan'], collect($this->getJson('/api/v1/proyek?tahap=KONSTRUKSI&kat=pkpn')->json('data'))->pluck('nama')->all());
 
+        // Bawaan: urutan data SIRENDA PEKS3 (legacy_id); PSN tanpa legacy_id di akhir.
+        DB::table('psn')->where('nama', 'Charlie Pangan')->update(['legacy_id' => 5]);
+        DB::table('psn')->where('nama', 'Alfa Bendungan')->update(['legacy_id' => 9]);
+        DB::table('psn')->where('nama', 'Beta Jalan Tol')->update(['legacy_id' => null]);
+        $this->assertSame(['Charlie Pangan', 'Alfa Bendungan', 'Beta Jalan Tol'], collect($this->getJson('/api/v1/proyek')->json('data'))->pluck('nama')->all());
+        $this->assertSame(['Alfa Bendungan', 'Charlie Pangan', 'Beta Jalan Tol'], collect($this->getJson('/api/v1/proyek?urut=sirenda&arah=desc')->json('data'))->pluck('nama')->all());
+
         $baris = collect($this->getJson('/api/v1/proyek')->json('data'))->firstWhere('nama', 'Alfa Bendungan');
         $this->assertSame(['DKI JAKARTA', 'JAWA BARAT'], $baris['provinsi']);
         $this->assertSame('TERLAMBAT', $baris['status_progres']);

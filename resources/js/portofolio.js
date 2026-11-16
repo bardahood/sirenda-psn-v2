@@ -11,7 +11,7 @@ export function halamanPortofolio() {
         angka,
         o: {
             q: q.get('q') || '',
-            urut: q.get('urut') || 'nama',
+            urut: q.get('urut') || 'sirenda',
             arah: q.get('arah') || 'asc',
             kritis: q.get('kritis') === '1',
             tahap: q.get('tahap') || '',
@@ -28,7 +28,7 @@ export function halamanPortofolio() {
         qsEkstra() {
             const p = new URLSearchParams();
             if (this.o.q) p.set('q', this.o.q);
-            if (this.o.urut !== 'nama') p.set('urut', this.o.urut);
+            if (this.o.urut !== 'sirenda') p.set('urut', this.o.urut);
             if (this.o.arah !== 'asc') p.set('arah', this.o.arah);
             if (this.o.kritis) p.set('kritis', '1');
             if (this.o.tahap) p.set('tahap', this.o.tahap);
@@ -65,6 +65,7 @@ export function halamanPortofolio() {
             this.o.page = 1;
             this.muat();
         },
+        nomor(i) { return ((this.meta?.halaman ?? 1) - 1) * (this.meta?.per_halaman ?? 25) + i + 1; },
         ariaSort(kolom) { return this.o.urut === kolom ? (this.o.arah === 'asc' ? 'ascending' : 'descending') : 'none'; },
         ke(hal) { if (hal >= 1 && hal <= (this.meta?.halaman_terakhir ?? 1)) { this.o.page = hal; this.muat(); } },
 
