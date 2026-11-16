@@ -9,6 +9,8 @@ export default {
         './resources/**/*.blade.php',
         './resources/**/*.js',
         './app/Enums/*.php',
+        // Kelas yang dibentuk di PHP (mis. lebar kolom kertas kerja FormatRingkas::lebar()).
+        './app/Support/**/*.php',
     ],
     // Kelas status dibentuk dinamis ('badge-' + kode) sehingga harus di-safelist.
     safelist: [{ pattern: /^(badge|titik)-(ON_TRACK|BERISIKO|TERLAMBAT|TANPA_DATA|BELUM|DRAFT|DIAJUKAN|DIVERIFIKASI|DIKEMBALIKAN|ALUR_[A-Z]+|EV_[A-Z_]+|REK_[A-Z_]+)$/ }],

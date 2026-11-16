@@ -290,7 +290,10 @@ class FormatRingkas
     public static function lebar(string $k): string
     {
         return match (true) {
-            $k === 'no' => 'min-w-[4.5rem]',
+            // Tiga kolom pertama dikunci (sticky) pada posisi kiri 0 / 4.5rem / 13rem: lebarnya harus pasti.
+            $k === 'no' => 'w-[4.5rem] min-w-[4.5rem] max-w-[4.5rem]',
+            $k === 'kode' => 'w-[8.5rem] min-w-[8.5rem] max-w-[8.5rem] break-words',
+            $k === 'a1' => 'w-[16rem] min-w-[16rem] max-w-[16rem]',
             in_array($k, ['a6', 'a7', 'd3_tahun'], true) => 'min-w-[6.5rem]',
             in_array($k, ['a1', 'a4', 'a10', 'c2_uraian', 'c2_dukungan', 'catatan', 'b3a_jenis', 'b3b_jenis', 'b4', 'd2', 'c1', 'cek_kurang'], true) || str_ends_with($k, 'keterangan') => 'min-w-[16rem] max-w-[22rem]',
             default => 'min-w-[8.5rem] max-w-[14rem]',

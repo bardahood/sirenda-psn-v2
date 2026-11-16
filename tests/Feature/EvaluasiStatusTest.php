@@ -288,4 +288,19 @@ class EvaluasiStatusTest extends TestCase
         $b = $f->semua(app(EvaluasiStatusService::class)->daftar([$a->id]))->first();
         $this->assertSame(['APBN', 'ISIAN', 'APBN'], [$b['nilai']['a8'], $b['asal']['a8'], $b['mentah']['a8']]);
     }
+
+    /** Kelas lebar kolom dibentuk di PHP: pastikan ikut ter-build (regresi kolom kertas kerja berantakan di hosting). */
+    public function test_kelas_lebar_kertas_kerja_ada_di_css_build(): void
+    {
+        $manifest = public_path('build/manifest.json');
+        if (! is_file($manifest)) {
+            $this->markTestSkipped('Aset belum di-build (npm run build).');
+        }
+        $css = file_get_contents(public_path('build/'.json_decode(file_get_contents($manifest), true)['resources/css/app.css']['file']));
+        $f = new FormatRingkas;
+        $kelas = collect($f->kolom())->flatMap(fn ($k) => explode(' ', $f::lebar($k['kunci'])))->unique()->values();
+        foreach ($kelas as $k) {
+            $this->assertStringContainsString('.'.addcslashes($k, '[].'), $css, "Kelas {$k} tidak ada di CSS build");
+        }
+    }
 }
