@@ -127,3 +127,11 @@ Semua pilihan di aplikasi memakai teks dan urutan yang sama dengan sheet "Daftar
 - **A8 Sumber pendanaan** kini berupa pilihan Daftar Pilihan (APBN, APBD, BUMN, Badan Usaha-Swasta, Danantara, Lainnya, Campuran). Nilai bawaan diturunkan dari sumber dana profil (`peta_sumber_dana`; DDMF termasuk Danantara; lebih dari satu kategori = Campuran) dan dapat ditimpa (`evaluasi_psn.a8_sumber_pendanaan`).
 - Tahun A6, A7, dan D3 dibatasi 2000 sampai 2100, sama dengan validasi kertas kerja.
 - Unduhan kertas kerja menyertakan sheet "Daftar Pilihan" dan dropdown/validasi pada kolom yang sama dengan template (J, N, O, BU, BP, BQ, CJ, CK, CM; tahun H, I, BW).
+
+### 6.5 Unggah kertas kerja Excel
+
+Tombol **Unggah kertas kerja** (tab Kertas Kerja, izin `evaluasi.input`) menerima berkas `.xlsx` maksimal 10 MB: hasil **Unduh kertas kerja** atau template resmi *Input Form Pengendalian PSN* (sheet *Form PSN Format Ringkas*; sheet berawalan "Contoh" diabaikan). Alurnya (`KertasKerjaUnggahService`):
+
+1. **Baca**: sheet format ringkas ditemukan dari judul "Nama PSN" di kolom C; data dimulai tepat di bawahnya; kolom dipetakan menurut posisi A sampai CN.
+2. **Pratinjau**: setiap baris dicocokkan menurut Kode PSN (dalam cakupan pengguna). Hanya sel yang **berbeda** dari kertas kerja saat ini yang dicatat, sehingga data profil yang ikut terunduh tidak tersimpan ulang sebagai isian. Label Daftar Pilihan diubah ke kode; sel majemuk ("1. …" per baris) diurai menjadi C1/D2, milestone B3, isu C2 (format `[Tipologi N; menghambat jalur kritis] uraian – Upaya: …`), dan lampiran. Galat per sel (pilihan tidak dikenal, tahun di luar 2000 sampai 2100, kolom jenis PSN lain, tidak berwenang) ditampilkan dan sel tersebut dilewati. Belum ada yang disimpan; pratinjau berlaku 30 menit dan sekali pakai.
+3. **Terapkan**: pengguna memilih PSN; setiap PSN disimpan dalam satu transaksi memakai `KertasKerjaIsianService` (aturan, izin, dan riwayat sama dengan isian langsung; keterangan riwayat "Unggah kertas kerja"). Ringkasan unggahan dicatat di `audit_log`.

@@ -4,15 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Exports\EvaluasiStatusExport;
 use App\Exports\KertasKerjaExport;
+use App\Models\AuditLog;
 use App\Models\EvaluasiPsn;
 use App\Models\Psn;
 use App\Services\EvaluasiStatusService;
+use App\Services\KertasKerjaIsianService;
+use App\Services\KertasKerjaUnggahService;
 use App\Support\Evaluasi\FormatRingkas;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -208,7 +213,7 @@ class EvaluasiStatusController extends Controller
      * yang sudah dihitung ulang (kelengkapan, rekomendasi, status akhir). Bila form PSN belum ditandai diterima,
      * isian pertama oleh pengguna berizin input sekaligus menandainya diterima hari ini.
      */
-    public function sel(Request $r, Psn $psn, FormatRingkas $format)
+    public function sel(Request $r, Psn $psn, FormatRingkas $format, KertasKerjaIsianService $isian)
     {
         $c = config('psn_dashboard.evaluasi_status');
         $editor = $format->editor();
@@ -219,65 +224,15 @@ class EvaluasiStatusController extends Controller
         }
         abort_unless($r->user()->can("evaluasi.{$ed['izin']}"), 403, 'Anda tidak berwenang mengisi kolom ini.');
         $hasil = $this->layanan->satu($psn) ?? abort(404);
+        $d = $r->validate($isian->aturan($v['kunci']), [], ['nilai' => 'nilai']);
 
-        $aturanNilai = match ($ed['tipe']) {
-            'angka' => $ed['komponen'] ? ['nullable', 'numeric', 'min:0', 'max:1e20']
-                : (in_array($v['kunci'], ['a6', 'd3_tahun'], true) ? ['nullable', 'integer', 'min:'.$c['tahun_min'], 'max:'.$c['tahun_maks']] : ['nullable', 'numeric']),
-            'teks' => ['nullable', 'string', 'max:'.($ed['komponen'] ? 2000 : 255)],
-            'panjang' => ['nullable', 'string', 'max:5000'],
-            'tanggal' => ['nullable', 'date'],
-            'pilihan' => ['nullable', Rule::in(array_keys($ed['opsi']))],
-            'multi' => ['nullable', 'array'],
-        };
-        $d = $r->validate(['nilai' => $aturanNilai, 'nilai.*' => $ed['tipe'] === 'multi' ? [Rule::in(array_keys($ed['opsi']))] : [],
-            'nilai_lain' => ['nullable', 'string', 'max:255']], [], ['nilai' => 'nilai']);
-        $nilai = $d['nilai'] ?? null;
-        $nilai = is_string($nilai) ? (trim($nilai) === '' ? null : trim($nilai)) : $nilai;
-
-        $e = $hasil['evaluasi'];
-        if (! $e) {
+        if (! $hasil['evaluasi']) {
             abort_unless($r->user()->can('evaluasi.input'), 422, 'Form Pengendalian PSN ini belum ditandai diterima.');
-            $e = $this->layanan->simpan(EvaluasiPsn::firstOrNew(['tahun_rkp' => $this->layanan->tahun(), 'psn_id' => $psn->id]),
-                ['form_diterima_at' => now()->toDateString()], 'Form diterima (isian kertas kerja)');
         }
-
-        $isian = [];
-        $rincian = null;
-        if ($ed['komponen']) {
-            if (($e->jenis_psn ?: 'FISIK') !== $ed['jenis']) {
-                return response()->json(['message' => 'Kolom ini untuk PSN '.$c['jenis_psn'][$ed['jenis']].'. Ubah dulu A12 Jenis PSN.'], 422);
-            }
-            $ada = $e->capaian()->where('komponen', $ed['komponen'])->first();
-            $baris = collect(['satuan', 'target_akhir', 'target_kumulatif', 'realisasi_kumulatif', 'keterangan'])->mapWithKeys(fn ($k) => [$k => $ada?->{$k}])->all();
-            $baris[$ed['kolom']] = $nilai;
-            $rincian = ['capaian' => [$ed['komponen'] => $baris]];
-        } else {
-            $kolom = ['a6' => 'a6_tahun_penetapan', 'a8' => 'a8_sumber_pendanaan', 'a12' => 'jenis_psn', 'b4' => 'b4_manfaat', 'c1' => 'c1_tipologi', 'd1' => 'd1_kebutuhan',
-                'd1_alasan' => 'd1_alasan', 'd1_alasan_lain' => 'd1_alasan_lain', 'd2' => 'd2_fasilitas', 'd2_justifikasi' => 'd2_justifikasi',
-                'd3_tahapan' => 'd3_tahapan', 'd3_target' => 'd3_target', 'd3_tahun' => 'd3_tahun_selesai', 'info' => 'info_tambahan',
-                'hasil' => 'hasil_pengecekan', 'tl' => 'tindak_lanjut', 'catatan' => 'catatan_analisis', 'indikasi' => 'indikasi_status'];
-            if (str_starts_with($v['kunci'], 'pic_')) {
-                $pic = array_filter(array_merge($e->pic ?? [], [substr($v['kunci'], 4) => $nilai]), fn ($x) => filled($x));
-                $isian['pic'] = $pic ?: null;
-            } elseif ($ed['tipe'] === 'multi') {
-                $isian[$kolom[$v['kunci']]] = array_values(array_unique($nilai ?? [])) ?: null;
-                if ($v['kunci'] === 'c1') {
-                    $isian['c1_lainnya'] = $d['nilai_lain'] ?? null;
-                }
-            } else {
-                $isian[$kolom[$v['kunci']]] = $nilai;
-            }
-            if ($v['kunci'] === 'd1' && $nilai !== 'TIDAK') {
-                $isian += ['d1_alasan' => null, 'd1_alasan_lain' => null];
-            }
-            if ($v['kunci'] === 'tl' && $nilai === null) {
-                $isian['tindak_lanjut'] = $c['tindak_lanjut_otomatis'][$e->hasil_pengecekan] ?? null;
-            }
-            if ($v['kunci'] === 'indikasi' && $nilai && blank($e->catatan_analisis)) {
-                return response()->json(['message' => 'Isi Catatan Hasil Analisis sebelum menetapkan Indikasi Status.'], 422);
-            }
+        $e = $isian->evaluasi($psn, $hasil['evaluasi'], 'Form diterima (isian kertas kerja)');
+        if ($galat = $isian->isi($e, $v['kunci'], $d['nilai'] ?? null, $d['nilai_lain'] ?? null)) {
+            return response()->json(['message' => $galat], 422);
         }
-        $this->layanan->simpan($e, $isian, null, $rincian);
 
         $baris = $format->semua($this->layanan->daftar([$psn->id]))->first();
         $baris['nilai']['no'] = $v['no'] ?? 1;
@@ -286,6 +241,55 @@ class EvaluasiStatusController extends Controller
             'message' => 'Tersimpan. Status akhir: '.$c['status'][$baris['r']['status_akhir']].'.',
             'html' => view('evaluasi._baris-kk', ['b' => $baris, 'format' => $format, 'kolom' => $format->kolom(), 'editor' => $format->editor()])->render(),
         ]);
+    }
+
+    /** Unggah kertas kerja Excel: formulir. */
+    public function unggah()
+    {
+        return view('evaluasi.unggah', ['tahun' => $this->layanan->tahun()]);
+    }
+
+    /** Baca berkas lalu tampilkan pratinjau perubahan (belum ada yang disimpan). */
+    public function unggahBaca(Request $r, KertasKerjaUnggahService $unggah)
+    {
+        $r->validate(['berkas' => ['required', 'file', 'mimes:xlsx', 'max:10240']], [], ['berkas' => 'berkas kertas kerja']);
+        try {
+            $data = $unggah->pratinjau($unggah->baca($r->file('berkas')->getRealPath()), $r->user());
+        } catch (\RuntimeException $e) {
+            return back()->withErrors(['berkas' => $e->getMessage()]);
+        }
+        $data['nama_berkas'] = $r->file('berkas')->getClientOriginalName();
+        $token = (string) Str::uuid();
+        Cache::put("kk-unggah:{$r->user()->id}:{$token}", $data, now()->addMinutes(30));
+
+        return redirect()->route('evaluasi.unggah.pratinjau', ['token' => $token]);
+    }
+
+    public function unggahPratinjau(Request $r)
+    {
+        $token = (string) $r->query('token');
+        $data = Cache::get("kk-unggah:{$r->user()->id}:{$token}");
+        if (! $data) {
+            return redirect()->route('evaluasi.unggah')->withErrors(['berkas' => 'Pratinjau kedaluwarsa atau tidak ditemukan. Unggah ulang berkasnya.']);
+        }
+
+        return view('evaluasi.unggah-pratinjau', ['data' => $data, 'token' => $token, 'cfg' => config('psn_dashboard.evaluasi_status'), 'tahun' => $this->layanan->tahun()]);
+    }
+
+    public function unggahTerapkan(Request $r, KertasKerjaUnggahService $unggah)
+    {
+        $v = $r->validate(['token' => ['required', 'uuid'], 'psn' => ['nullable', 'array'], 'psn.*' => ['integer']]);
+        $kunci = "kk-unggah:{$r->user()->id}:{$v['token']}";
+        $data = Cache::pull($kunci);
+        if (! $data) {
+            return redirect()->route('evaluasi.unggah')->withErrors(['berkas' => 'Pratinjau kedaluwarsa atau sudah diterapkan. Unggah ulang berkasnya.']);
+        }
+        $h = $unggah->terapkan($data, array_map('intval', $v['psn'] ?? []), $r->user());
+        AuditLog::create(['user_id' => $r->user()->id, 'user_label' => $r->user()->username, 'tabel' => 'evaluasi_psn', 'aksi' => 'UPDATE',
+            'nilai_baru' => ['unggah_kertas_kerja' => ['berkas' => $data['nama_berkas'] ?? null, 'psn' => $h['psn'], 'sel' => $h['sel'], 'galat' => count($h['galat'])]]]);
+
+        return redirect()->route('evaluasi.kertas-kerja')->with('status', "Unggah kertas kerja selesai: {$h['sel']} isian pada {$h['psn']} PSN diterapkan.")
+            ->with('galat_unggah', $h['galat']);
     }
 
     /** Grafik status harian (sheet "Grafik Status Harian"): 14 hari mulai tanggal pilihan + posisi saat ini. */

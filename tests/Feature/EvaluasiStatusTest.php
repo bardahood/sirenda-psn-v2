@@ -10,8 +10,13 @@ use Carbon\CarbonImmutable;
 use Database\Seeders\PeranSeeder;
 use Database\Seeders\ReferensiSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use Tests\Support\BuatDataPsn;
 use Tests\TestCase;
 
@@ -302,5 +307,118 @@ class EvaluasiStatusTest extends TestCase
         foreach ($kelas as $k) {
             $this->assertStringContainsString('.'.addcslashes($k, '[].'), $css, "Kelas {$k} tidak ada di CSS build");
         }
+    }
+
+    protected function unduhKertasKerja(): string
+    {
+        $r = $this->get(route('evaluasi.kertas-kerja-xlsx'))->assertOk();
+        $berkas = tempnam(sys_get_temp_dir(), 'kku').'.xlsx';
+        copy($r->baseResponse->getFile()->getPathname(), $berkas);
+
+        return $berkas;
+    }
+
+    protected function unggahBerkas(string $berkas)
+    {
+        return $this->post(route('evaluasi.unggah.baca'), ['berkas' => new UploadedFile($berkas, 'kertas-kerja.xlsx', null, null, true)]);
+    }
+
+    public function test_unggah_kertas_kerja_excel_pratinjau_dan_terapkan(): void
+    {
+        [$a, $b] = $this->siapkan();
+        $this->actingAs($pmo = $this->buatPengguna('Tim Koordinasi/PMO'));
+
+        // Unduh lalu unggah ulang tanpa perubahan: tidak ada yang berubah (data profil tidak tersalin sebagai isian).
+        $berkas = $this->unduhKertasKerja();
+        $lokasi = $this->unggahBerkas($berkas)->assertRedirect()->headers->get('Location');
+        $this->get($lokasi)->assertOk()->assertSee('Tidak ada perubahan');
+
+        // Ubah sel di Excel.
+        $buku = IOFactory::load($berkas);
+        $ws = $buku->getSheetByName('Format Ringkas');
+        $f = new FormatRingkas;
+        $kol = collect($f->kolom())->mapWithKeys(fn ($k, $i) => [$k['kunci'] => Coordinate::stringFromColumnIndex($i + 1)])->all();
+        $baris = fn ($kode) => collect(range(5, $ws->getHighestRow()))->first(fn ($r) => $ws->getCell("B{$r}")->getValue() === $kode);
+        $ra = $baris('R.1');
+        $rb = $baris('M.2');
+        foreach ([
+            'a6' => 2019, 'a8' => 'APBN', 'a12' => 'Fisik', 'd1' => 'Masih membutuhkan status PSN',
+            'd2' => "1. Perizinan usaha\n9. Pendanaan pengadaan lahan melalui LMAN", 'd3_tahapan' => 'Beroperasi sebagian', 'd3_target' => 'Progres 80%', 'd3_tahun' => 2029,
+            'c1' => "1. Pengadaan Tanah dan Legalitas Lahan\n11. Lainnya: Cuaca ekstrem",
+            'fisik_output_utama_satuan' => 'km', 'fisik_output_utama_target_akhir' => 64, 'fisik_output_utama_target_kumulatif' => '40', 'fisik_output_utama_realisasi_kumulatif' => '36,2',
+            'b3a_jenis' => "1. Studi kelayakan (Pra-FS / FS; OBC untuk KPBU)\n10. Izin pinjam pakai", 'b3a_status' => "1. Selesai\n10. Proses", 'b3a_tanggal' => "1. 30-06-2023\n10. –", 'b3a_ket' => "1. FS disetujui\n10. –",
+            'c2_uraian' => "1. [Tipologi 1; menghambat jalur kritis] 62 bidang belum bebas – Upaya: Konsinyasi\n2. [Tipologi 3; tidak menghambat jalur kritis] Izin hutan",
+            'c2_dukungan' => "1. Percepatan putusan PN\n2. Kemenhut",
+            'lamp_jenis' => '1. Dokumen', 'lamp_judul' => '1. Kurva S', 'lamp_bentuk' => '1. File', 'lamp_tautan' => '1. kurva.xlsx',
+            'pic_tanggal' => '14-11-2026', 'hasil' => 'Lengkap dan Benar Semua', 'catatan' => 'Lahan butuh LMAN', 'indikasi' => 'Dipertahankan',
+        ] as $k => $v) {
+            $ws->setCellValue($kol[$k].$ra, $v);
+        }
+        $ws->setCellValue($kol['a8'].$rb, 'Bukan pilihan');                       // galat pilihan
+        $ws->setCellValue($kol['non_fisik_sarana_satuan'].$ra, 'unit');            // kolom jenis lain
+        $ws->setCellValue('B'.($ws->getHighestRow() + 1), 'TIDAK-ADA');
+        IOFactory::createWriter($buku, 'Xlsx')->save($berkas);
+
+        $lokasi = $this->unggahBerkas($berkas)->assertRedirect()->headers->get('Location');
+        @unlink($berkas);
+        $html = $this->get($lokasi)->assertOk()->getContent();
+        $this->assertStringContainsString('TIDAK-ADA', $html);
+        $this->assertStringContainsString('tidak ada di Daftar Pilihan', $html);
+        $this->assertStringContainsString('Kolom ini untuk PSN Non-Fisik', $html);
+        $token = Str::after($lokasi, 'token=');
+        $data = Cache::get("kk-unggah:{$pmo->id}:{$token}");
+        $this->assertSame(1, $data['ringkasan']['tidak_dikenal']);
+        $this->assertSame(2, $data['ringkasan']['psn_berubah']);
+        $ubahA = collect($data['psn'])->firstWhere('kode', 'R.1')['perubahan'];
+        $this->assertNotContains('fisik_progres_fisik_target_kumulatif', array_column($ubahA, 'kunci')); // profil tidak berubah
+        $this->assertSame(1, collect($ubahA)->whereNotNull('galat')->count());
+
+        // Terapkan hanya PSN A.
+        $this->post(route('evaluasi.unggah.terapkan'), ['token' => $token, 'psn' => [$a->id]])->assertRedirect(route('evaluasi.kertas-kerja'))->assertSessionHas('status');
+        $e = EvaluasiPsn::where('psn_id', $a->id)->firstOrFail();
+        $this->assertSame([2019, 'APBN', 'FISIK', 'MASIH', ['PERIZINAN', 'LMAN'], 'BEROPERASI_SEBAGIAN', 2029, ['1'], 'Cuaca ekstrem'],
+            [$e->a6_tahun_penetapan, $e->a8_sumber_pendanaan, $e->jenis_psn, $e->d1_kebutuhan, $e->d2_fasilitas, $e->d3_tahapan, $e->d3_tahun_selesai, $e->c1_tipologi, $e->c1_lainnya]);
+        $this->assertSame(['LENGKAP_BENAR', 'SIAP_DIANALISIS', 'DIPERTAHANKAN', 'DIPERTAHANKAN'], [$e->hasil_pengecekan, $e->tindak_lanjut, $e->indikasi_status, $e->status_akhir]);
+        $this->assertSame('2026-11-14', $e->pic['tanggal']);
+        $out = $e->capaian()->where('komponen', 'OUTPUT_UTAMA')->first();
+        $this->assertSame(['km', 64.0, 40.0, 36.2], [$out->satuan, $out->target_akhir, $out->target_kumulatif, $out->realisasi_kumulatif]);
+        $this->assertSame(['FS', 'LAIN'], $e->milestone()->pluck('kode')->all());
+        $this->assertSame(['Izin pinjam pakai', '2023-06-30'], [$e->milestone()->where('kode', 'LAIN')->value('nama_lain'), $e->milestone()->where('kode', 'FS')->first()->tanggal->toDateString()]);
+        $isu = $e->isu()->get();
+        $this->assertSame([['62 bidang belum bebas', '1', true, 'Konsinyasi', 'Percepatan putusan PN'], ['Izin hutan', '3', false, null, 'Kemenhut']],
+            $isu->map(fn ($i) => [$i->uraian, $i->tipologi, $i->jalur_kritis, $i->upaya, $i->dukungan])->all());
+        $this->assertSame([['DOKUMEN', 'Kurva S', 'FILE', 'kurva.xlsx']], $e->lampiran()->get()->map(fn ($l) => [$l->jenis, $l->judul, $l->bentuk, $l->tautan])->all());
+        $this->assertSame('Unggah kertas kerja', $e->riwayat()->orderByDesc('id')->value('keterangan'));
+        $this->assertNull(EvaluasiPsn::where('psn_id', $b->id)->first());            // PSN B tidak dipilih
+        $this->post(route('evaluasi.unggah.terapkan'), ['token' => $token, 'psn' => [$a->id]])->assertRedirect(route('evaluasi.unggah')); // sekali pakai
+
+        // Unduh-unggah ulang setelah diterapkan: tetap tanpa perubahan (format keluar = format masuk).
+        $berkas = $this->unduhKertasKerja();
+        $this->get($this->unggahBerkas($berkas)->headers->get('Location'))->assertSee('Tidak ada perubahan');
+        @unlink($berkas);
+
+        // Operator K/L: kolom keputusan di berkas ditandai tidak berwenang; Pimpinan tidak dapat mengunggah.
+        $this->actingAs($this->buatPengguna('Operator K/L', '07'));
+        $berkas = $this->unduhKertasKerja();
+        $buku = IOFactory::load($berkas);
+        $buku->getSheetByName('Format Ringkas')->setCellValue($kol['indikasi'].'5', 'Dikeluarkan');
+        IOFactory::createWriter($buku, 'Xlsx')->save($berkas);
+        $this->get($this->unggahBerkas($berkas)->headers->get('Location'))->assertSee('Anda tidak berwenang mengisi kolom ini.');
+        @unlink($berkas);
+        $this->actingAs($this->buatPengguna('Pimpinan'));
+        $this->get(route('evaluasi.unggah'))->assertForbidden();
+    }
+
+    public function test_unggah_menolak_berkas_bukan_format_ringkas(): void
+    {
+        $this->siapkan();
+        $this->actingAs($this->buatPengguna('Tim Koordinasi/PMO'));
+        $buku = new Spreadsheet;
+        $buku->getActiveSheet()->setCellValue('A1', 'Bukan kertas kerja');
+        $berkas = tempnam(sys_get_temp_dir(), 'kkx').'.xlsx';
+        IOFactory::createWriter($buku, 'Xlsx')->save($berkas);
+        $this->unggahBerkas($berkas)->assertSessionHasErrors('berkas');
+        @unlink($berkas);
+        $this->post(route('evaluasi.unggah.baca'), [])->assertSessionHasErrors('berkas');
     }
 }

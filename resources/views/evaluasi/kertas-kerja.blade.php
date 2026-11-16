@@ -8,11 +8,17 @@
 <x-app-layout judul="Kertas Kerja Pengendalian PSN · RKP {{ $tahun }}" subjudul="Format ringkas: 1 baris = 1 PSN, terisi dari profil SIRENDA dan isian evaluasi setiap PSN">
     <x-slot:infoJudul>Data profil per {{ $cutoff?->tanggal_cutoff?->translatedFormat('j F Y') ?? '–' }}</x-slot:infoJudul>
     <x-slot:aksi>
+        @can('evaluasi.input')<a href="{{ route('evaluasi.unggah') }}" class="tombol-garis py-1.5">Unggah kertas kerja</a>@endcan
         <a href="{{ route('evaluasi.kertas-kerja-xlsx', $filter) }}" class="tombol-primer py-1.5">Unduh kertas kerja (Excel)</a>
     </x-slot:aksi>
 
     <div class="mx-auto max-w-[1800px] space-y-4">
         @include('evaluasi._tab')
+        @if (session('status'))<div class="rounded-kartu border border-green-200 bg-green-50 p-3 text-green-800" role="status">{{ session('status') }}</div>@endif
+        @if (session('galat_unggah'))
+            <div class="rounded-kartu border border-red-200 bg-red-50 p-3 text-red-800" role="alert"><p class="font-semibold">Sebagian isian tidak tersimpan:</p>
+                <ul class="mt-1 list-disc pl-5">@foreach (session('galat_unggah') as $g)<li>{{ $g }}</li>@endforeach</ul></div>
+        @endif
 
         <section class="kartu !p-4" aria-labelledby="h-kk">
             <form method="GET" class="mb-3 flex flex-wrap items-end gap-3">

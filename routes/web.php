@@ -42,6 +42,10 @@ Route::middleware(['auth', 'akun.aktif'])->group(function () {
     Route::get('/evaluasi-status/ekspor.xlsx', [EvaluasiStatusController::class, 'ekspor'])->middleware('can:evaluasi.lihat')->name('evaluasi.ekspor');
     Route::get('/evaluasi-status/kertas-kerja', [EvaluasiStatusController::class, 'kertasKerja'])->middleware('can:evaluasi.lihat')->name('evaluasi.kertas-kerja');
     Route::get('/evaluasi-status/kertas-kerja.xlsx', [EvaluasiStatusController::class, 'kertasKerjaXlsx'])->middleware('can:evaluasi.lihat')->name('evaluasi.kertas-kerja-xlsx');
+    Route::get('/evaluasi-status/unggah', [EvaluasiStatusController::class, 'unggah'])->middleware('can:evaluasi.input')->name('evaluasi.unggah');
+    Route::post('/evaluasi-status/unggah', [EvaluasiStatusController::class, 'unggahBaca'])->middleware(['can:evaluasi.input', 'throttle:20,1'])->name('evaluasi.unggah.baca');
+    Route::get('/evaluasi-status/unggah/pratinjau', [EvaluasiStatusController::class, 'unggahPratinjau'])->middleware('can:evaluasi.input')->name('evaluasi.unggah.pratinjau');
+    Route::post('/evaluasi-status/unggah/terapkan', [EvaluasiStatusController::class, 'unggahTerapkan'])->middleware('can:evaluasi.input')->name('evaluasi.unggah.terapkan');
     Route::get('/evaluasi-status/grafik', [EvaluasiStatusController::class, 'grafik'])->middleware('can:evaluasi.lihat')->name('evaluasi.grafik');
     Route::get('/evaluasi-status/{psn}', [EvaluasiStatusController::class, 'show'])->middleware('can:evaluasi.lihat')->whereNumber('psn')->name('evaluasi.show');
     Route::post('/evaluasi-status/{psn}/terima', [EvaluasiStatusController::class, 'terima'])->middleware('can:evaluasi.input')->whereNumber('psn')->name('evaluasi.terima');
