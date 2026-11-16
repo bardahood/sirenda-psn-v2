@@ -248,4 +248,36 @@ class Peks3SinkronTest extends TestCase
         config(['psn_dashboard.peks3.aktif' => false]);
         $this->post(route('pengaturan.integrasi.terapkan'))->assertStatus(422);
     }
+
+    public function test_isi_cermin_dari_basis_data_lain_di_server_yang_sama(): void
+    {
+        $sumber = config('database.connections.mysql.database').'_sumber';
+        DB::statement("DROP DATABASE IF EXISTS `{$sumber}`");
+        DB::statement("CREATE DATABASE `{$sumber}`");
+        try {
+            DB::statement("CREATE TABLE `{$sumber}`.psn (id INT PRIMARY KEY, kode_krisna VARCHAR(50) NOT NULL, proyek_psn TEXT, tgl DATE NULL) ENGINE=MyISAM");
+            DB::statement("SET SESSION sql_mode = ''");
+            DB::statement("INSERT INTO `{$sumber}`.psn VALUES (1, '', 'Proyek A', '0000-00-00'), (2, 'K2', 'Proyek B', '2026-01-31')");
+            DB::statement("CREATE TABLE `{$sumber}`.psn_kegiatan (id INT PRIMARY KEY, psn_id INT, kegiatan TEXT, total INT GENERATED ALWAYS AS (id * 2) STORED)");
+            DB::statement("INSERT INTO `{$sumber}`.psn_kegiatan (id, psn_id, kegiatan) VALUES (11, 1, 'KP 1')");
+            DB::statement("CREATE VIEW `{$sumber}`.v_psn AS SELECT id FROM `{$sumber}`.psn");
+
+            $cermin = DB::connection('legacy');
+            $cermin->table('psn')->insert(['id' => 9, 'kode_krisna' => '', 'proyek_psn' => 'lama']);
+
+            $this->artisan('peks3:isi-cermin', ['sumber' => config('database.connections.legacy.database')])->assertFailed();
+            $this->artisan('peks3:isi-cermin', ['sumber' => 'tidak_ada_db'])->assertFailed();
+            $this->artisan('peks3:isi-cermin', ['sumber' => $sumber, '--yakin' => true])->assertSuccessful();
+
+            $this->assertSame([1, 2], $cermin->table('psn')->orderBy('id')->pluck('id')->all()); // diganti, bukan ditambah
+            $this->assertSame('', $cermin->table('psn')->where('id', 1)->value('kode_krisna'));
+            $this->assertSame([22], $cermin->table('psn_kegiatan')->pluck('total')->all());
+            $this->assertTrue(Schema::connection('legacy')->hasTable('peks3_cermin'));
+            $this->assertFalse(Schema::connection('legacy')->hasTable('v_psn')); // view tidak disalin
+            $this->assertSame('InnoDB', $cermin->selectOne("SELECT engine AS e FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'psn'")->e);
+            $this->assertSame(2, DB::table(DB::raw("`{$sumber}`.psn"))->count()); // sumber tidak berubah
+        } finally {
+            DB::statement("DROP DATABASE IF EXISTS `{$sumber}`");
+        }
+    }
 }

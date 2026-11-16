@@ -199,7 +199,7 @@ Cara kit mendeteksi perubahan: kit mencatat stempel waktu terbesar (`created_at`
 ## 6. Langkah di sisi Dashboard (konsultan)
 
 1. cPanel → **MySQL Databases**: buat basis data cermin, misalnya `<akun>_peks3`, beri hak penuh ke pengguna basis data dashboard.
-2. Isi awal cermin dari dump SIRENDA PEKS3 terbaru: `php tools/konversi-dump-mysql.php dump.sql dump-siap.sql --database=<akun>_peks3` (membuang DEFINER dan mengarahkan `USE` ke basis data cermin), lalu impor `dump-siap.sql` ke basis data cermin lewat phpMyAdmin.
+2. Isi awal cermin. **Bila basis data SIRENDA (mis. `sirendapsn_bappenas`) ada di server MySQL yang sama**, cukup isi `LEGACY_DB_DATABASE=<cermin>` di `.env` lalu jalankan `php artisan peks3:isi-cermin sirendapsn_bappenas` (menyalin seluruh tabel tanpa berkas dump, sumber hanya dibaca, lalu otomatis menjalankan `peks3:siapkan-cermin`; langkah 4 `peks3:siapkan-cermin` tidak perlu diulang). Bila berada di server lain, isi dari dump SIRENDA PEKS3 terbaru: `php tools/konversi-dump-mysql.php dump.sql dump-siap.sql --database=<akun>_peks3` (membuang DEFINER dan mengarahkan `USE` ke basis data cermin), lalu impor `dump-siap.sql` ke basis data cermin lewat phpMyAdmin.
 3. `.env` dashboard:
    ```
    LEGACY_DB_HOST=localhost
