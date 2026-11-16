@@ -55,11 +55,12 @@ class EvaluasiStatusService
             ->join('snapshot_psn as s', fn ($j) => $j->on('s.psn_id', '=', 'psn.id')->where('s.periode_cutoff_id', $c->id))
             ->leftJoin('ref_status_psn as st', 'st.id', '=', 's.status_psn_id')
             ->leftJoin('ref_klaster as k', 'k.id', '=', 's.klaster_id')
-            ->where('s.is_aktif', true)
+            // Seluruh PSN tercatat pada cut-off (RKP + Permenko, termasuk Keluar dari PSN), sama dengan K1 dashboard.
             ->when($hanyaId !== null, fn ($q) => $q->whereIn('psn.id', $hanyaId ?: [0]))
-            ->orderBy('psn.nama')->orderBy('psn.id')
+            // Urutan data SIRENDA PEKS3 (psn.id aplikasi lama), PSN tanpa ID lama di akhir.
+            ->orderByRaw('psn.legacy_id IS NULL')->orderBy('psn.legacy_id')->orderBy('psn.id')
             ->get(['psn.id', 'psn.nama', 'psn.kode_psn', 'psn.tahun_selesai', 'psn.nilai_investasi_rp', 's.sumber', 's.progres_rencana_persen', 's.progres_realisasi_persen',
-                's.pagu_rp', 's.realisasi_anggaran_rp', 's.jumlah_ro', 's.jumlah_ro_tercapai', 's.unit_kerja_id', 'st.kode as status_kode', 'k.nama as klaster']);
+                's.pagu_rp', 's.realisasi_anggaran_rp', 's.jumlah_ro', 's.jumlah_ro_tercapai', 's.unit_kerja_id', 's.is_aktif', 'st.kode as status_kode', 'st.nama as status_nama', 'k.nama as klaster']);
         $id = $psn->pluck('id')->all();
         if (! $id) {
             return collect();
@@ -86,6 +87,8 @@ class EvaluasiStatusService
         return $psn->map(function ($p) use ($tahapan, $isuProfil, $maksIsu, $kegiatan, $manfaat, $regulasi, $evaluasi) {
             $data = [
                 'tahapan' => $tahapan[(string) $p->status_kode] ?? null,
+                'keluar' => ! $p->is_aktif,
+                'status_nama' => $p->status_nama,
                 'tahun_selesai' => $p->tahun_selesai ? (int) $p->tahun_selesai : null,
                 'progres_rencana' => $p->progres_rencana_persen !== null ? (float) $p->progres_rencana_persen : null,
                 'progres_realisasi' => $p->progres_realisasi_persen !== null ? (float) $p->progres_realisasi_persen : null,
@@ -134,7 +137,7 @@ class EvaluasiStatusService
         // Aturan wajib isi (kertas kerja sheet "Aturan Wajib Isi"). Nilai B2 = isian kertas kerja, bila kosong data profil.
         $e?->a6_tahun_penetapan || $kurang[] = 'A6 Tahun penetapan PSN';
         $d['tahun_selesai'] || $kurang[] = 'A7 Target tahun selesai';
-        $t || $kurang[] = 'B1 Tahapan';
+        ($t || ($d['keluar'] ?? false)) || $kurang[] = 'B1 Tahapan';
         if (in_array($t, ['KONSTRUKSI', 'BEROPERASI_SEBAGIAN', 'KUMULATIF_SELESAI'], true)) {
             $tiga = ['target_akhir', 'target_kumulatif', 'realisasi_kumulatif'];
             $empat = ['satuan', ...$tiga];
@@ -190,13 +193,15 @@ class EvaluasiStatusService
         $e?->d1_kebutuhan === 'MASIH' && ! $e->d2_fasilitas && $sinyal[] = 'Membutuhkan status PSN tanpa fasilitas yang dipilih';
 
         $rekomendasi = match (true) {
-            $e?->d1_kebutuhan === 'TIDAK' => 'DIKELUARKAN',
+            $e?->d1_kebutuhan === 'TIDAK', $d['keluar'] ?? false => 'DIKELUARKAN',
             $t === 'KUMULATIF_SELESAI' && $e?->d1_kebutuhan !== 'MASIH' => 'DIKELUARKAN',
             $kurang !== [] => 'BELUM_CUKUP_DATA',
             $sinyal !== [] => 'PERLU_PENDALAMAN',
             default => 'DIPERTAHANKAN',
         };
-        if ($e?->d1_kebutuhan === 'TIDAK') {
+        if ($d['keluar'] ?? false) {
+            array_unshift($sinyal, 'Status PSN di SIRENDA: Keluar dari PSN');
+        } elseif ($e?->d1_kebutuhan === 'TIDAK') {
             array_unshift($sinyal, 'PJ menyatakan tidak lagi membutuhkan status PSN'.($e->d1_alasan ? ': '.config("psn_dashboard.evaluasi_status.d1_alasan.{$e->d1_alasan}") : ''));
         } elseif ($t === 'KUMULATIF_SELESAI') {
             array_unshift($sinyal, 'Tahapan kumulatif selesai');
@@ -322,6 +327,7 @@ class EvaluasiStatusService
 
         return [
             'total' => $daftar->count(),
+            'keluar' => $daftar->where('data.keluar', true)->count(),
             'sumber' => $daftar->countBy(fn ($r) => $r['sumber'] ?: 'LAINNYA')->sortKeys()->all(),
             'diterima' => $daftar->count() - ($per['BELUM_DITERIMA'] ?? 0),
             'lengkap' => $daftar->where('lengkap', true)->count(),
@@ -330,7 +336,9 @@ class EvaluasiStatusService
             'dikeluarkan_nama' => $nama('DIKELUARKAN'),
             'baru' => $baru->count(),
             'baru_nama' => $baru->take(5)->map(fn ($u) => ['id' => $u->id, 'nama' => $u->nama])->all(),
-            'proyeksi' => $daftar->count() - $dikeluarkan + $baru->count(),
+            // PSN aktif yang tidak dikeluarkan + usulan baru; PSN yang sudah keluar di SIRENDA tidak dihitung.
+            'proyeksi' => $daftar->filter(fn ($r) => ! $r['data']['keluar'] && $r['status_akhir'] !== 'DIKELUARKAN')->count() + $baru->count(),
+            'dikeluarkan_aktif' => $daftar->filter(fn ($r) => ! $r['data']['keluar'] && $r['status_akhir'] === 'DIKELUARKAN')->count(),
             'rekomendasi' => collect(config('psn_dashboard.evaluasi_status.rekomendasi'))->map(fn ($l, $k) => $daftar->where('rekomendasi', $k)->count())->all(),
         ];
     }

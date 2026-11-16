@@ -3,7 +3,8 @@
     $tautan = fn (array $ubah) => route('evaluasi.index', array_filter(array_merge($filter, $ubah), fn ($v) => $v !== null && $v !== ''));
     $n = fn ($v) => number_format((int) $v, 0, ',', '.');
     $proses = $s['PROSES_PENGECEKAN'] + $s['BUTUH_DATA'] + $s['VERIFIKASI_PJ'] + $s['SIAP_DIANALISIS'];
-    $belumDiputus = $alur['total'] - $s['DIPERTAHANKAN'] - $s['DIKELUARKAN'];
+    $aktif = $alur['total'] - $alur['keluar'];
+    $belumDiputus = max(0, $aktif - $s['DIPERTAHANKAN'] - $alur['dikeluarkan_aktif']);
     $labelSumber = config('psn_dashboard.label_sumber_psn');
 @endphp
 <x-app-layout judul="Evaluasi Status PSN · RKP {{ $tahun }}" subjudul="Penentuan PSN dilanjutkan atau dikeluarkan berdasarkan Form Pengendalian dan data profil proyek">
@@ -24,11 +25,17 @@
             </div>
             <ol class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5 xl:items-start">
                 {{-- 1. Basis --}}
-                <li class="flex flex-col rounded-kartu border border-slate-200 bg-slate-50/60 p-4 xl:mt-28">
+                <li class="flex flex-col rounded-kartu border border-slate-200 bg-slate-50/60 p-4 xl:mt-28" title="{{ $n($aktif) }} aktif, {{ $n($alur['keluar']) }} keluar PSN">
                     <span class="self-start rounded-md bg-emerald-700 px-2.5 py-1 text-[12px] font-bold text-white">Basis evaluasi</span>
-                    <span class="mt-2 text-[13px] font-semibold text-slate-700">PSN dalam daftar (aktif)</span>
+                    <span class="mt-2 text-[13px] font-semibold text-slate-700">PSN tercatat (RKP &amp; Permenko)</span>
                     <a href="{{ $tautan(['status' => null, 'page' => null]) }}" class="angka mt-1 text-[38px] font-extrabold leading-none text-slate-900 hover:underline">{{ $n($alur['total']) }}</a>
                     <ul class="mt-3 space-y-1.5 text-[12.5px]">
+                        @if ($alur['keluar'])
+                            <li class="flex items-center gap-2">
+                                <span class="angka inline-flex min-w-[2.75rem] justify-center rounded-md bg-red-700 px-2 py-0.5 font-bold text-white">{{ $n($alur['keluar']) }}</span>
+                                <span class="text-slate-700">sudah keluar PSN ({{ $n($aktif) }} aktif)</span>
+                            </li>
+                        @endif
                         @foreach ($alur['sumber'] as $kode => $jml)
                             <li class="flex items-center gap-2">
                                 <span class="angka inline-flex min-w-[2.75rem] justify-center rounded-md bg-slate-700 px-2 py-0.5 font-bold text-white">{{ $n($jml) }}</span>
@@ -97,7 +104,7 @@
                     <span class="self-start rounded-md bg-teal-700 px-2.5 py-1 text-[12px] font-bold text-white">RKP {{ $tahun }}</span>
                     <span class="mt-2 text-[13px] font-semibold text-slate-700">Proyeksi PSN dalam daftar</span>
                     <span class="angka mt-1 text-[44px] font-extrabold leading-none text-[#0d2b55]">{{ $n($alur['proyeksi']) }}</span>
-                    <span class="mt-1 text-[11px] text-slate-500">= {{ $n($alur['total']) }} aktif − {{ $n($s['DIKELUARKAN']) }} dikeluarkan + {{ $n($alur['baru']) }} usulan baru</span>
+                    <span class="mt-1 text-[11px] text-slate-500">= {{ $n($aktif) }} aktif − {{ $n($alur['dikeluarkan_aktif']) }} dikeluarkan + {{ $n($alur['baru']) }} usulan baru</span>
                     <ul class="mt-3 space-y-2 text-[12.5px]">
                         <li>
                             <span class="flex items-center gap-2">
@@ -111,8 +118,8 @@
                             @endif
                         </li>
                         <li class="flex items-center gap-2">
-                            <span class="angka inline-flex min-w-[2.75rem] justify-center rounded-md bg-red-700 px-2 py-0.5 font-bold text-white">−{{ $n($s['DIKELUARKAN']) }}</span>
-                            <span class="text-slate-700">PSN dikeluarkan</span>
+                            <span class="angka inline-flex min-w-[2.75rem] justify-center rounded-md bg-red-700 px-2 py-0.5 font-bold text-white">−{{ $n($alur['dikeluarkan_aktif']) }}</span>
+                            <span class="text-slate-700">PSN aktif dikeluarkan</span>
                         </li>
                         <li class="flex items-center gap-2">
                             <span class="angka inline-flex min-w-[2.75rem] justify-center rounded-md bg-slate-400 px-2 py-0.5 font-bold text-white">{{ $n($belumDiputus) }}</span>

@@ -36,7 +36,7 @@ Menu: **Evaluasi** (`/evaluasi-status`), dengan tiga halaman: **Pemantauan**, **
    | Indikasi dipertahankan | D1 masih membutuhkan, isian lengkap, tanpa sinyal di atas |
 
    Ambang dapat diubah di `config/psn_dashboard.php` → `evaluasi_status.ambang`. Setiap rekomendasi disertai daftar sinyal penyebabnya.
-3. **Alur keberlanjutan** (visual bertangga, seperti bahan paparan RKP): PSN aktif (RKP/Permenko) → Form diterima → Dalam pengecekan (per status) → Indikasi (+dipertahankan / −dikeluarkan beserta nama PSN) → **Proyeksi PSN dalam daftar RKP berikutnya** = aktif − dikeluarkan + usulan baru yang direkomendasikan (FINAL, dari menu Perencanaan). Semua angka dapat diklik untuk menyaring daftar.
+3. **Alur keberlanjutan** (visual bertangga, seperti bahan paparan RKP): seluruh PSN tercatat (RKP/Permenko, termasuk yang sudah keluar) → Form diterima → Dalam pengecekan (per status) → Indikasi (+dipertahankan / −dikeluarkan beserta nama PSN) → **Proyeksi PSN dalam daftar RKP berikutnya** = PSN aktif − PSN aktif yang dikeluarkan + usulan baru yang direkomendasikan (FINAL, dari menu Perencanaan). Semua angka dapat diklik untuk menyaring daftar.
 4. **Daftar evaluasi** dengan filter status akhir, rekomendasi sistem, kelengkapan, sumber, klaster, dan pencarian, serta **unduhan Excel** dengan kolom mengikuti format ringkas kertas kerja ditambah hasil analisis.
 
 ## 3. Aturan wajib isi (cek otomatis)
@@ -135,3 +135,7 @@ Tombol **Unggah kertas kerja** (tab Kertas Kerja, izin `evaluasi.input`) menerim
 1. **Baca**: sheet format ringkas ditemukan dari judul "Nama PSN" di kolom C; data dimulai tepat di bawahnya; kolom dipetakan menurut posisi A sampai CN.
 2. **Pratinjau**: setiap baris dicocokkan menurut Kode PSN (dalam cakupan pengguna). Hanya sel yang **berbeda** dari kertas kerja saat ini yang dicatat, sehingga data profil yang ikut terunduh tidak tersimpan ulang sebagai isian. Label Daftar Pilihan diubah ke kode; sel majemuk ("1. …" per baris) diurai menjadi C1/D2, milestone B3, isu C2 (format `[Tipologi N; menghambat jalur kritis] uraian – Upaya: …`), dan lampiran. Galat per sel (pilihan tidak dikenal, tahun di luar 2000 sampai 2100, kolom jenis PSN lain, tidak berwenang) ditampilkan dan sel tersebut dilewati. Belum ada yang disimpan; pratinjau berlaku 30 menit dan sekali pakai.
 3. **Terapkan**: pengguna memilih PSN; setiap PSN disimpan dalam satu transaksi memakai `KertasKerjaIsianService` (aturan, izin, dan riwayat sama dengan isian langsung; keterangan riwayat "Unggah kertas kerja"). Ringkasan unggahan dicatat di `audit_log`.
+
+### 6.6 Cakupan dan urutan PSN
+
+Evaluasi dan kertas kerja memuat **seluruh PSN tercatat pada cut-off terbit terakhir** (RKP dan Permenko, termasuk yang berstatus Keluar dari PSN), sama dengan kartu Total PSN (K1) di dashboard, misalnya 380 = 377 aktif + 3 keluar. PSN yang sudah keluar ditampilkan dengan B1 "Keluar dari PSN", otomatis mendapat rekomendasi "Indikasi dikeluarkan", dan tidak dihitung dalam proyeksi daftar RKP berikutnya. Urutan baris mengikuti urutan data di SIRENDA PEKS3 (`psn.legacy_id`, yaitu ID PSN di aplikasi SIRENDA), sehingga nomor baris kertas kerja sama dengan urutan input di SIRENDA.

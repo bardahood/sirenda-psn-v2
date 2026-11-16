@@ -138,7 +138,7 @@ class FormatRingkas
         $set('a6', $e?->a6_tahun_penetapan);
         $set('a7', $d['tahun_selesai'], 'PROFIL');
         $set('a12', $label('jenis_psn', $e?->jenis_psn));
-        $set('b1', $label('tahapan', $d['tahapan']), 'PROFIL');
+        $set('b1', ($d['keluar'] ?? false) ? 'Keluar dari PSN' : $label('tahapan', $d['tahapan']), 'PROFIL');
 
         foreach (['FISIK', 'NON_FISIK'] as $jenis) {
             $aktif = $r['jenis'] === $jenis;

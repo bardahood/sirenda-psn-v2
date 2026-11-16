@@ -421,4 +421,30 @@ class EvaluasiStatusTest extends TestCase
         @unlink($berkas);
         $this->post(route('evaluasi.unggah.baca'), [])->assertSessionHasErrors('berkas');
     }
+
+    public function test_seluruh_psn_termasuk_keluar_dan_urutan_sirenda(): void
+    {
+        // Urutan input SIRENDA (legacy_id) berbeda dengan urutan nama.
+        $z = $this->buatPsn(['nama' => 'Zona Aktif', 'kode_psn' => 'R.9', 'legacy_id' => 5, 'tahun_selesai' => 2028]);
+        $k = $this->buatPsn(['nama' => 'Keluar Tol', 'kode_psn' => 'R.8', 'legacy_id' => 9, 'status_psn_id' => $this->ref('ref_status_psn', '6')]);
+        $a = $this->buatPsn(['nama' => 'Awal Bendungan', 'kode_psn' => 'R.7', 'legacy_id' => 12, 'tahun_selesai' => 2029]);
+        app(SnapshotService::class)->buat('2026-10', terbit: true);
+
+        $layanan = app(EvaluasiStatusService::class);
+        $daftar = $layanan->daftar();
+        $this->assertSame([$z->id, $k->id, $a->id], $daftar->pluck('psn_id')->all());
+        $keluar = $daftar->firstWhere('psn_id', $k->id);
+        $this->assertTrue($keluar['data']['keluar']);
+        $this->assertSame('DIKELUARKAN', $keluar['rekomendasi']);
+        $this->assertSame('Status PSN di SIRENDA: Keluar dari PSN', $keluar['sinyal'][0]);
+        $this->assertNotContains('B1 Tahapan', $keluar['kurang']);
+
+        $alur = $layanan->alur($daftar);
+        $this->assertSame([3, 1, 2], [$alur['total'], $alur['keluar'], $alur['proyeksi']]);
+
+        $this->actingAs($this->buatPengguna('Tim Koordinasi/PMO'));
+        $html = $this->get(route('evaluasi.kertas-kerja'))->assertOk()->assertSee('Keluar dari PSN')->getContent();
+        $this->assertTrue(strpos($html, 'Zona Aktif') < strpos($html, 'Keluar Tol') && strpos($html, 'Keluar Tol') < strpos($html, 'Awal Bendungan'));
+        $this->get(route('evaluasi.index'))->assertSee('sudah keluar PSN');
+    }
 }
