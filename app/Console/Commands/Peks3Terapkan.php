@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Services\Peks3TerapkanService;
+use App\Support\ProsesBerat;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 
@@ -14,6 +15,8 @@ class Peks3Terapkan extends Command
 
     public function handle(Peks3TerapkanService $layanan): int
     {
+        ProsesBerat::siapkan();
+
         // Detak penjadwal: ditampilkan di Pengaturan > Integrasi Data untuk memastikan cron server berjalan.
         Cache::forever('peks3:detak', now()->toIso8601String());
 

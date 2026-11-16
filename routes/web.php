@@ -40,13 +40,13 @@ Route::middleware(['auth', 'akun.aktif'])->group(function () {
     Route::get('/proyek/{psn}/form-pengendalian', [FormPengendalianController::class, 'show'])->middleware('can:detail.lihat')->whereNumber('psn')->name('proyek.form-pengendalian');
     // Evaluasi keberlanjutan status PSN (docs/evaluasi-status-psn.md).
     Route::get('/evaluasi-status', [EvaluasiStatusController::class, 'index'])->middleware('can:evaluasi.lihat')->name('evaluasi.index');
-    Route::get('/evaluasi-status/ekspor.xlsx', [EvaluasiStatusController::class, 'ekspor'])->middleware('can:evaluasi.lihat')->name('evaluasi.ekspor');
+    Route::get('/evaluasi-status/ekspor.xlsx', [EvaluasiStatusController::class, 'ekspor'])->middleware(['can:evaluasi.lihat', 'proses.berat'])->name('evaluasi.ekspor');
     Route::get('/evaluasi-status/kertas-kerja', [EvaluasiStatusController::class, 'kertasKerja'])->middleware('can:evaluasi.lihat')->name('evaluasi.kertas-kerja');
-    Route::get('/evaluasi-status/kertas-kerja.xlsx', [EvaluasiStatusController::class, 'kertasKerjaXlsx'])->middleware('can:evaluasi.lihat')->name('evaluasi.kertas-kerja-xlsx');
+    Route::get('/evaluasi-status/kertas-kerja.xlsx', [EvaluasiStatusController::class, 'kertasKerjaXlsx'])->middleware(['can:evaluasi.lihat', 'proses.berat'])->name('evaluasi.kertas-kerja-xlsx');
     Route::get('/evaluasi-status/unggah', [EvaluasiStatusController::class, 'unggah'])->middleware('can:evaluasi.input')->name('evaluasi.unggah');
-    Route::post('/evaluasi-status/unggah', [EvaluasiStatusController::class, 'unggahBaca'])->middleware(['can:evaluasi.input', 'throttle:20,1'])->name('evaluasi.unggah.baca');
+    Route::post('/evaluasi-status/unggah', [EvaluasiStatusController::class, 'unggahBaca'])->middleware(['can:evaluasi.input', 'throttle:20,1', 'proses.berat'])->name('evaluasi.unggah.baca');
     Route::get('/evaluasi-status/unggah/pratinjau', [EvaluasiStatusController::class, 'unggahPratinjau'])->middleware('can:evaluasi.input')->name('evaluasi.unggah.pratinjau');
-    Route::post('/evaluasi-status/unggah/terapkan', [EvaluasiStatusController::class, 'unggahTerapkan'])->middleware('can:evaluasi.input')->name('evaluasi.unggah.terapkan');
+    Route::post('/evaluasi-status/unggah/terapkan', [EvaluasiStatusController::class, 'unggahTerapkan'])->middleware(['can:evaluasi.input', 'proses.berat'])->name('evaluasi.unggah.terapkan');
     Route::get('/evaluasi-status/grafik', [EvaluasiStatusController::class, 'grafik'])->middleware('can:evaluasi.lihat')->name('evaluasi.grafik');
     Route::get('/evaluasi-status/{psn}', [EvaluasiStatusController::class, 'show'])->middleware('can:evaluasi.lihat')->whereNumber('psn')->name('evaluasi.show');
     Route::post('/evaluasi-status/{psn}/terima', [EvaluasiStatusController::class, 'terima'])->middleware('can:evaluasi.input')->whereNumber('psn')->name('evaluasi.terima');
@@ -57,9 +57,9 @@ Route::middleware(['auth', 'akun.aktif'])->group(function () {
     Route::view('/risiko', 'risiko.index')->middleware('can:risiko.lihat')->name('risiko');
     Route::get('/peta', [PetaController::class, 'index'])->middleware('can:ringkasan.lihat')->name('peta');
     Route::get('/laporan', [LaporanController::class, 'index'])->middleware('can:laporan.lihat')->name('laporan.index');
-    Route::get('/laporan/risiko.xlsx', [LaporanController::class, 'risikoXlsx'])->middleware('can:risiko.lihat')->name('laporan.risiko-xlsx');
-    Route::get('/laporan/pengisian.xlsx', [LaporanController::class, 'pengisianXlsx'])->middleware('can:laporan.lihat')->name('laporan.pengisian-xlsx');
-    Route::get('/laporan/ringkasan.pdf', [LaporanController::class, 'ringkasanPdf'])->middleware('can:ringkasan.lihat')->name('laporan.ringkasan-pdf');
+    Route::get('/laporan/risiko.xlsx', [LaporanController::class, 'risikoXlsx'])->middleware(['can:risiko.lihat', 'proses.berat'])->name('laporan.risiko-xlsx');
+    Route::get('/laporan/pengisian.xlsx', [LaporanController::class, 'pengisianXlsx'])->middleware(['can:laporan.lihat', 'proses.berat'])->name('laporan.pengisian-xlsx');
+    Route::get('/laporan/ringkasan.pdf', [LaporanController::class, 'ringkasanPdf'])->middleware(['can:ringkasan.lihat', 'proses.berat'])->name('laporan.ringkasan-pdf');
 
     Route::view('/kamus-indikator', 'kamus.index')->name('kamus');
 

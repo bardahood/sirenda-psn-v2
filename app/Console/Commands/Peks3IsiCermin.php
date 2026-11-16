@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Support\ProsesBerat;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -20,6 +21,8 @@ class Peks3IsiCermin extends Command
 
     public function handle(): int
     {
+        ProsesBerat::siapkan();
+
         $db = DB::connection('legacy');
         $tujuan = (string) $db->getDatabaseName();
         $sumber = (string) $this->argument('sumber');

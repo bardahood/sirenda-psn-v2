@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AkunAktif;
 use App\Http\Middleware\HeaderKeamanan;
+use App\Http\Middleware\ProsesBerat;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,7 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->alias(['akun.aktif' => AkunAktif::class]);
+        $middleware->alias(['akun.aktif' => AkunAktif::class, 'proses.berat' => ProsesBerat::class]);
         $middleware->append(HeaderKeamanan::class);
         $middleware->redirectGuestsTo('/login');
         $middleware->redirectUsersTo('/dashboard');

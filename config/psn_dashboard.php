@@ -113,6 +113,13 @@ return [
     ],
 
     // Snapshot per cut-off.
+    // Batas PHP untuk proses berat (ekspor/unggah Excel, peks3:terapkan, peks3:isi-cermin). Hosting cPanel
+    // umumnya memory_limit 128M, tidak cukup untuk 380 PSN. Hanya dinaikkan, tidak pernah diturunkan.
+    'proses_berat' => [
+        'memori' => env('PROSES_BERAT_MEMORI', '1024M'),
+        'waktu_detik' => (int) env('PROSES_BERAT_WAKTU_DETIK', 600),
+    ],
+
     'snapshot' => [
         // Bila KP/RO hanya punya target volume tahunan (tanpa % rencana), rencana
         // s.d. bulan cut-off diasumsikan linear: bulan/12 x 100%. (Keputusan Q-04)
