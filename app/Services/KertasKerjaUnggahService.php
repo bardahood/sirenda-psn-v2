@@ -399,7 +399,7 @@ class KertasKerjaUnggahService
         return ['baris' => $baris];
     }
 
-    /** "[Tipologi 1; menghambat jalur kritis] uraian – Upaya: ..." per butir; dukungan dicocokkan menurut nomor. */
+    /** "[Tipologi 1; menghambat jalur kritis] uraian – Upaya: ... (atau "uraian. Upaya: ...")" per butir; dukungan dicocokkan menurut nomor. */
     protected function uraiIsu(array $sel): array
     {
         $c = config('psn_dashboard.evaluasi_status');
@@ -422,7 +422,8 @@ class KertasKerjaUnggahService
                 }
                 $kritis = preg_match('/tidak\s+menghambat/i', $m[1]) ? false : (preg_match('/menghambat/i', $m[1]) ? true : null);
             }
-            $bagian = preg_split('/\s+[–-]\s*Upaya\s*:\s*/u', $teks, 2);
+            // "uraian – Upaya: ..." (format template); pemisah boleh juga titik, koma, titik koma, atau spasi saja.
+            $bagian = preg_split('/\s*(?:[–\-.;,]\s*)?\bUpaya\s*:\s*/u', $teks, 2);
             $baris[] = ['uraian' => trim($bagian[0]), 'tipologi' => $tipologi, 'jalur_kritis' => $kritis === null ? '' : (string) (int) $kritis,
                 'upaya' => isset($bagian[1]) ? trim($bagian[1]) : null, 'dukungan' => $this->strip($dukungan[$no] ?? null)];
         }

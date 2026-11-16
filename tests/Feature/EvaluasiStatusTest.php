@@ -347,7 +347,7 @@ class EvaluasiStatusTest extends TestCase
             'c1' => "1. Pengadaan Tanah dan Legalitas Lahan\n11. Lainnya: Cuaca ekstrem",
             'fisik_output_utama_satuan' => 'km', 'fisik_output_utama_target_akhir' => 64, 'fisik_output_utama_target_kumulatif' => '40', 'fisik_output_utama_realisasi_kumulatif' => '36,2',
             'b3a_jenis' => "1. Studi kelayakan (Pra-FS / FS; OBC untuk KPBU)\n10. Izin pinjam pakai", 'b3a_status' => "1. Selesai\n10. Proses", 'b3a_tanggal' => "1. 30-06-2023\n10. –", 'b3a_ket' => "1. FS disetujui\n10. –",
-            'c2_uraian' => "1. [Tipologi 1; menghambat jalur kritis] 62 bidang belum bebas – Upaya: Konsinyasi\n2. [Tipologi 3; tidak menghambat jalur kritis] Izin hutan",
+            'c2_uraian' => "1. [Tipologi 1; menghambat jalur kritis] 62 bidang belum bebas – Upaya: Konsinyasi\n2. [Tipologi 3; tidak menghambat jalur kritis] Izin hutan. Upaya: Koordinasi KLHK",
             'c2_dukungan' => "1. Percepatan putusan PN\n2. Kemenhut",
             'lamp_jenis' => '1. Dokumen', 'lamp_judul' => '1. Kurva S', 'lamp_bentuk' => '1. File', 'lamp_tautan' => '1. kurva.xlsx',
             'pic_tanggal' => '14-11-2026', 'hasil' => 'Lengkap dan Benar Semua', 'catatan' => 'Lahan butuh LMAN', 'indikasi' => 'Dipertahankan',
@@ -385,7 +385,7 @@ class EvaluasiStatusTest extends TestCase
         $this->assertSame(['FS', 'LAIN'], $e->milestone()->pluck('kode')->all());
         $this->assertSame(['Izin pinjam pakai', '2023-06-30'], [$e->milestone()->where('kode', 'LAIN')->value('nama_lain'), $e->milestone()->where('kode', 'FS')->first()->tanggal->toDateString()]);
         $isu = $e->isu()->get();
-        $this->assertSame([['62 bidang belum bebas', '1', true, 'Konsinyasi', 'Percepatan putusan PN'], ['Izin hutan', '3', false, null, 'Kemenhut']],
+        $this->assertSame([['62 bidang belum bebas', '1', true, 'Konsinyasi', 'Percepatan putusan PN'], ['Izin hutan', '3', false, 'Koordinasi KLHK', 'Kemenhut']],
             $isu->map(fn ($i) => [$i->uraian, $i->tipologi, $i->jalur_kritis, $i->upaya, $i->dukungan])->all());
         $this->assertSame([['DOKUMEN', 'Kurva S', 'FILE', 'kurva.xlsx']], $e->lampiran()->get()->map(fn ($l) => [$l->jenis, $l->judul, $l->bentuk, $l->tautan])->all());
         $this->assertSame('Unggah kertas kerja', $e->riwayat()->orderByDesc('id')->value('keterangan'));
