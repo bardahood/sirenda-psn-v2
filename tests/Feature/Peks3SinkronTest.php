@@ -5,11 +5,14 @@ namespace Tests\Feature;
 use App\Services\Peks3TerapkanService;
 use App\Support\DashboardCache;
 use App\Support\Legacy\LegacyImporter;
+use Database\Seeders\PeranSeeder;
+use Database\Seeders\ReferensiSeeder;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Testing\TestResponse;
+use Tests\Support\BuatDataPsn;
 use Tests\TestCase;
 
 /**
@@ -18,7 +21,7 @@ use Tests\TestCase;
  */
 class Peks3SinkronTest extends TestCase
 {
-    use RefreshDatabase;
+    use BuatDataPsn, RefreshDatabase;
 
     protected int $urutan = 0;
 
@@ -218,5 +221,31 @@ class Peks3SinkronTest extends TestCase
         $this->assertTrue(DB::table('audit_log')->where('tabel', 'integrasi_peks3')->exists());
 
         $this->artisan('peks3:terapkan')->expectsOutputToContain('Tidak ada perubahan')->assertSuccessful();
+    }
+
+    public function test_halaman_integrasi_data_memantau_dan_menjadwalkan_penerapan(): void
+    {
+        $this->seed([ReferensiSeeder::class, PeranSeeder::class]);
+        $this->kirim('psn', $this->paket(7, '2026-11-14T08:00:00Z'))->assertStatus(202);
+        $this->kirim('psn', ['psn_id' => 8, 'versi' => '2026-11-14T08:00:00Z', 'tabel' => ['psn' => [['id' => 9]]]])->assertStatus(422);
+
+        $this->actingAs($this->buatPengguna('Pimpinan'))->get(route('pengaturan.integrasi'))->assertForbidden();
+
+        $admin = $this->buatPengguna('Super Admin');
+        $this->actingAs($admin)->get(route('pengaturan.integrasi'))->assertOk()
+            ->assertSee('Sinkron SIRENDA PEKS3 ke Dashboard')->assertSee('Menunggu diterapkan')->assertSee('Terpasang')
+            ->assertSee('Gagal atau ditolak')->assertSee('4 baris')->assertDontSee(self::RAHASIA);
+        $this->get(route('pengaturan.integrasi', ['hasil' => 'GAGAL']))->assertOk()->assertSee('paket[0]')->assertDontSee('4 baris');
+
+        // Penjadwal belum pernah berjalan -> ditandai; setelah perintah berjalan -> detak tercatat.
+        $this->get(route('pengaturan.integrasi'))->assertSee('Tidak berjalan');
+        $layanan = app(Peks3TerapkanService::class);
+        $this->assertFalse($layanan->perlu());
+        $this->post(route('pengaturan.integrasi.terapkan'))->assertRedirect()->assertSessionHas('status');
+        $this->assertTrue($layanan->perlu()); // tanpa menunggu jeda
+        $this->assertTrue(DB::table('audit_log')->where('tabel', 'integrasi_peks3')->where('user_id', $admin->id)->exists());
+
+        config(['psn_dashboard.peks3.aktif' => false]);
+        $this->post(route('pengaturan.integrasi.terapkan'))->assertStatus(422);
     }
 }

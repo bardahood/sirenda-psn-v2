@@ -12,6 +12,7 @@ use App\Http\Controllers\FormPengendalianController;
 use App\Http\Controllers\IntegrasiSifController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\Pengaturan\CutoffController;
+use App\Http\Controllers\Pengaturan\IntegrasiController;
 use App\Http\Controllers\Pengaturan\MasterDataController;
 use App\Http\Controllers\Pengaturan\PenggunaController;
 use App\Http\Controllers\PengisianController;
@@ -81,6 +82,8 @@ Route::middleware(['auth', 'akun.aktif'])->group(function () {
         Route::post('/pengguna/{pengguna}/reset-sandi', [PenggunaController::class, 'resetSandi'])->whereNumber('pengguna')->name('pengguna.reset');
         Route::get('/cutoff', [CutoffController::class, 'index'])->name('cutoff');
         Route::post('/cutoff', [CutoffController::class, 'bangun'])->name('cutoff.bangun');
+        Route::get('/integrasi', [IntegrasiController::class, 'index'])->name('integrasi');
+        Route::post('/integrasi/terapkan', [IntegrasiController::class, 'terapkan'])->middleware('throttle:6,1')->name('integrasi.terapkan');
         Route::get('/master', [MasterDataController::class, 'index'])->name('master');
         Route::put('/master/klaster/{id}', [MasterDataController::class, 'ubahKlaster'])->whereNumber('id')->name('master.klaster');
         Route::put('/master/sub-klaster/{id}', [MasterDataController::class, 'ubahSubKlaster'])->whereNumber('id')->name('master.sub-klaster');

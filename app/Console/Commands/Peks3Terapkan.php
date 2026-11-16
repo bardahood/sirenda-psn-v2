@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Services\Peks3TerapkanService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 
 class Peks3Terapkan extends Command
 {
@@ -13,6 +14,9 @@ class Peks3Terapkan extends Command
 
     public function handle(Peks3TerapkanService $layanan): int
     {
+        // Detak penjadwal: ditampilkan di Pengaturan > Integrasi Data untuk memastikan cron server berjalan.
+        Cache::forever('peks3:detak', now()->toIso8601String());
+
         if (! $this->option('paksa') && ! $layanan->perlu()) {
             $this->line('Tidak ada perubahan yang siap diterapkan.');
 

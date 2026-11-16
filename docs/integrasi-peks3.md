@@ -1,6 +1,6 @@
 # Prosedur API Sinkronisasi Data SIRENDA PEKS3 ke Dashboard PSN
 
-Versi 1.0, 14 November 2026
+Versi 1.1, 16 November 2026 (tambahan: halaman pemantauan Pengaturan → Integrasi Data)
 
 ## 1. Latar belakang dan pembagian peran
 
@@ -223,9 +223,17 @@ Pengaturan opsional: `PEKS3_JEDA_DETIK` (bawaan 60) dan `PEKS3_TUNGGU_MAKS_DETIK
 
 ## 7. Pemantauan dan penanganan masalah
 
+Halaman **Pengaturan → Integrasi Data** (`/pengaturan/integrasi`, Super Admin) menampilkan tanpa membuka basis data:
+
+- kesehatan: sinkron aktif, kunci bersama terpasang (isi tidak ditampilkan), basis data cermin siap, penjadwal (detak `peks3:terapkan` dalam 5 menit terakhir), kiriman terakhir dari PEKS3, galat penerapan;
+- antrean dan penerapan: tertunda sejak, penerapan terakhir dan durasinya, jumlah PSN di cermin dan di dashboard;
+- rekap hasil 24 jam terakhir, ringkas usulan SIF/PSI;
+- log kiriman dan penerapan (`integrasi_peks3_log`) dengan saringan jenis, hasil, dan ID PSN PEKS3;
+- tombol **Terapkan sekarang**: menandai antrean siap sehingga diterapkan pada putaran penjadwal berikutnya (proses tetap berjalan di latar belakang, tidak di permintaan web). Tercatat di `audit_log`.
+
 | Gejala | Pemeriksaan |
 |---|---|
-| Data baru tidak tampil | Di PEKS3: `php artisan dashboard:kirim --cek`. Di dashboard: tabel `integrasi_peks3_status` (kolom `tertunda_sejak`, `galat`) dan `integrasi_peks3_log`. Cron kedua sisi berjalan? |
+| Data baru tidak tampil | Di PEKS3: `php artisan dashboard:kirim --cek`. Di dashboard: halaman Integrasi Data (antrean, galat, log). Cron kedua sisi berjalan? (kartu "Penjadwal (cron)") |
 | `401 X-Timestamp ...` | Jam server berselisih; aktifkan NTP. |
 | `401 X-Signature tidak valid` | Kunci kedua sisi berbeda, atau body diubah proxy; pastikan yang ditandatangani adalah body persis yang dikirim. |
 | Paket `DITOLAK` | Pesan menyebut tabel dan baris yang salah, misalnya `psn_kegiatan[3].psn_id harus bernilai 471`. |
@@ -249,6 +257,7 @@ Pengaturan opsional: `PEKS3_JEDA_DETIK` (bawaan 60) dan `PEKS3_TUNGGU_MAKS_DETIK
 | `app/Services/Peks3CerminService.php` | Penulisan ke basis data cermin |
 | `app/Services/Peks3TerapkanService.php` | Penerapan atomik ke dashboard |
 | `app/Console/Commands/Peks3*.php` | `peks3:siapkan-cermin`, `peks3:terapkan`, `peks3:kirim-uji` |
+| `app/Http/Controllers/Pengaturan/IntegrasiController.php`, `resources/views/pengaturan/integrasi.blade.php` | Halaman pemantauan Pengaturan → Integrasi Data |
 | `config/psn_dashboard.php` → `peks3` | Daftar tabel, jeda, batas |
 | `docs/integrasi-peks3/kit-peks3/` | Kit pengirim untuk SIRENDA PEKS3 |
 | `tests/Feature/Peks3SinkronTest.php` | Tes otomatis |
