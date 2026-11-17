@@ -3,12 +3,12 @@
     $tautan = fn (array $ubah) => route('evaluasi.index', array_filter(array_merge($filter, $ubah), fn ($v) => $v !== null && $v !== ''));
     $n = fn ($v) => number_format((int) $v, 0, ',', '.');
     $proses = $s['PROSES_PENGECEKAN'] + $s['BUTUH_DATA'] + $s['VERIFIKASI_PJ'] + $s['SIAP_DIANALISIS'];
-    $aktif = $alur['total'] - $alur['keluar'];
-    $belumDiputus = max(0, $aktif - $s['DIPERTAHANKAN'] - $alur['dikeluarkan_aktif']);
+    $belumDiputus = max(0, $alur['total'] - $s['DIPERTAHANKAN'] - $alur['dikeluarkan_total']);
+    $tahunBerjalan = $tahun - 1;
     $labelSumber = config('psn_dashboard.label_sumber_psn');
 @endphp
 <x-app-layout judul="Evaluasi Status PSN · RKP {{ $tahun }}" subjudul="Penentuan PSN dilanjutkan atau dikeluarkan berdasarkan Form Pengendalian dan data profil proyek">
-    <x-slot:infoJudul>Data profil per {{ $cutoff?->tanggal_cutoff?->translatedFormat('j F Y') ?? '–' }} · {{ $n($alur['total']) }} PSN aktif dievaluasi</x-slot:infoJudul>
+    <x-slot:infoJudul>Data profil per {{ $cutoff?->tanggal_cutoff?->translatedFormat('j F Y') ?? '–' }} · {{ $n($alur['total']) }} PSN dievaluasi</x-slot:infoJudul>
     <x-slot:aksi>
         <a href="{{ route('evaluasi.ekspor', $filter) }}" class="tombol-garis py-1.5">Unduh Excel</a>
     </x-slot:aksi>
@@ -25,17 +25,11 @@
             </div>
             <ol class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5 xl:items-start">
                 {{-- 1. Basis --}}
-                <li class="flex flex-col rounded-kartu border border-slate-200 bg-slate-50/60 p-4 xl:mt-28" title="{{ $n($aktif) }} aktif, {{ $n($alur['keluar']) }} keluar PSN">
+                <li class="flex flex-col rounded-kartu border border-slate-200 bg-slate-50/60 p-4 xl:mt-28">
                     <span class="self-start rounded-md bg-emerald-700 px-2.5 py-1 text-[12px] font-bold text-white">Basis evaluasi</span>
-                    <span class="mt-2 text-[13px] font-semibold text-slate-700">PSN tercatat (RKP &amp; Permenko)</span>
+                    <span class="mt-2 text-[13px] font-semibold text-slate-700">PSN tahun berjalan (RKP &amp; Permenko)</span>
                     <a href="{{ $tautan(['status' => null, 'page' => null]) }}" class="angka mt-1 text-[38px] font-extrabold leading-none text-slate-900 hover:underline">{{ $n($alur['total']) }}</a>
                     <ul class="mt-3 space-y-1.5 text-[12.5px]">
-                        @if ($alur['keluar'])
-                            <li class="flex items-center gap-2">
-                                <span class="angka inline-flex min-w-[2.75rem] justify-center rounded-md bg-red-700 px-2 py-0.5 font-bold text-white">{{ $n($alur['keluar']) }}</span>
-                                <span class="text-slate-700">sudah keluar PSN ({{ $n($aktif) }} aktif)</span>
-                            </li>
-                        @endif
                         @foreach ($alur['sumber'] as $kode => $jml)
                             <li class="flex items-center gap-2">
                                 <span class="angka inline-flex min-w-[2.75rem] justify-center rounded-md bg-slate-700 px-2 py-0.5 font-bold text-white">{{ $n($jml) }}</span>
@@ -49,7 +43,7 @@
                 <li class="flex flex-col rounded-kartu border border-slate-200 bg-white p-4 xl:mt-20">
                     <span class="self-start rounded-md bg-amber-600 px-2.5 py-1 text-[12px] font-bold text-white">Form Pengendalian</span>
                     <span class="mt-2 text-[13px] font-semibold text-slate-700">Form diterima</span>
-                    <span class="angka mt-1 text-[38px] font-extrabold leading-none text-slate-900">{{ $n($alur['diterima']) }}</span>
+                    <span class="angka mt-1 text-[38px] font-extrabold leading-none text-slate-900">{{ $n($alur['diterima']) }}<span class="text-[16px] font-semibold text-slate-500"> / {{ $n($alur['total']) }}</span></span>
                     <ul class="mt-3 space-y-1.5 text-[12.5px]">
                         <li class="flex items-center gap-2">
                             <span class="angka inline-flex min-w-[2.75rem] justify-center rounded-md bg-slate-400 px-2 py-0.5 font-bold text-white">{{ $n($s['BELUM_DITERIMA']) }}</span>
@@ -60,6 +54,19 @@
                             <a href="{{ $tautan(['kelengkapan' => 'LENGKAP', 'page' => null]) }}" class="text-slate-700 hover:underline">Isian wajib lengkap (cek otomatis)</a>
                         </li>
                     </ul>
+                    {{-- Progres form per sumber PSN --}}
+                    <table class="mt-3 w-full border-t border-slate-200 text-[12px]">
+                        <thead class="text-[11px] text-slate-500"><tr><th class="pt-2 text-left font-semibold">Sumber</th><th class="pt-2 text-right font-semibold">Diterima</th><th class="pt-2 text-right font-semibold">Belum kembali</th></tr></thead>
+                        <tbody>
+                            @foreach ($alur['form_sumber'] as $kode => $f)
+                                <tr>
+                                    <td class="py-0.5 text-slate-700">PSN {{ $labelSumber[$kode] ?? $kode }}</td>
+                                    <td class="angka py-0.5 text-right"><a href="{{ $tautan(['sumber' => $kode, 'status' => null, 'page' => null]) }}" class="font-bold text-emerald-700 hover:underline" title="{{ $n($f['diterima']) }} dari {{ $n($f['diterima'] + $f['belum']) }} PSN {{ $labelSumber[$kode] ?? $kode }}">{{ $n($f['diterima']) }}</a></td>
+                                    <td class="angka py-0.5 text-right"><a href="{{ $tautan(['sumber' => $kode, 'status' => 'BELUM_DITERIMA', 'page' => null]) }}" class="font-bold text-slate-600 hover:underline">{{ $n($f['belum']) }}</a></td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </li>
 
                 {{-- 3. Pengecekan --}}
@@ -101,15 +108,19 @@
 
                 {{-- 5. Proyeksi RKP berikutnya --}}
                 <li class="flex flex-col rounded-kartu border-2 border-[#0d2b55]/30 bg-white p-4">
-                    <span class="self-start rounded-md bg-teal-700 px-2.5 py-1 text-[12px] font-bold text-white">RKP {{ $tahun }}</span>
-                    <span class="mt-2 text-[13px] font-semibold text-slate-700">Proyeksi PSN dalam daftar</span>
+                    <span class="self-start rounded-md bg-teal-700 px-2.5 py-1 text-[12px] font-bold text-white">RKP {{ $tahunBerjalan }} → RKP {{ $tahun }}</span>
+                    <span class="mt-2 text-[13px] font-semibold text-slate-700">Proyeksi PSN dalam daftar RKP {{ $tahun }}</span>
                     <span class="angka mt-1 text-[44px] font-extrabold leading-none text-[#0d2b55]">{{ $n($alur['proyeksi']) }}</span>
-                    <span class="mt-1 text-[11px] text-slate-500">= {{ $n($aktif) }} aktif − {{ $n($alur['dikeluarkan_aktif']) }} dikeluarkan + {{ $n($alur['baru']) }} usulan baru</span>
+                    <span class="mt-1 text-[11px] text-slate-500">= {{ $n($alur['total']) }} PSN tahun berjalan + {{ $n($alur['baru']) }} usulan baru − {{ $n($alur['dikeluarkan_total']) }} dikeluarkan</span>
                     <ul class="mt-3 space-y-2 text-[12.5px]">
+                        <li class="flex items-center gap-2">
+                            <span class="angka inline-flex min-w-[2.75rem] justify-center rounded-md bg-slate-700 px-2 py-0.5 font-bold text-white">{{ $n($alur['total']) }}</span>
+                            <a href="{{ $tautan(['status' => null, 'page' => null]) }}" class="font-semibold text-slate-800 hover:underline">PSN tahun berjalan</a>
+                        </li>
                         <li>
                             <span class="flex items-center gap-2">
                                 <span class="angka inline-flex min-w-[2.75rem] justify-center rounded-md bg-green-600 px-2 py-0.5 font-bold text-white">+{{ $n($alur['baru']) }}</span>
-                                <a href="{{ route('perencanaan.index', ['tahun' => $tahun]) }}" class="font-semibold text-slate-800 hover:underline">PSN baru (usulan direkomendasikan)</a>
+                                <a href="{{ route('perencanaan.index', ['tahun' => $tahun]) }}" class="font-semibold text-slate-800 hover:underline">Usulan PSN baru yang ditetapkan</a>
                             </span>
                             @if ($alur['baru_nama'])
                                 <ol class="ml-[3.25rem] mt-1 list-decimal space-y-0.5 pl-4 text-[11.5px] text-slate-600">
@@ -117,9 +128,9 @@
                                 </ol>
                             @endif
                         </li>
-                        <li class="flex items-center gap-2">
-                            <span class="angka inline-flex min-w-[2.75rem] justify-center rounded-md bg-red-700 px-2 py-0.5 font-bold text-white">−{{ $n($alur['dikeluarkan_aktif']) }}</span>
-                            <span class="text-slate-700">PSN aktif dikeluarkan</span>
+                        <li class="flex items-center gap-2" title="Indikasi status Dikeluarkan{{ $alur['dikeluarkan_keluar'] ? ', termasuk '.$n($alur['dikeluarkan_keluar']).' PSN berstatus Keluar dari PSN di SIRENDA' : '' }}">
+                            <span class="angka inline-flex min-w-[2.75rem] justify-center rounded-md bg-red-700 px-2 py-0.5 font-bold text-white">−{{ $n($alur['dikeluarkan_total']) }}</span>
+                            <span class="text-slate-700">PSN tahun berjalan dikeluarkan</span>
                         </li>
                         <li class="flex items-center gap-2">
                             <span class="angka inline-flex min-w-[2.75rem] justify-center rounded-md bg-slate-400 px-2 py-0.5 font-bold text-white">{{ $n($belumDiputus) }}</span>

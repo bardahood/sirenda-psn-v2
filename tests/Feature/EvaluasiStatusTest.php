@@ -101,6 +101,8 @@ class EvaluasiStatusTest extends TestCase
         $alur = $layanan->alur($layanan->daftar());
         $this->assertSame([2, 1, 1, 1], [$alur['total'], $alur['diterima'], $alur['status']['DIPERTAHANKAN'], $alur['status']['BELUM_DITERIMA']]);
         $this->assertSame(2, $alur['proyeksi']);
+        // Progres form per sumber: A (RKP) diterima, B (Permenko) belum kembali.
+        $this->assertSame(['PERMENKO' => ['diterima' => 0, 'belum' => 1], 'RKP' => ['diterima' => 1, 'belum' => 0]], $alur['form_sumber']);
     }
 
     public function test_d1_tidak_menjadikan_rekomendasi_dikeluarkan_dan_validasi_alasan(): void
@@ -445,7 +447,8 @@ class EvaluasiStatusTest extends TestCase
         $this->actingAs($this->buatPengguna('Tim Koordinasi/PMO'));
         $html = $this->get(route('evaluasi.kertas-kerja'))->assertOk()->assertSee('Keluar dari PSN')->getContent();
         $this->assertTrue(strpos($html, 'Zona Aktif') < strpos($html, 'Keluar Tol') && strpos($html, 'Keluar Tol') < strpos($html, 'Awal Bendungan'));
-        $this->get(route('evaluasi.index'))->assertSee('sudah keluar PSN');
+        // Basis evaluasi tidak menampilkan baris "sudah keluar" (tidak ambigu); proyeksi = total + baru - dikeluarkan.
+        $this->get(route('evaluasi.index'))->assertDontSee('sudah keluar PSN')->assertSee('PSN tahun berjalan')->assertSee('= 3 PSN tahun berjalan + 0 usulan baru − 1 dikeluarkan');
     }
 
     public function test_a6_otomatis_dari_tahun_terbit_profil(): void

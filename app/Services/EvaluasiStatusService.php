@@ -355,11 +355,15 @@ class EvaluasiStatusService
             ->where('r.status', 'FINAL')->where('r.rekomendasi', 'DIREKOMENDASIKAN')->whereNull('r.deleted_at')->whereNull('u.deleted_at')
             ->where('u.tahun_rkp', $this->tahun())->orderBy('u.nama')->get(['u.id', 'u.nama']);
         $dikeluarkan = $per['DIKELUARKAN'] ?? 0;
+        $dikeluarkanTotal = $daftar->filter(fn ($r) => $r['status_akhir'] === 'DIKELUARKAN' || ($r['data']['keluar'] ?? false))->count();
 
         return [
             'total' => $daftar->count(),
             'keluar' => $daftar->where('data.keluar', true)->count(),
             'sumber' => $daftar->countBy(fn ($r) => $r['sumber'] ?: 'LAINNYA')->sortKeys()->all(),
+            // Progres Form Pengendalian per sumber PSN (RKP / Permenko): diterima vs belum kembali.
+            'form_sumber' => $daftar->groupBy(fn ($r) => $r['sumber'] ?: 'LAINNYA')->sortKeys()
+                ->map(fn ($g) => ['diterima' => $g->where('status_akhir', '<>', 'BELUM_DITERIMA')->count(), 'belum' => $g->where('status_akhir', 'BELUM_DITERIMA')->count()])->all(),
             'diterima' => $daftar->count() - ($per['BELUM_DITERIMA'] ?? 0),
             'lengkap' => $daftar->where('lengkap', true)->count(),
             'status' => collect(config('psn_dashboard.evaluasi_status.status'))->map(fn ($l, $k) => $per[$k] ?? 0)->all(),
@@ -367,8 +371,11 @@ class EvaluasiStatusService
             'dikeluarkan_nama' => $nama('DIKELUARKAN'),
             'baru' => $baru->count(),
             'baru_nama' => $baru->take(5)->map(fn ($u) => ['id' => $u->id, 'nama' => $u->nama])->all(),
-            // PSN aktif yang tidak dikeluarkan + usulan baru; PSN yang sudah keluar di SIRENDA tidak dihitung.
-            'proyeksi' => $daftar->filter(fn ($r) => ! $r['data']['keluar'] && $r['status_akhir'] !== 'DIKELUARKAN')->count() + $baru->count(),
+            // Proyeksi daftar RKP berikutnya = PSN tahun berjalan + usulan baru ditetapkan - PSN tahun berjalan yang dikeluarkan.
+            // Dikeluarkan = indikasi status Dikeluarkan, atau status "Keluar dari PSN" di SIRENDA.
+            'proyeksi' => $daftar->count() + $baru->count() - $dikeluarkanTotal,
+            'dikeluarkan_total' => $dikeluarkanTotal,
+            'dikeluarkan_keluar' => $daftar->filter(fn ($r) => $r['data']['keluar'] && $r['status_akhir'] !== 'DIKELUARKAN')->count(),
             'dikeluarkan_aktif' => $daftar->filter(fn ($r) => ! $r['data']['keluar'] && $r['status_akhir'] === 'DIKELUARKAN')->count(),
             'rekomendasi' => collect(config('psn_dashboard.evaluasi_status.rekomendasi'))->map(fn ($l, $k) => $daftar->where('rekomendasi', $k)->count())->all(),
         ];
