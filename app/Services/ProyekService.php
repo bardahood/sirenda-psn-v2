@@ -67,6 +67,7 @@ class ProyekService
                 'Klaster PKPN' => $psn->klasterPkpn?->nama,
                 'Program' => $psn->program?->nama,
                 'Status PSN' => $psn->statusPsn?->nama,
+                'Tahun penetapan PSN' => $psn->tahun_terbit,
                 'Tahun target selesai' => $psn->tahun_selesai,
                 'Nilai investasi' => $psn->nilai_investasi_rp !== null ? 'Rp '.number_format($psn->nilai_investasi_rp / 1e12, 2, ',', '.').' triliun'.($psn->investasi_anomali ? ' (ditandai anomali, perlu verifikasi)' : '') : null,
                 'Rencana investasi' => $psn->rencana_investasi_rp !== null ? 'Rp '.number_format($psn->rencana_investasi_rp / 1e12, 2, ',', '.').' triliun' : null,

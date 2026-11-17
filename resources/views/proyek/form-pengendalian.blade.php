@@ -135,7 +135,7 @@
         <tr><td class="no">A4</td><td class="komponen">Penanggung Jawab, Pengelola, dan Pelaksana</td>
             <td class="auto">@foreach ($a['kelembagaan'] as $peran => $nama)<div><b>{{ $peran }}:</b> {{ implode('; ', $nama) }}</div>@endforeach</td></tr>
         <tr><td class="no">A5</td><td class="komponen">Dasar penetapan PSN / regulasi pendukung proyek atau program</td><td class="auto">{!! nl2br(e($a['dasar_penetapan'] ?? '')) !!}</td></tr>
-        <tr><td class="no">A6</td><td class="komponen">Tahun pertama kali ditetapkan sebagai PSN</td><td></td></tr>
+        <tr><td class="no">A6</td><td class="komponen">Tahun pertama kali ditetapkan sebagai PSN</td><td class="auto">{{ $a['tahun_terbit'] }}</td></tr>
         <tr><td class="no">A7</td><td class="komponen">Target tahun proyek / program selesai</td><td class="auto">{{ $a['tahun_selesai'] }}</td></tr>
         <tr><td class="no">A8</td><td class="komponen">Sumber pendanaan (APBN / APBD / BUMN / Badan Usaha-Swasta / Danantara / Lainnya)</td><td class="auto">{{ implode(', ', $a['sumber_dana']) }}</td></tr>
         <tr><td class="no">A9</td><td class="komponen">Total kebutuhan pendanaan / nilai investasi / anggaran program</td>

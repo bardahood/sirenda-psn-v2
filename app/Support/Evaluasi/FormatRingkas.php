@@ -3,6 +3,7 @@
 namespace App\Support\Evaluasi;
 
 use App\Models\Psn;
+use App\Services\EvaluasiStatusService;
 use Illuminate\Support\Collection;
 
 /**
@@ -135,7 +136,7 @@ class FormatRingkas
         foreach (['a3', 'a4', 'a5', 'a9', 'a10', 'a11'] as $k) {
             $set($k, $profilA[$k] ?? null, 'PROFIL');
         }
-        $set('a6', $e?->a6_tahun_penetapan);
+        $set('a6', EvaluasiStatusService::a6($e, $d), $e?->a6_tahun_penetapan ? 'ISIAN' : 'PROFIL');
         $set('a7', $d['tahun_selesai'], 'PROFIL');
         $set('a12', $label('jenis_psn', $e?->jenis_psn));
         $set('b1', ($d['keluar'] ?? false) ? 'Keluar dari PSN' : $label('tahapan', $d['tahapan']), 'PROFIL');
@@ -249,7 +250,7 @@ class FormatRingkas
     {
         $e = $r['evaluasi'];
         $m = [
-            'a6' => $e?->a6_tahun_penetapan, 'a8' => $e?->a8_sumber_pendanaan ?: $a8Profil, 'a12' => $e?->jenis_psn, 'b4' => $e?->b4_manfaat, 'c1' => $e?->c1_tipologi ?? [], 'c1_lainnya' => $e?->c1_lainnya,
+            'a6' => EvaluasiStatusService::a6($e, $r['data']), 'a8' => $e?->a8_sumber_pendanaan ?: $a8Profil, 'a12' => $e?->jenis_psn, 'b4' => $e?->b4_manfaat, 'c1' => $e?->c1_tipologi ?? [], 'c1_lainnya' => $e?->c1_lainnya,
             'd1' => $e?->d1_kebutuhan, 'd1_alasan' => $e?->d1_alasan, 'd1_alasan_lain' => $e?->d1_alasan_lain, 'd2' => $e?->d2_fasilitas ?? [], 'd2_justifikasi' => $e?->d2_justifikasi,
             'd3_tahapan' => $e?->d3_tahapan, 'd3_target' => $e?->d3_target, 'd3_tahun' => $e?->d3_tahun_selesai, 'info' => $e?->info_tambahan,
             'hasil' => $e?->hasil_pengecekan, 'tl' => $e?->tindak_lanjut, 'catatan' => $e?->catatan_analisis, 'indikasi' => $e?->indikasi_status,

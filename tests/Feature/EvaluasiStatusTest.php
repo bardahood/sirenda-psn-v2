@@ -447,4 +447,35 @@ class EvaluasiStatusTest extends TestCase
         $this->assertTrue(strpos($html, 'Zona Aktif') < strpos($html, 'Keluar Tol') && strpos($html, 'Keluar Tol') < strpos($html, 'Awal Bendungan'));
         $this->get(route('evaluasi.index'))->assertSee('sudah keluar PSN');
     }
+
+    public function test_a6_otomatis_dari_tahun_terbit_profil(): void
+    {
+        [$a, $b] = $this->siapkan();
+        DB::table('psn')->where('id', $a->id)->update(['tahun_terbit' => 2018]);
+        $layanan = app(EvaluasiStatusService::class);
+        $format = app(FormatRingkas::class);
+
+        // Tanpa isian: A6 = tahun terbit profil, tidak dihitung kosong; sinyal umur memakai tahun itu.
+        $r = $layanan->daftar()->keyBy('psn_id')[$a->id];
+        $this->assertNotContains('A6 Tahun penetapan PSN', $r['kurang']);
+        $baris = collect($format->semua(collect([$r])))->first();
+        $this->assertSame([2018, 'PROFIL'], [$baris['nilai']['a6'], $baris['asal']['a6']]);
+        $this->assertSame(2018, $baris['mentah']['a6']);
+        // B tanpa tahun terbit tetap wajib diisi.
+        $this->assertContains('A6 Tahun penetapan PSN', $layanan->daftar()->keyBy('psn_id')[$b->id]['kurang']);
+
+        // Isian A6 menimpa profil; dikosongkan kembali ke profil.
+        $this->actingAs($this->buatPengguna('Tim Koordinasi/PMO'));
+        $this->post(route('evaluasi.terima', $a), ['form_diterima_at' => '2026-11-10']);
+        $this->patchJson(route('evaluasi.sel', $a), ['kunci' => 'a6', 'nilai' => 2020])->assertOk();
+        $baris = collect($format->semua(collect([$layanan->daftar()->keyBy('psn_id')[$a->id]])))->first();
+        $this->assertSame([2020, 'ISIAN'], [$baris['nilai']['a6'], $baris['asal']['a6']]);
+        $this->patchJson(route('evaluasi.sel', $a), ['kunci' => 'a6', 'nilai' => null])->assertOk();
+        $this->assertSame(2018, collect($format->semua(collect([$layanan->daftar()->keyBy('psn_id')[$a->id]])))->first()['nilai']['a6']);
+
+        // Formulir evaluasi, Form Pengendalian, dan detail PSN menampilkan tahun penetapan profil.
+        $this->get(route('evaluasi.show', $a))->assertOk()->assertSee('Dari profil: 2018');
+        $this->get(route('proyek.form-pengendalian', $a))->assertOk()->assertSeeInOrder(['A6', 'Tahun pertama kali ditetapkan sebagai PSN', '2018']);
+        $this->get(route('proyek.show', $a))->assertOk()->assertSeeInOrder(['Tahun penetapan PSN', '2018']);
+    }
 }

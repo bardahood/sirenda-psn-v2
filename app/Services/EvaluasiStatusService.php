@@ -59,7 +59,7 @@ class EvaluasiStatusService
             ->when($hanyaId !== null, fn ($q) => $q->whereIn('psn.id', $hanyaId ?: [0]))
             // Urutan data SIRENDA PEKS3 (psn.id aplikasi lama), PSN tanpa ID lama di akhir.
             ->orderByRaw('psn.legacy_id IS NULL')->orderBy('psn.legacy_id')->orderBy('psn.id')
-            ->get(['psn.id', 'psn.nama', 'psn.kode_psn', 'psn.tahun_selesai', 'psn.nilai_investasi_rp', 's.sumber', 's.progres_rencana_persen', 's.progres_realisasi_persen',
+            ->get(['psn.id', 'psn.nama', 'psn.kode_psn', 'psn.tahun_selesai', 'psn.tahun_terbit', 'psn.nilai_investasi_rp', 's.sumber', 's.progres_rencana_persen', 's.progres_realisasi_persen',
                 's.pagu_rp', 's.realisasi_anggaran_rp', 's.jumlah_ro', 's.jumlah_ro_tercapai', 's.unit_kerja_id', 's.is_aktif', 'st.kode as status_kode', 'st.nama as status_nama', 'k.nama as klaster']);
         $id = $psn->pluck('id')->all();
         if (! $id) {
@@ -90,6 +90,8 @@ class EvaluasiStatusService
                 'keluar' => ! $p->is_aktif,
                 'status_nama' => $p->status_nama,
                 'tahun_selesai' => $p->tahun_selesai ? (int) $p->tahun_selesai : null,
+                // A6 profil: tahun penetapan (tahun_terbit) di SIRENDA; isian A6 Evaluasi menimpanya bila diisi.
+                'tahun_terbit' => $p->tahun_terbit ? (int) $p->tahun_terbit : null,
                 'progres_rencana' => $p->progres_rencana_persen !== null ? (float) $p->progres_rencana_persen : null,
                 'progres_realisasi' => $p->progres_realisasi_persen !== null ? (float) $p->progres_realisasi_persen : null,
                 'pagu_rp' => $p->pagu_rp !== null ? (float) $p->pagu_rp : null,
@@ -135,7 +137,7 @@ class EvaluasiStatusService
         $kurang = [];
 
         // Aturan wajib isi (kertas kerja sheet "Aturan Wajib Isi"). Nilai B2 = isian kertas kerja, bila kosong data profil.
-        $e?->a6_tahun_penetapan || $kurang[] = 'A6 Tahun penetapan PSN';
+        self::a6($e, $d) || $kurang[] = 'A6 Tahun penetapan PSN';
         $d['tahun_selesai'] || $kurang[] = 'A7 Target tahun selesai';
         ($t || ($d['keluar'] ?? false)) || $kurang[] = 'B1 Tahapan';
         if (in_array($t, ['KONSTRUKSI', 'BEROPERASI_SEBAGIAN', 'KUMULATIF_SELESAI'], true)) {
@@ -178,7 +180,7 @@ class EvaluasiStatusService
         $serapan = $pb['target_kumulatif'] ? round(100 * ($pb['realisasi_kumulatif'] ?? 0) / $pb['target_kumulatif'], 1) : null;
         $jalurKritis = collect($isuEfektif)->where('jalur_kritis', true)->count();
         $mundur = $e?->d3_tahun_selesai && $d['tahun_selesai'] ? $e->d3_tahun_selesai - $d['tahun_selesai'] : null;
-        $umur = $e?->a6_tahun_penetapan ? $this->tahun() - $e->a6_tahun_penetapan : null;
+        $umur = self::a6($e, $d) ? $this->tahun() - self::a6($e, $d) : null;
         $indikator = ['deviasi_fisik' => $deviasi, 'serapan' => $serapan, 'mundur_tahun' => $mundur, 'umur_psn' => $umur,
             'isu_terbuka' => count($isuEfektif), 'isu_jalur_kritis' => $jalurKritis, 'regulasi_belum' => $d['regulasi_belum']];
 
@@ -313,6 +315,12 @@ class EvaluasiStatusService
             ['uraian', 'tipologi', 'jalur_kritis', 'upaya', 'dukungan'], ['uraian']);
         isset($r['lampiran']) && $sinkron('lampiran', $r['lampiran'], ['jenis', 'judul', 'bentuk', 'tautan'], ['judul']);
         $e->unsetRelation('capaian')->unsetRelation('milestone')->unsetRelation('isu')->unsetRelation('lampiran');
+    }
+
+    /** A6 efektif: isian Evaluasi, atau tahun penetapan (tahun_terbit) dari profil SIRENDA bila isian kosong. */
+    public static function a6(?EvaluasiPsn $e, array $data): ?int
+    {
+        return $e?->a6_tahun_penetapan ?: ($data['tahun_terbit'] ?? null);
     }
 
     /** Ringkasan untuk visual alur (gaya "PSN dalam daftar" RKP). */

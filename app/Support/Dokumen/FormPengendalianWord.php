@@ -100,6 +100,7 @@ class FormPengendalianWord
             'A3' => [implode('; ', $a['lokasi'])],
             'A4' => collect($a['kelembagaan'])->map(fn ($nama, $peran) => "{$peran}: ".implode('; ', $nama))->values()->all(),
             'A5' => $this->baris($a['dasar_penetapan']),
+            'A6' => [$a['tahun_terbit'] !== null ? (string) $a['tahun_terbit'] : null],
             'A7' => [$a['tahun_selesai'] !== null ? (string) $a['tahun_selesai'] : null],
             'A8' => [implode(', ', $a['sumber_dana'])],
             'A10' => $this->baris($a['deskripsi']),

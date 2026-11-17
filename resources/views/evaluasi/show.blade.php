@@ -22,6 +22,7 @@
                             : collect($h['isu'])->map(fn ($i) => ['uraian' => $i['uraian'], 'tipologi' => $i['tipologi'], 'jalur_kritis' => $i['jalur_kritis'] === null ? '' : (string) (int) $i['jalur_kritis'], 'upaya' => $i['upaya'], 'dukungan' => $i['dukungan']])->all());
                         $msIsi = $e?->milestone->keyBy('kode') ?? collect();
                         $fmt = fn ($v) => $v === null ? '' : rtrim(rtrim(number_format((float) $v, 2, '.', ''), '0'), '.');
+    $a6Profil = $h['data']['tahun_terbit'] ?? null; // A6 dari profil SIRENDA (tahun_terbit)
 @endphp
 <x-app-layout :judul="$psn->nama" subjudul="Evaluasi status PSN untuk RKP {{ $tahun }} · {{ $psn->kode_psn }}">
     <x-slot:aksi>
@@ -113,7 +114,10 @@
                             <label class="text-isi"><span class="label block">Tanggal form diterima *</span>
                                 <input type="date" name="form_diterima_at" value="{{ $nilai('form_diterima_at', $e->form_diterima_at?->toDateString()) }}" max="{{ now()->toDateString() }}" class="{{ $input }}"></label>
                             <label class="text-isi"><span class="label block">A6 Tahun penetapan PSN *</span>
-                                <input type="number" name="a6_tahun_penetapan" min="{{ $cfg['tahun_min'] }}" max="{{ $cfg['tahun_maks'] }}" value="{{ $nilai('a6_tahun_penetapan', $e->a6_tahun_penetapan) }}" class="{{ $input }}"></label>
+                                <input type="number" name="a6_tahun_penetapan" min="{{ $cfg['tahun_min'] }}" max="{{ $cfg['tahun_maks'] }}" value="{{ $nilai('a6_tahun_penetapan', $e->a6_tahun_penetapan) }}"
+                                       placeholder="{{ $a6Profil ?? '' }}" @class([$input, 'bg-sky-50 placeholder:text-sky-800' => $a6Profil])
+                                       title="{{ $a6Profil ? 'Kosongkan untuk memakai tahun penetapan dari profil SIRENDA ('.$a6Profil.')' : 'Tahun penetapan belum tercatat di profil SIRENDA' }}">
+                                @if ($a6Profil)<span class="mt-0.5 block text-[11px] text-sky-700">Dari profil: {{ $a6Profil }}. Isi hanya bila berbeda.</span>@endif</label>
                             <label class="text-isi"><span class="label block">A8 Sumber pendanaan</span>
                                 <select name="a8_sumber_pendanaan" class="{{ $input }}"><option value="">Dari profil: {{ $cfg['sumber_pendanaan'][$a8Profil] ?? '–' }}</option>
                                     @foreach ($cfg['sumber_pendanaan'] as $k => $l)<option value="{{ $k }}" @selected($nilai('a8_sumber_pendanaan', $e->a8_sumber_pendanaan) === $k)>{{ $l }}</option>@endforeach</select></label>

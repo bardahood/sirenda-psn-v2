@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Services\EvaluasiStatusService;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -37,7 +38,7 @@ class EvaluasiStatusExport implements FromCollection, ShouldAutoSize, WithHeadin
             $e = $r['evaluasi'];
             $d = $r['data'];
 
-            return [$i + 1, $r['kode'], $r['nama'], $r['sumber'], $r['klaster'], $l('tahapan', $d['tahapan']), $d['tahun_selesai'], $e?->a6_tahun_penetapan,
+            return [$i + 1, $r['kode'], $r['nama'], $r['sumber'], $r['klaster'], $l('tahapan', $d['tahapan']), $d['tahun_selesai'], EvaluasiStatusService::a6($e, $d),
                 $d['progres_rencana'], $d['progres_realisasi'], $r['indikator']['deviasi_fisik'], $r['indikator']['serapan'], $r['indikator']['isu_terbuka'], $r['indikator']['isu_jalur_kritis'],
                 $e?->form_diterima_at?->format('Y-m-d'), implode('; ', $r['kurang']), $r['lengkap'] ? 'Lengkap' : 'Belum Lengkap',
                 $l('d1', $e?->d1_kebutuhan), $e?->d1_alasan === 'LAINNYA' ? $e->d1_alasan_lain : $l('d1_alasan', $e?->d1_alasan),

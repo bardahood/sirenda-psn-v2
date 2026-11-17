@@ -9,7 +9,8 @@ Menu: **Evaluasi** (`/evaluasi-status`), dengan tiga halaman: **Pemantauan**, **
 | Kertas kerja | Di aplikasi |
 |---|---|
 | Bagian A–C (identitas, tahapan, progres, pembiayaan, isu) diketik ulang per PSN | **Dibaca otomatis dari profil PSN** (data SIRENDA PEKS3, snapshot cut-off terbit terakhir). Form Pengendalian yang dicetak dari profil dipakai PJ untuk melengkapi dan mengoreksi. |
-| A6 tahun penetapan, A12 jenis PSN, C1 "Tidak ada isu", D1–D3, PIC | Diisi pada halaman evaluasi per PSN (peran Operator K/L ke atas). |
+| A6 tahun penetapan | Otomatis dari tahun penetapan PSN di SIRENDA (`psn.tahun_terbit`); diisi di evaluasi hanya bila berbeda atau profil kosong. |
+| A12 jenis PSN, C1 "Tidak ada isu", D1–D3, PIC | Diisi pada halaman evaluasi per PSN (peran Operator K/L ke atas). |
 | Kolom "Cek otomatis" (sheet Aturan Wajib Isi) | **Cek kelengkapan otomatis** per aturan (lihat §3), ditampilkan sebagai daftar ✓/✗. |
 | Hasil Pengecekan → Tindak Lanjut | Sama; tindak lanjut otomatis dari hasil pengecekan dan masih dapat diubah. |
 | Catatan Hasil Analisis → Indikasi Status | Sama; Indikasi Status hanya dapat diisi setelah catatan ada (ditolak bila kosong). |
@@ -43,7 +44,7 @@ Menu: **Evaluasi** (`/evaluasi-status`), dengan tiga halaman: **Pemantauan**, **
 
 | Butir | Wajib bila | Terpenuhi bila (sumber data) |
 |---|---|---|
-| A6 | selalu | tahun penetapan diisi di evaluasi |
+| A6 | selalu | tahun penetapan terisi (isian evaluasi, atau tahun terbit profil SIRENDA) |
 | A7 | selalu | `psn.tahun_selesai` terisi |
 | B1 | selalu | status PSN memetakan ke tahapan |
 | B2 progres | tahapan Konstruksi / Beroperasi sebagian / Kumulatif selesai | rencana dan realisasi progres fisik ada di snapshot |
@@ -85,7 +86,8 @@ Grafik Status Harian meniru sheet aslinya: tanggal mulai dapat dipilih (14 hari)
 | Kolom Format Ringkas | Sumber | Tabel/kolom |
 |---|---|---|
 | A1–A5, A7–A11, B1 | Profil SIRENDA | `psn`, `psn_lokasi`, `psn_kelembagaan`, `psn_sumber_dana`, `snapshot_psn` |
-| A6, A12 | Isian evaluasi | `evaluasi_psn.a6_tahun_penetapan`, `jenis_psn` |
+| A6 | Isian evaluasi, bila kosong profil | `evaluasi_psn.a6_tahun_penetapan`, bila kosong `psn.tahun_terbit` |
+| A12 | Isian evaluasi | `evaluasi_psn.jenis_psn` |
 | B2.a/B2.b (7 komponen × satuan, target akhir, target kumulatif, realisasi, keterangan) | Isian; bila kosong memakai profil (progres fisik, pembiayaan, regulasi) | **`evaluasi_psn_capaian`** (baru) |
 | B3.a/B3.b milestone | Isian | **`evaluasi_psn_milestone`** (baru) |
 | B4 manfaat | Isian | `evaluasi_psn.b4_manfaat` (baru) |

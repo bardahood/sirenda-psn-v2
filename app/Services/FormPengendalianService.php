@@ -49,6 +49,7 @@ class FormPengendalianService
                     : trim(($l->provinsi?->nama ?? $l->provinsi_kode).($l->kabupaten ? ' – '.$l->kabupaten->nama : '')))->unique()->values()->all(),
                 'kelembagaan' => array_filter(['Penanggung jawab' => $peran('PENANGGUNG_JAWAB'), 'Pengelola' => $peran('PENGELOLA'), 'Pelaksana' => $peran('PELAKSANA')]),
                 'dasar_penetapan' => $psn->dasar_penetapan,
+                'tahun_terbit' => $psn->tahun_terbit,
                 'tahun_selesai' => $psn->tahun_selesai ?? $psn->ket_tahun_selesai,
                 'sumber_dana' => $psn->sumberDana->map(fn ($d) => $d->sumberDana?->nama)->filter()->unique()->values()->all(),
                 'nilai_investasi_rp' => $psn->nilai_investasi_rp !== null ? (float) $psn->nilai_investasi_rp : null,
