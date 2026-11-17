@@ -202,7 +202,10 @@ class DashboardApiTest extends TestCase
 
     public function test_halaman_dashboard_dan_filter_opsi(): void
     {
+        // Tampilan bawaan = Ikhtisar Portofolio; tampilan panel pelaksanaan pindah ke /dashboard/pelaksanaan.
         $this->get('/dashboard?klaster=1')->assertOk()->assertSee('Dashboard Monitoring &amp; Evaluasi PSN', false)->assertSee('Total Investasi')
+            ->assertSee('Porsi Skema Pendanaan')->assertSee('Perjalanan Daftar PSN dalam RKP');
+        $this->get('/dashboard/pelaksanaan?klaster=1')->assertOk()->assertSee('Total Investasi')
             ->assertSee('Komposisi Sumber Pendanaan')->assertSee('Timeline PSN Klaster Direktif Presiden');
         $this->getJson('/api/v1/filter-opsi')->assertOk()->assertJsonCount(2, 'data.periode')->assertJsonCount(38, 'data.provinsi');
     }

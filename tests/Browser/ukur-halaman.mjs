@@ -6,7 +6,8 @@ import { chromium } from 'playwright';
 const [, , dasar = 'http://127.0.0.1:8000', login, sandi, ulangArg = '10'] = process.argv;
 const ulang = Number(ulangArg);
 const halaman = [
-    ['/dashboard', () => document.querySelectorAll('canvas').length >= 6 && !document.querySelector('[aria-busy="true"]')],
+    ['/dashboard', () => document.querySelectorAll('canvas').length >= 2 && !document.querySelector('[aria-busy="true"]')],
+    ['/dashboard/pelaksanaan', () => document.querySelectorAll('canvas').length >= 6 && !document.querySelector('[aria-busy="true"]')],
     ['/proyek', () => document.querySelectorAll('tbody tr').length > 0 && !document.querySelector('[aria-busy="true"]')],
     ['/kualitas-data', () => document.querySelectorAll('canvas').length >= 2 && !document.querySelector('[aria-busy="true"]')],
 ];

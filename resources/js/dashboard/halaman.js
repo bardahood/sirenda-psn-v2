@@ -23,8 +23,14 @@ const ENDPOINT = {
     aktivitas: 'dashboard/aktivitas',
 };
 
-// Warna identitas kartu KPI (ikon & sparkline) mengikuti rancangan; K4 merah = risiko.
-export const WARNA_KPI = { K1: '#1F6FD1', K2: '#16a34a', K3: '#f59e0b', K4: '#dc2626' };
+// Ikhtisar Portofolio: kartu memakai K1-K4 yang sama + seluruh panel paparan dalam satu endpoint.
+const ENDPOINT_IKHTISAR = { kpi: ENDPOINT.kpi, kpiTren: ENDPOINT.kpiTren, statusData: ENDPOINT.statusData, ikhtisar: 'dashboard/ikhtisar' };
+
+// Warna identitas kartu KPI (ikon & sparkline) mengikuti rancangan; K4 merah = risiko; K5 ungu = PKPN.
+export const WARNA_KPI = { K1: '#1F6FD1', K2: '#16a34a', K3: '#f59e0b', K4: '#dc2626', K5: '#7c3aed' };
+// Skema pendanaan 3 kelompok (paparan): palet kategori tervalidasi yang sama, urutan tetap.
+export const WARNA_SKEMA = { non_apbn: '#2a78d6', campuran: '#1baf7a', apbn_apbd: '#eb6834', tanpa: '#94a3b8' };
+const WARNA_TARGET = { SEBELUM: '#1baf7a', BATAS: '#2a78d6', SETELAH: '#eb6834', TANPA: '#94a3b8' };
 // Palet kategori tervalidasi (validate_palette.js: lolos CVD & normal-vision), urutan tetap per entitas.
 export const WARNA_DANA = { apbn: '#2a78d6', kpbu: '#eb6834', campuran: '#1baf7a', lainnya: '#eda100', apbd: '#4a3aa7', tanpa: '#94a3b8' };
 const WARNA_PROGRES = ['#2a78d6', '#eb6834', '#1baf7a', '#4a3aa7'];
@@ -41,11 +47,14 @@ const IKON_AKSI = {
 
 const BULAN_PENDEK = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
-export function halamanDashboard(kamus, kelasPeta) {
+export function halamanDashboard(kamus, kelasPeta, mode = 'pelaksanaan') {
+    const endpoint = mode === 'ikhtisar' ? ENDPOINT_IKHTISAR : ENDPOINT;
     return {
         kamus,
+        mode,
         kelasPetaCfg: kelasPeta, // config psn_dashboard.peta_kelas
-        d: Object.fromEntries(Object.keys(ENDPOINT).map((k) => [k, null])),
+        d: Object.fromEntries(Object.keys(endpoint).map((k) => [k, null])),
+        kebutuhanTerpilih: 'KONFIRMASI',
         meta: null,
         memuat: true,
         galat: null,
@@ -68,7 +77,7 @@ export function halamanDashboard(kamus, kelasPeta) {
             this.galat = null;
             const qs = this.$store.filter.qs();
             try {
-                const hasil = await Promise.all(Object.entries(ENDPOINT).map(([k, url]) => {
+                const hasil = await Promise.all(Object.entries(endpoint).map(([k, url]) => {
                     const pemisah = url.includes('?') ? '&' : '?';
                     return window.axios.get(`/api/v1/${url}${qs ? pemisah + qs : ''}`).then((r) => [k, r.data]);
                 }));
@@ -88,12 +97,19 @@ export function halamanDashboard(kamus, kelasPeta) {
 
         async gambar() {
             if (!this.meta?.cutoff) return;
-            const { render, garisMini, donat, petaRingkas, trenArea } = await grafik();
+            const { render, garisMini, donat, petaRingkas, trenArea, petaWilayah } = await grafik();
             const f = this.$store.filter;
             ['K1', 'K2', 'K3', 'K4'].forEach((k) => {
                 const titik = (this.d.kpiTren ?? []).map((t) => ({ label: t.cutoff, nilai: t[k] }));
                 if (this.$refs[`spark_${k}`]) render(this.$refs[`spark_${k}`], garisMini(titik, WARNA_KPI[k], (v) => this.nilaiKartu({ kode: k, nilai: v })));
             });
+            if (this.mode === 'ikhtisar') {
+                const ik = this.d.ikhtisar;
+                if (!ik) return;
+                render(this.$refs.skema, donat(this.segmenSkema, { klik: false }));
+                render(this.$refs.wilayah, petaWilayah(ik.wilayah.kelompok, ik.wilayah.provinsi));
+                return;
+            }
             render(this.$refs.dana, donat(this.segmenDana, { klik: true }), (p) => {
                 if (['apbn', 'apbd', 'kpbu', 'lainnya'].includes(p.data.kode)) f.tambah('dana', p.data.kode);
             });
@@ -165,6 +181,50 @@ export function halamanDashboard(kamus, kelasPeta) {
                 total: t.total,
             };
         },
+        // ---- Ikhtisar Portofolio
+        get rkpTahap() {
+            return this.d.ikhtisar?.rkp ?? [];
+        },
+        get segmenSkema() {
+            return (this.d.ikhtisar?.skema ?? []).filter((k) => k.investasi_triliun > 0).map((k) => ({ ...k, nilai: k.investasi_triliun, warna: WARNA_SKEMA[k.kode] ?? '#94a3b8' }));
+        },
+        get skemaBaris() {
+            return (this.d.ikhtisar?.skema ?? []).filter((k) => k.kode !== 'tanpa' || k.jumlah > 0).map((k) => ({ ...k, warna: WARNA_SKEMA[k.kode] ?? '#94a3b8' }));
+        },
+        get skemaUtama() {
+            return [...(this.d.ikhtisar?.skema ?? [])].sort((a, b) => (b.persen ?? 0) - (a.persen ?? 0))[0] ?? null;
+        },
+        get totalInvestasiSkema() {
+            return (this.d.ikhtisar?.skema ?? []).reduce((a, k) => a + k.investasi_triliun, 0);
+        },
+        get wilayahBaris() {
+            return this.d.ikhtisar?.wilayah.kelompok ?? [];
+        },
+        get selesaiKategori() {
+            const s = this.d.ikhtisar?.selesai;
+            if (!s) return [];
+            const warna = { TIDAK: '#dc2626', MASIH: '#16a34a', KONFIRMASI: '#d97706' };
+            return s.kategori.map((k) => ({ ...k, warna: warna[k.kode], pct: s.total ? (k.jumlah / s.total) * 100 : 0 }));
+        },
+        get selesaiTerpilih() {
+            return this.selesaiKategori.find((k) => k.kode === this.kebutuhanTerpilih) ?? null;
+        },
+        get statusTahap() {
+            const t = this.d.ikhtisar?.status;
+            if (!t) return [];
+            const maks = Math.max(1, ...t.tahap.map((x) => x.jumlah));
+            return t.tahap.map((x) => ({ ...x, lebar: `${(x.jumlah / maks) * 100}%` }));
+        },
+        get targetSegmen() {
+            const t = this.d.ikhtisar?.status;
+            if (!t) return [];
+            return t.target.map((x) => ({ ...x, warna: WARNA_TARGET[x.kode], pct: t.belum_selesai ? (x.jumlah / t.belum_selesai) * 100 : 0 }));
+        },
+        kartuPkpn() {
+            const p = this.d.ikhtisar?.pkpn;
+            return p ? { kode: 'K5', nilai: p.jumlah, delta: p.delta, investasi_triliun: p.investasi_triliun, persen_investasi: p.persen_investasi } : null;
+        },
+
         ikonAksi(aksi) {
             return IKON_AKSI[aksi] ?? IKON_AKSI.UPDATE;
         },
@@ -184,6 +244,7 @@ export function halamanDashboard(kamus, kelasPeta) {
         },
 
         kartu(kode) {
+            if (kode === 'K5') return this.kartuPkpn();
             return this.d.kpi?.find((k) => k.kode === kode) ?? null;
         },
 
@@ -271,6 +332,13 @@ export function halamanDashboard(kamus, kelasPeta) {
                 case 'RO_KRITIS': return d.roKritis.map((r) => ({ psn: r.psn, direktorat: r.direktorat, kp_ro: r.kegiatan, rencana_persen: r.rencana_persen, realisasi_persen: r.realisasi_persen, deviasi_pp: r.deviasi_pp, status: this.labelStatus(r.status) }));
                 case 'TAHAPAN': return d.tahapan.map((r) => ({ tahap: r.label, jumlah_psn: r.jumlah }));
                 case 'P8': return d.trisula.kategori;
+                case 'IKH_RKP': return d.ikhtisar.rkp.flatMap((t) => [{ dasar: t.dasar, tahap: t.judul, perubahan: 'Jumlah PSN dalam daftar', jumlah: t.jumlah, rincian: t.catatan, sumber: t.live ? 'Basis data SIRENDA' : 'Dokumen resmi' },
+                    ...t.perubahan.map((p) => ({ dasar: t.dasar, tahap: t.judul, perubahan: `${p.arah === '+' ? 'Tambah' : 'Kurang'}: ${p.label}`, jumlah: p.jumlah, rincian: p.rincian, sumber: t.live ? 'Basis data SIRENDA' : 'Dokumen resmi' }))]);
+                case 'IKH_WILAYAH': return d.ikhtisar.wilayah.kelompok.map((r) => ({ wilayah: r.label, jumlah_psn: r.jumlah, jumlah_pkpn: r.pkpn, investasi_rp_triliun: r.investasi_triliun }));
+                case 'IKH_SKEMA': return d.ikhtisar.skema.map((r) => ({ skema: r.label, investasi_rp_triliun: r.investasi_triliun, persen: r.persen, jumlah_psn: r.jumlah, jumlah_pkpn: r.pkpn }));
+                case 'IKH_SELESAI': return d.ikhtisar.selesai.kategori.flatMap((k) => k.psn.map((p) => ({ kategori: k.label, kode_psn: p.kode, psn: p.nama, sumber_isian: p.sumber ?? '', isian_kebutuhan_status: p.isian ?? '' })));
+                case 'IKH_STATUS': return [...d.ikhtisar.status.tahap.map((r) => ({ kelompok: 'Tahapan', label: r.label, jumlah_psn: r.jumlah })), { kelompok: 'Tahapan', label: 'Keluar dari PSN', jumlah_psn: d.ikhtisar.status.keluar },
+                    ...d.ikhtisar.status.target.map((r) => ({ kelompok: 'Target selesai (PSN belum selesai)', label: r.label, jumlah_psn: r.jumlah }))];
                 case 'TIMELINE_DP': return d.dpProyek.proyek.map((r) => ({ psn: r.nama, direktorat: r.direktorat, tahun_selesai: r.tahun_selesai, status: this.labelStatus(r.status), realisasi_persen: r.realisasi_persen }));
                 default: return [];
             }

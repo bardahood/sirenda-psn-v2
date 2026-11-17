@@ -452,6 +452,12 @@ class DashboardService
         return DB::table('ref_sumber_dana')->pluck('kode', 'id')->map(fn ($kode) => $map[$kode] ?? 'LAINNYA')->all();
     }
 
+    /** Cache yang sama (per panel, cut-off, filter, cakupan) untuk layanan dashboard lain, mis. Ikhtisar Portofolio. */
+    public function cacheIkhtisar(string $nama, PeriodeCutoff $c, FilterGlobal $f, \Closure $hitung): mixed
+    {
+        return $this->cache($nama, $c, $f, $hitung);
+    }
+
     protected function cache(string $nama, PeriodeCutoff $c, FilterGlobal $f, \Closure $hitung): mixed
     {
         $user = Auth::user();

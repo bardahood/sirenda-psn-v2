@@ -142,6 +142,55 @@ return [
     ],
 
     // Kelas ukuran simbol provinsi pada peta ringkas dashboard (jumlah PSN, batas bawah inklusif).
+    // Dashboard "Ikhtisar Portofolio" (gaya paparan Bahan Rapat 16 Nov 2026). docs/kamus-indikator.md bagian Ikhtisar.
+    'ikhtisar' => [
+        // Wilayah paparan (slide 6). PSN dengan lokasi di tepat satu wilayah masuk wilayah itu; PSN di beberapa
+        // wilayah atau tanpa lokasi masuk "Nasional & Lintas Pulau", sehingga jumlah seluruh wilayah = jumlah PSN.
+        'wilayah' => [
+            'Sumatera' => ['11', '12', '13', '14', '15', '16', '17', '18', '19', '21'],
+            'Jawa' => ['31', '32', '33', '34', '35', '36'],
+            'Kalimantan' => ['61', '62', '63', '64', '65'],
+            'Sulawesi' => ['71', '72', '73', '74', '75', '76'],
+            'Bali & Nusa Tenggara' => ['51', '52', '53'],
+            'Maluku & Papua' => ['81', '82', '91', '92', '93', '94', '95', '96'],
+        ],
+        'wilayah_lintas' => 'Nasional & Lintas Pulau',
+
+        // Porsi skema pendanaan 3 kelompok (slide 6), dari kode sumber dana PEKS3 (master DANA).
+        // Hanya APBN/APBD = "APBN/APBD"; tanpa APBN/APBD = "Non-APBN"; campuran keduanya = "APBN & Non-APBN".
+        'dana_pemerintah' => ['A', 'B'],
+        'skema_tiga' => ['NON_APBN' => 'Non-APBN', 'CAMPURAN' => 'APBN & Non-APBN', 'APBN_APBD' => 'APBN/APBD', 'TANPA' => 'Belum ada data'],
+
+        // Kebutuhan status PSN tahun berikutnya untuk PSN Kumulatif Selesai (slide 21): dibaca dari isian K/L di
+        // SIRENDA PEKS3 (psn_kebutuhan jenis B -> psn_evaluasi_status). Pola diuji berurutan (TIDAK dulu);
+        // teks yang tidak cocok atau kosong = Perlu konfirmasi. Bila kosong, dipakai isian D1 menu Evaluasi.
+        'kebutuhan_status' => [
+            'TIDAK' => ['/tidak\s+(lagi\s+)?(me(merlukan|mbutuhkan)|perlu|diperlukan|dibutuhkan)/iu', '/\btidak\s+perlu\b/iu', '/(bisa|dapat|diusulkan)\s+dikeluarkan/iu', '/keluar\s+dari\s+(status\s+)?psn/iu'],
+            'MASIH' => ['/\bmasih\b/iu', '/\btetap\b/iu', '/\b(ber)?lanjut\b/iu', '/\bselanjutnya\b/iu', '/\b(diperlukan|dibutuhkan|memerlukan|membutuhkan|dipertahankan)\b/iu', '/sebagai\s+psn/iu'],
+        ],
+        'label_kebutuhan' => ['TIDAK' => 'Tidak lagi memerlukan status PSN', 'MASIH' => 'Masih memerlukan status PSN', 'KONFIRMASI' => 'Perlu konfirmasi'],
+
+        // Target tahun selesai dibanding batas RPJMN 2025-2029 (slide 13, 25-31).
+        'tahun_batas' => 2029,
+
+        // Perjalanan daftar PSN dalam RKP (slide 4). Tahap bersejarah = angka dokumen resmi (tidak berubah);
+        // dua tahap terakhir dihitung dari basis data: 'live' => 'daftar' (PSN bersumber RKP) dan 'proyeksi'.
+        'riwayat_rkp' => [
+            ['kode' => 'PERMENKO_12_2024', 'dasar' => 'Permenko Perekonomian 12/2024', 'judul' => 'Basis awal PSN dalam RKP', 'jumlah' => 228,
+                'catatan' => 'proyek + 16 program (kumpulan proyek)', 'perubahan' => []],
+            ['kode' => 'PERPRES_79_2025', 'dasar' => 'Perpres 79/2025', 'judul' => 'Pemutakhiran RKP 2025', 'jumlah' => null, 'catatan' => null,
+                'perubahan' => [['+', 17, 'Direktif Presiden', 'MBG, Sekolah Rakyat, KDMP, Digitalisasi Pendidikan, Pengentasan Kemiskinan (+2), Pengelolaan Sampah Terpadu (+11)']]],
+            ['kode' => 'PERPRES_117_2025', 'dasar' => 'Perpres 117/2025', 'judul' => 'RKP 2026', 'jumlah' => 267, 'catatan' => null,
+                'perubahan' => [['+', 1, 'Direktif Presiden', 'Mobil Nasional'], ['+', 6, 'PSN baru non direktif', 'Propelan Merah Putih, Brass Mill dan Brass Cup, KSPEAN Papua Selatan, Pengembangan Sawit'],
+                    ['+', 46, 'PSN carryover', 'Perincian kumpulan proyek Permenko 12/2024, antara lain KEK, Jalan Tol, KSPN'], ['-', 47, 'PSN dikeluarkan', 'Termasuk PIK 2 dan PSEL yang dipindah ke Direktif Presiden']]],
+            ['kode' => 'PERPRES_68_2026', 'dasar' => 'Perpres 68/2026', 'judul' => 'Pemutakhiran RKP 2026', 'jumlah' => 298, 'live' => 'daftar', 'catatan' => '31 program (141 sub proyek), 157 proyek',
+                'perubahan' => [['+', 8, 'Direktif Presiden', 'MBG (+1 sub proyek), Pengelolaan Sampah Terpadu (+3), Tata Kelola Agribisnis Kelapa Sawit (3), Motor Listrik Nasional'],
+                    ['+', 53, 'PSN baru non direktif', 'Antara lain PKPN Program 3 Juta Rumah (14 proyek), Daging Sapi'], ['+', 12, 'PSN carryover', 'Antara lain perincian kumpulan KEK'],
+                    ['-', 42, 'PSN dikeluarkan', 'Termasuk 2 PSN Direktif Presiden (PSEL Manado, penggabungan PSEL Tangerang dan Tangsel) dan penggabungan PSN Kemhan']]],
+            ['kode' => 'R_RKP_2027', 'dasar' => 'R-RKP 2027', 'judul' => 'Penyusunan Rancangan RKP 2027', 'jumlah' => null, 'live' => 'proyeksi', 'catatan' => null, 'perubahan' => []],
+        ],
+    ],
+
     'peta_kelas' => [
         ['min' => 51, 'label' => '> 50 PSN'],
         ['min' => 21, 'label' => '21 – 50 PSN'],

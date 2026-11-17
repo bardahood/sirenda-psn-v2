@@ -34,7 +34,8 @@ Route::middleware(['auth', 'akun.aktif'])->group(function () {
     Route::put('/ganti-password', [LoginController::class, 'updatePassword'])->name('password.update');
 
     Route::redirect('/', '/dashboard');
-    Route::view('/dashboard', 'dashboard.index')->middleware('can:ringkasan.lihat')->name('dashboard');
+    Route::view('/dashboard', 'dashboard.ikhtisar')->middleware('can:ringkasan.lihat')->name('dashboard');
+    Route::view('/dashboard/pelaksanaan', 'dashboard.index')->middleware('can:ringkasan.lihat')->name('dashboard.pelaksanaan');
     Route::get('/proyek', [ProyekController::class, 'index'])->middleware('can:portofolio.lihat')->name('proyek.index');
     Route::get('/proyek/{psn}', [ProyekController::class, 'show'])->middleware('can:detail.lihat')->whereNumber('psn')->name('proyek.show');
     Route::get('/proyek/{psn}/form-pengendalian', [FormPengendalianController::class, 'show'])->middleware('can:detail.lihat')->whereNumber('psn')->name('proyek.form-pengendalian');
@@ -148,6 +149,7 @@ Route::middleware(['auth', 'akun.aktif'])->group(function () {
             Route::get('/trisula', 'trisula')->name('trisula');
             Route::get('/timeline-dp', 'timelineDp')->name('timeline-dp');
             Route::get('/aktivitas', 'aktivitas')->name('aktivitas');
+            Route::get('/ikhtisar', 'ikhtisar')->name('ikhtisar');
         });
     });
 });

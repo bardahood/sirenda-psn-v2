@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\PeriodeCutoff;
 use App\Services\DashboardService;
+use App\Services\IkhtisarPortofolioService;
 use App\Support\Dashboard\FilterGlobal;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -77,6 +78,12 @@ class DashboardController extends Controller
     public function timelineDp(Request $r): JsonResponse
     {
         return $this->jawab($r, fn ($c, $f) => $this->dashboard->timelineDirektifPresiden($c, $f));
+    }
+
+    /** GET /api/v1/dashboard/ikhtisar -- seluruh panel Ikhtisar Portofolio dalam satu permintaan. */
+    public function ikhtisar(Request $r, IkhtisarPortofolioService $ikhtisar): JsonResponse
+    {
+        return $this->jawab($r, fn ($c, $f) => $ikhtisar->ringkasan($c, $f));
     }
 
     public function aktivitas(Request $r): JsonResponse

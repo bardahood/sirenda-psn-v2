@@ -275,6 +275,46 @@ export function petaRingkas(prov, pulau, kelas) {
     };
 }
 
+/**
+ * Peta wilayah gaya paparan: titik provinsi samar sebagai latar, gelembung per wilayah (luas ~ jumlah PSN)
+ * berlabel jumlah PSN, PKPN, dan nilai investasi. "Nasional & Lintas Pulau" ditaruh di pojok kanan atas.
+ */
+export function petaWilayah(kelompok, provinsi) {
+    const POSISI = { Sumatera: 'left', Jawa: 'left', Kalimantan: 'top', Sulawesi: 'top', 'Bali & Nusa Tenggara': 'right', 'Maluku & Papua': 'bottom' };
+    const GESER = { Kalimantan: [-34, 0], Sulawesi: [26, 0] };
+    const maks = Math.max(1, ...kelompok.map((k) => k.jumlah));
+    const ukuran = (n) => (n > 0 ? 14 + Math.sqrt(n / maks) * 30 : 8);
+    const label = (k, posisi) => ({
+        show: true, position: posisi, distance: 6, offset: GESER[k.label] ?? [0, 0],
+        formatter: `{n|${k.label}}\n{v|${angka(k.jumlah, 0)} PSN} {p|${angka(k.pkpn, 0)} PKPN}\n{r|Rp ${angka(k.investasi_triliun, 1)} T}`,
+        backgroundColor: '#fff', borderColor: WARNA.grid, borderWidth: 1, borderRadius: 6, padding: [3, 6],
+        shadowColor: 'rgba(15,23,42,.08)', shadowBlur: 6,
+        rich: {
+            n: { fontSize: 10, color: WARNA.teksSamar, lineHeight: 13 },
+            v: { fontSize: 11, fontWeight: 700, color: '#0f172a', lineHeight: 14 },
+            p: { fontSize: 10, color: '#6d28d9', lineHeight: 14 },
+            r: { fontSize: 10, color: '#334155', lineHeight: 13 },
+        },
+    });
+    const tooltip = (d) => `${d.label}<br/><b>${angka(d.jumlah, 0)}</b> PSN (${angka(d.pkpn, 0)} PKPN)<br/>Rp ${angka(d.investasi_triliun, 1)} triliun`;
+    const wilayah = kelompok.filter((k) => !k.lintas && k.lat !== null);
+    const lintas = kelompok.find((k) => k.lintas);
+    return {
+        grid: { left: 4, right: 4, top: 4, bottom: 4 },
+        tooltip: { ...dasar.tooltip, trigger: 'item', formatter: (p) => (p.seriesIndex === 0 ? p.data.nama : tooltip(p.data.k)) },
+        xAxis: { type: 'value', min: 91, max: 143, show: false },
+        yAxis: { type: 'value', min: -15.5, max: 9, show: false },
+        series: [
+            { type: 'scatter', silent: true, z: 1, symbolSize: 5, itemStyle: { color: '#cbd5e1' }, data: provinsi.map((p) => ({ value: [p.lng, p.lat], nama: p.label })) },
+            {
+                type: 'scatter', z: 3,
+                data: wilayah.map((k) => ({ value: [k.lng, k.lat], k, symbolSize: ukuran(k.jumlah), itemStyle: { color: '#1F6FD1', opacity: 0.85, borderColor: '#fff', borderWidth: 1.5 }, label: label(k, POSISI[k.label] ?? 'top') }))
+                    .concat(lintas ? [{ value: [140, 6.8], k: lintas, symbolSize: ukuran(lintas.jumlah), itemStyle: { color: '#0d2b55', opacity: 0.9, borderColor: '#fff', borderWidth: 1.5 }, label: label(lintas, 'left') }] : []),
+            },
+        ],
+    };
+}
+
 /** Tren bulanan rencana (putus-putus) vs realisasi (garis + area) kumulatif; satu sumbu persen. */
 export function trenArea(bulan) {
     const opsi = tren(bulan);

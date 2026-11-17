@@ -1,7 +1,6 @@
 @php
     $kamus = \App\Support\Dashboard\KamusIndikator::DAFTAR;
     $idKlasterDp = \Illuminate\Support\Facades\DB::table('ref_klaster')->where('kode', 'DP')->value('id');
-    $ikonInfo = '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>';
     $kpi = [
         'K1' => ['Total Proyek PSN', 'M3 21h18M5 21V7l7-4 7 4v14M9 9h1m4 0h1M9 13h1m4 0h1M9 17h1m4 0h1'],
         'K2' => ['Total Investasi', 'M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'],
@@ -20,6 +19,7 @@
         <x-filter-global :periode="false" />
     </x-slot:filter>
     <x-slot:aksi>
+        @include('dashboard._tab')
         {{-- Status data (diisi halaman dashboard melalui Alpine.store('statusDasbor')) --}}
         <div class="flex items-center gap-3 text-[12px] text-slate-600" x-show="$store.statusDasbor.tanggal" x-cloak aria-label="Status data">
             <span class="hidden min-[1800px]:inline">Kelengkapan <b class="angka text-slate-900" x-text="$store.statusDasbor.kelengkapan"></b></span>
@@ -43,41 +43,7 @@
              class="grid grid-cols-1 gap-2.5 md:grid-cols-2 layar:h-full layar:grid-cols-24 layar:grid-rows-[auto_repeat(3,minmax(0,1fr))]">
 
             {{-- Baris 1: K1-K4 (klik -> Portofolio dengan filter yang sama) --}}
-            <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:col-span-2 xl:grid-cols-4 layar:col-span-full">
-                @foreach ($kpi as $k => [$judul, $ikon])
-                    <a :href="$store.filter.tautan('/proyek') + ({{ in_array($k, ['K1', 'K4']) ? 'true' : 'false' }} ? ($store.filter.qs() ? '&' : '?') + '{{ $k === 'K1' ? 'nonaktif=1' : 'kritis=1' }}' : '')"
-                       class="kartu flex items-center gap-3 !px-4 !py-2.5 transition hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-aksen"
-                       aria-labelledby="kpi-{{ $k }}">
-                        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white shadow" :style="{ background: warnaKpi('{{ $k }}') }">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ $ikon }}"/></svg>
-                        </span>
-                        <div class="min-w-0">
-                            <div class="flex items-center gap-1">
-                                <span id="kpi-{{ $k }}" class="truncate text-[12px] font-bold text-slate-700">{{ $judul }}</span>
-                                <span class="relative" x-data="{ buka: false }" @click.prevent.stop="buka = !buka" @click.outside="buka = false">
-                                    <span class="ikon-tombol !h-5 !w-5" role="button" tabindex="0" aria-label="Informasi {{ $judul }}" @keydown.enter.prevent.stop="buka = !buka">{!! $ikonInfo !!}</span>
-                                    <span x-show="buka" x-cloak role="tooltip" class="absolute left-0 z-40 mt-1 block w-72 whitespace-pre-line rounded-lg border border-slate-200 bg-white p-3 text-label font-normal text-slate-700 shadow-lg" x-text="info('{{ $k }}')"></span>
-                                </span>
-                            </div>
-                            <div class="angka truncate text-[22px] font-bold leading-7 text-slate-900" x-text="nilaiKartu(kartu('{{ $k }}'))"></div>
-                            <div class="flex items-center gap-1.5 text-[11px] text-slate-500">
-                                <span class="angka inline-flex items-center gap-0.5 rounded px-1 font-bold" :class="kelasDelta(kartu('{{ $k }}'))">
-                                    <span aria-hidden="true" x-text="panahDelta(kartu('{{ $k }}'))"></span><span x-text="deltaRingkas(kartu('{{ $k }}'))"></span>
-                                </span>
-                                <span class="truncate">
-                                    @switch($k)
-                                        @case('K1') <span x-text="angka(kartu('K1')?.aktif, 0) + ' aktif · ' + angka(kartu('K1')?.keluar, 0) + ' keluar PSN'"></span> @break
-                                        @case('K2') investasi PSN aktif @break
-                                        @case('K3') <span x-text="angka(kartu('K3')?.cakupan_psn, 0) + ' PSN berdata'"></span> @break
-                                        @case('K4') <span x-text="'dari ' + angka(totalPsn, 0) + ' PSN'"></span> @break
-                                    @endswitch
-                                </span>
-                            </div>
-                        </div>
-                        <div x-ref="spark_{{ $k }}" class="ml-auto h-10 w-20 shrink-0 min-[1700px]:w-32" role="img" aria-label="Tren {{ $judul }} per cut-off terbit"></div>
-                    </a>
-                @endforeach
-            </div>
+            @include('dashboard._kartu-kpi', ['kpi' => $kpi, 'kolom' => 'xl:grid-cols-4'])
 
             {{-- Baris 2 --}}
             <x-panel kode="P1" judul="Distribusi PSN per Klaster" padat class="layar:col-[span_7/span_7]">

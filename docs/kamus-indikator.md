@@ -53,6 +53,19 @@ Status selalu ditampilkan sebagai badge berlabel, tidak pernah warna saja.
 | P7 | Peta Sebaran | COUNT PSN per provinsi; PSN multi-lokasi dihitung di tiap provinsi (tooltip) | `snapshot_psn.provinsi_kode` |
 | P8 | Kontribusi Trisula | **Metodologi belum ditetapkan**: komponen placeholder dengan penanda | `trisula`, `trisula_target` |
 
+## Ikhtisar Portofolio (Dashboard, tampilan bawaan)
+
+Tampilan gaya paparan Bahan Rapat Tim Koordinasi PSN (16 November 2026). Endpoint `GET /api/v1/dashboard/ikhtisar`, layanan `App\Services\IkhtisarPortofolioService`, pengaturan `psn_dashboard.ikhtisar`. Tampilan lama tetap tersedia sebagai **Pemantauan Pelaksanaan** (`/dashboard/pelaksanaan`).
+
+| Kode | Indikator | Definisi |
+|---|---|---|
+| K5 | PKPN | Jumlah PSN aktif berkategori PKPN, Σ nilai investasinya, dan porsinya terhadap total investasi PSN aktif. Δ % terhadap cut-off sebelumnya. Kategori PKPN = klaster PKPN terisi di SIRENDA (asumsi `kategori_pkpn_dari_klaster_pkpn`). |
+| IKH_RKP | Perjalanan Daftar PSN dalam RKP | Permenko 12/2024 (228), Perpres 79/2025, Perpres 117/2025 (267) = angka dokumen resmi di config. **Perpres 68/2026** = jumlah PSN bersumber RKP (`psn.sumber_input` = 1) pada cut-off, termasuk yang kini keluar (dokumen: 298). **R-RKP 2027** = daftar tersebut − PSN Keluar dari PSN di SIRENDA − indikasi Dikeluarkan di menu Evaluasi + usulan PSN baru berekomendasi DIREKOMENDASIKAN berstatus FINAL (tahun RKP evaluasi). Tidak mengikuti filter global. |
+| IKH_SKEMA | Porsi Skema Pendanaan | Σ investasi PSN aktif per kelompok saling lepas: **APBN/APBD** (hanya kode DANA A/B), **Non-APBN** (tanpa A/B), **APBN & Non-APBN** (campuran), Belum ada data (tanpa sumber dana). Persen terhadap Σ investasi. |
+| IKH_WILAYAH | Sebaran menurut Wilayah | PSN aktif per wilayah (Sumatera, Jawa, Kalimantan, Sulawesi, Bali & Nusa Tenggara, Maluku & Papua). PSN yang lokasinya di ≥ 2 wilayah atau tanpa lokasi masuk **Nasional & Lintas Pulau**, sehingga Σ wilayah = jumlah PSN. Ditampilkan juga jumlah PKPN dan Σ investasi. |
+| IKH_SELESAI | PSN Selesai menurut Kebutuhan Status | PSN aktif berstatus Kumulatif Proyek Selesai, dikelompokkan dari isian K/L "Kebutuhan Status PSN" di SIRENDA (`psn_kebutuhan` jenis B → `psn_evaluasi_status`) dengan pola teks di config: pola **Tidak lagi memerlukan** diuji lebih dulu, lalu **Masih memerlukan**; teks lain atau kosong = **Perlu konfirmasi**. Bila isian SIRENDA kosong/tidak tegas dan D1 menu Evaluasi terisi, dipakai D1 (ditandai "D1 Evaluasi"). |
+| IKH_STATUS | Status Tahapan & Target Selesai | PSN aktif per status tahapan SIRENDA (Penyiapan, Transaksi, Konstruksi, Beroperasi sebagian, Kumulatif selesai, Belum ada data) + jumlah Keluar dari PSN. Target selesai PSN yang belum Kumulatif Selesai dibanding batas RPJMN 2029: s.d. 2027, 2028–2029, > 2029, belum diisi. |
+
 ## Komponen lain
 
 - **RO Critical Path Berisiko:** 10 KP/RO dengan `is_critical_path` dan deviasi terburuk (`snapshot_kegiatan`).
