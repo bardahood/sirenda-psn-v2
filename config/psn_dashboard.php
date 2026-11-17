@@ -414,6 +414,9 @@ return [
             'LAINNYA' => 'Lainnya',
         ],
         // D2: fasilitas kemudahan PP 42/2021.
+        // Master FAST SIRENDA (fasilitas yang pernah diterima) -> kode D2, sebagai rujukan pada formulir.
+        'peta_fasilitas' => ['A' => 'PERIZINAN', 'B' => 'PEMBIAYAAN', 'C' => 'PBJ', 'D' => 'TATA_RUANG', 'E' => 'PENYIAPAN', 'F' => 'DAMPAK_SOSIAL',
+            'G' => 'RENCANA_INDUK', 'H' => 'LMAN', 'I' => 'HUKUM'],
         'd2_fasilitas' => [
             'PERIZINAN' => 'Perizinan usaha', 'PEMBIAYAAN' => 'Pembiayaan proyek', 'PBJ' => 'Percepatan pengadaan barang/jasa',
             'TATA_RUANG' => 'Rencana tata ruang dan ruang laut', 'PENYIAPAN' => 'Penyiapan proyek', 'DAMPAK_SOSIAL' => 'Penanganan dampak sosial',

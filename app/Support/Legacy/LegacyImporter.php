@@ -299,7 +299,14 @@ class LegacyImporter
             $psn = $this->psnId($r->psn_id, 'psn_pendanaan');
             $dana = $this->kode('ref_sumber_dana', $r->pendanaan, 'psn_pendanaan');
             if ($psn && $dana) {
-                $n = DB::table('psn_sumber_dana')->insertOrIgnore(['psn_id' => $psn, 'sumber_dana_id' => $dana, 'keterangan' => $this->potong($r->keterangan, 255)] + $this->jejak($r, false));
+                // nilai = nominal Rupiah dari sumber dana ini (0/kosong = belum dirinci).
+                $nominal = $this->angka($r->nilai ?? null);
+                $n = DB::table('psn_sumber_dana')->insertOrIgnore(['psn_id' => $psn, 'sumber_dana_id' => $dana, 'nilai_rp' => $nominal > 0 ? $nominal : null,
+                    'keterangan' => $this->potong($r->keterangan, 255)] + $this->jejak($r, false));
+                // Baris dari kolom psn.pendanaan (tanpa nominal) bisa sudah ada lebih dulu: lengkapi nominalnya.
+                if (! $n && $nominal > 0) {
+                    DB::table('psn_sumber_dana')->where('psn_id', $psn)->where('sumber_dana_id', $dana)->whereNull('nilai_rp')->update(['nilai_rp' => $nominal]);
+                }
                 $this->hitung('psn_sumber_dana', $n);
             }
         }
@@ -475,6 +482,16 @@ class LegacyImporter
                 if ($koreksi = config('psn_dashboard.legacy.koreksi_tahun_kegiatan_detil')[$th] ?? null) {
                     $this->peringatan('koreksi_tahun', "{$tabel}#{$r->id}: tahun {$th} dibaca sebagai {$koreksi}");
                     $th = $koreksi;
+                }
+                // Target akhir tahun baris detail (target_akhir_*) -> target TAHUNAN, bila KP/RO belum punya target tahunan
+                // dari psn_kegiatan (insertOrIgnore: data psn_kegiatan tetap diutamakan). Nilai 0 = belum diisi.
+                $akhir = array_map(fn ($v) => $v > 0 ? $v : null, [
+                    'target_1' => $this->angka($r->target_akhir_unit ?? null), 'target_persen' => $this->angka($r->target_akhir_persen ?? null),
+                    'target_fisik' => $this->angka($r->target_akhir_fisik ?? null), 'pagu_rp' => $this->angka($r->target_akhir_anggaran ?? null),
+                ]);
+                if (! $this->kosongSemua(...array_values($akhir))) {
+                    $this->hitung('kegiatan_target', DB::table('kegiatan_target')->insertOrIgnore(['kegiatan_id' => $kid, 'tahun' => $th, 'periode' => 'TAHUNAN', 'periode_ke' => 0,
+                        'metode' => $r->metode, 'status' => $this->potong($r->status, 50)] + $akhir + $this->jejak($r, false)));
                 }
                 foreach (range(1, 12) as $m) {
                     $v = [

@@ -23,6 +23,8 @@
                         $msIsi = $e?->milestone->keyBy('kode') ?? collect();
                         $fmt = fn ($v) => $v === null ? '' : rtrim(rtrim(number_format((float) $v, 2, '.', ''), '0'), '.');
     $a6Profil = $h['data']['tahun_terbit'] ?? null; // A6 dari profil SIRENDA (tahun_terbit)
+    $d1Profil = $h['data']['d1_profil'] ?? null;      // D1 dari isian Kebutuhan Status PSN di SIRENDA
+    $fasilitasProfil = $h['data']['fasilitas_profil'] ?? [];
 @endphp
 <x-app-layout :judul="$psn->nama" subjudul="Evaluasi status PSN untuk RKP {{ $tahun }} · {{ $psn->kode_psn }}">
     <x-slot:aksi>
@@ -232,21 +234,26 @@
                                 @foreach ($cfg['d1'] as $k => $l)
                                     <label class="flex items-center gap-2"><input type="radio" name="d1_kebutuhan" value="{{ $k }}" x-model="d1" class="border-slate-300 text-aksen">{{ $l }}</label>
                                 @endforeach
-                                <label class="flex items-center gap-2 text-slate-500"><input type="radio" name="d1_kebutuhan" value="" x-model="d1" class="border-slate-300">Belum diisi</label>
+                                <label class="flex items-center gap-2 text-slate-500"><input type="radio" name="d1_kebutuhan" value="" x-model="d1" class="border-slate-300">{{ $d1Profil ? 'Ikuti SIRENDA ('.$cfg['d1'][$d1Profil].')' : 'Belum diisi' }}</label>
+                                @if ($h['data']['kebutuhan_status'] ?? null)
+                                    <p class="w-full rounded-lg bg-sky-50 px-3 py-2 text-[12px] text-sky-900">Isian Kebutuhan Status PSN di SIRENDA: <i>"{{ \Illuminate\Support\Str::limit($h['data']['kebutuhan_status'], 400) }}"</i>
+                                        {{ $d1Profil ? '· dibaca sebagai "'.$cfg['d1'][$d1Profil].'". Pilih di atas hanya bila berbeda.' : '· pernyataannya tidak tegas, mohon tentukan D1.' }}</p>
+                                @endif
                             </div>
-                            <div x-show="d1 === 'TIDAK'" x-cloak class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                            <div x-show="(d1 || @js($d1Profil)) === 'TIDAK'" x-cloak class="grid grid-cols-1 gap-3 md:grid-cols-2">
                                 <label class="text-isi"><span class="label block">Alasan *</span>
                                     <select name="d1_alasan" x-model="alasan" class="{{ $input }}"><option value="">–</option>
                                         @foreach ($cfg['d1_alasan'] as $k => $l)<option value="{{ $k }}">{{ $l }}</option>@endforeach</select></label>
                                 <label class="text-isi" x-show="alasan === 'LAINNYA'"><span class="label block">Alasan lainnya *</span>
                                     <input type="text" name="d1_alasan_lain" value="{{ $nilai('d1_alasan_lain', $e->d1_alasan_lain) }}" maxlength="2000" class="{{ $input }}"></label>
                             </div>
-                            <div x-show="d1 === 'MASIH'" x-cloak class="space-y-3">
+                            <div x-show="(d1 || @js($d1Profil)) === 'MASIH'" x-cloak class="space-y-3">
                                 <div>
                                     <span class="label block">D2 Fasilitas kemudahan yang masih dibutuhkan (PP 42/2021) *</span>
+                                    @if ($fasilitasProfil)<span class="block text-[11px] text-slate-500">Keterangan biru = fasilitas yang pernah diterima menurut SIRENDA, sebagai rujukan. Pilih yang <b>masih</b> dibutuhkan.</span>@endif
                                     <div class="mt-1 grid grid-cols-1 gap-1 text-isi md:grid-cols-3">
                                         @foreach ($cfg['d2_fasilitas'] as $k => $l)
-                                            <label class="flex items-center gap-2"><input type="checkbox" name="d2_fasilitas[]" value="{{ $k }}" @checked(in_array($k, $nilai('d2_fasilitas', $e->d2_fasilitas ?? []) ?? [], true)) class="rounded border-slate-300 text-aksen">{{ $loop->iteration }}. {{ $l }}</label>
+                                            <label class="flex items-start gap-2"><input type="checkbox" name="d2_fasilitas[]" value="{{ $k }}" @checked(in_array($k, $nilai('d2_fasilitas', $e->d2_fasilitas ?? []) ?? [], true)) class="mt-0.5 rounded border-slate-300 text-aksen"><span>{{ $loop->iteration }}. {{ $l }}@if (! empty($fasilitasProfil[$k]))<span class="block text-[11px] text-sky-700">diterima menurut SIRENDA: {{ implode(', ', $fasilitasProfil[$k]) ?: 'tahun tidak tercatat' }}</span>@endif</span></label>
                                         @endforeach
                                     </div>
                                 </div>

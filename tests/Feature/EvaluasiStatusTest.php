@@ -478,4 +478,41 @@ class EvaluasiStatusTest extends TestCase
         $this->get(route('proyek.form-pengendalian', $a))->assertOk()->assertSeeInOrder(['A6', 'Tahun pertama kali ditetapkan sebagai PSN', '2018']);
         $this->get(route('proyek.show', $a))->assertOk()->assertSeeInOrder(['Tahun penetapan PSN', '2018']);
     }
+
+    public function test_d1_otomatis_dari_kebutuhan_status_sirenda_dan_rujukan_d2(): void
+    {
+        [$a, $b] = $this->siapkan();
+        DB::table('psn_evaluasi_status')->insert(['psn_id' => $a->id, 'tahun' => 2026, 'kebutuhan_status' => 'Diusulkan Tetap dipertahankan dalam Status PSN.']);
+        DB::table('psn_evaluasi_status')->insert(['psn_id' => $b->id, 'tahun' => 2026, 'kebutuhan_status' => 'Tidak memerlukan status PSN']);
+        $fast = DB::table('ref_kode')->where('tipe', 'FAST')->where('kode', 'H')->value('id')
+            ?? DB::table('ref_kode')->insertGetId(['tipe' => 'FAST', 'kode' => 'H', 'nama' => 'Anggaran Pengadaan Tanah']);
+        DB::table('psn_fasilitas')->insert(['psn_id' => $a->id, 'tahun' => 2024, 'fasilitas_id' => $fast]);
+        $layanan = app(EvaluasiStatusService::class);
+        $format = app(FormatRingkas::class);
+
+        $baris = $layanan->daftar()->keyBy('psn_id');
+        // A: D1 = Masih dari SIRENDA -> D1 tidak kurang, D2 & D3 jadi wajib.
+        $this->assertSame('MASIH', EvaluasiStatusService::d1(null, $baris[$a->id]['data']));
+        $this->assertNotContains('D1 Kebutuhan status PSN', $baris[$a->id]['kurang']);
+        $this->assertContains('D2 Fasilitas', $baris[$a->id]['kurang']);
+        $this->assertSame(['LMAN' => [2024]], $baris[$a->id]['data']['fasilitas_profil']);
+        // B: D1 = Tidak dari SIRENDA -> indikasi dikeluarkan dengan sinyal bersumber SIRENDA.
+        $this->assertSame('DIKELUARKAN', $baris[$b->id]['rekomendasi']);
+        $this->assertStringContainsString('Kebutuhan Status PSN di SIRENDA', $baris[$b->id]['sinyal'][0]);
+
+        $k = collect($format->semua(collect([$baris[$a->id]])))->first();
+        $this->assertSame(['Masih membutuhkan status PSN', 'PROFIL', 'MASIH'], [$k['nilai']['d1'], $k['asal']['d1'], $k['mentah']['d1']]);
+
+        // Isian D1 menimpa; dikosongkan kembali ke SIRENDA.
+        $this->actingAs($this->buatPengguna('Tim Koordinasi/PMO'));
+        $this->post(route('evaluasi.terima', $a), ['form_diterima_at' => '2026-11-10']);
+        $this->patchJson(route('evaluasi.sel', $a), ['kunci' => 'd1', 'nilai' => 'TIDAK'])->assertOk();
+        $this->assertSame('TIDAK', EvaluasiStatusService::d1(EvaluasiPsn::where('psn_id', $a->id)->first(), $baris[$a->id]['data']));
+        $this->patchJson(route('evaluasi.sel', $a), ['kunci' => 'd1', 'nilai' => null])->assertOk();
+        $this->assertSame('MASIH', EvaluasiStatusService::d1(EvaluasiPsn::where('psn_id', $a->id)->first(), $layanan->daftar()->keyBy('psn_id')[$a->id]['data']));
+
+        $this->get(route('evaluasi.show', $a))->assertOk()->assertSee('Ikuti SIRENDA (Masih membutuhkan status PSN)')
+            ->assertSee('Isian Kebutuhan Status PSN di SIRENDA')->assertSee('diterima menurut SIRENDA: 2024');
+        $this->get(route('evaluasi.index'))->assertOk()->assertSee('dari SIRENDA');
+    }
 }

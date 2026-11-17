@@ -163,7 +163,8 @@ class EvaluasiStatusController extends Controller
         if (isset($d['pic'])) {
             $d['pic'] = array_filter($d['pic'], fn ($v) => filled($v)) ?: null;
         }
-        if (array_key_exists('d1_kebutuhan', $d) && $d['d1_kebutuhan'] !== 'TIDAK') {
+        // Alasan dibuang bila D1 diisi "Masih"; bila D1 kosong (ikuti SIRENDA) alasan dipertahankan.
+        if (array_key_exists('d1_kebutuhan', $d) && $d['d1_kebutuhan'] === 'MASIH') {
             $d['d1_alasan'] = null;
             $d['d1_alasan_lain'] = null;
         }

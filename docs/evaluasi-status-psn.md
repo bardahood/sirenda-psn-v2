@@ -10,7 +10,9 @@ Menu: **Evaluasi** (`/evaluasi-status`), dengan tiga halaman: **Pemantauan**, **
 |---|---|
 | Bagian A–C (identitas, tahapan, progres, pembiayaan, isu) diketik ulang per PSN | **Dibaca otomatis dari profil PSN** (data SIRENDA PEKS3, snapshot cut-off terbit terakhir). Form Pengendalian yang dicetak dari profil dipakai PJ untuk melengkapi dan mengoreksi. |
 | A6 tahun penetapan | Otomatis dari tahun penetapan PSN di SIRENDA (`psn.tahun_terbit`); diisi di evaluasi hanya bila berbeda atau profil kosong. |
-| A12 jenis PSN, C1 "Tidak ada isu", D1–D3, PIC | Diisi pada halaman evaluasi per PSN (peran Operator K/L ke atas). |
+| D1 kebutuhan status PSN | Otomatis dari isian K/L "Kebutuhan Status PSN" di SIRENDA (`psn_kebutuhan` jenis B → `psn_evaluasi_status`), digolongkan Masih/Tidak dengan `App\Support\Evaluasi\KebutuhanStatus`; pernyataan tidak tegas dibiarkan kosong. Isian evaluasi menimpa (pilihan "Ikuti SIRENDA" = kosong). |
+| D2 fasilitas | Diisi di evaluasi; fasilitas yang pernah diterima menurut SIRENDA (`psn_fasilitas`, master FAST → `evaluasi_status.peta_fasilitas`) tampil sebagai rujukan per pilihan. |
+| A12 jenis PSN, C1 "Tidak ada isu", D3, PIC | Diisi pada halaman evaluasi per PSN (peran Operator K/L ke atas). |
 | Kolom "Cek otomatis" (sheet Aturan Wajib Isi) | **Cek kelengkapan otomatis** per aturan (lihat §3), ditampilkan sebagai daftar ✓/✗. |
 | Hasil Pengecekan → Tindak Lanjut | Sama; tindak lanjut otomatis dari hasil pengecekan dan masih dapat diubah. |
 | Catatan Hasil Analisis → Indikasi Status | Sama; Indikasi Status hanya dapat diisi setelah catatan ada (ditolak bila kosong). |

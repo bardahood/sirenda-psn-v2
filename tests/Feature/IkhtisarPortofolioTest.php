@@ -85,6 +85,17 @@ class IkhtisarPortofolioTest extends TestCase
         $this->assertEquals([100.0, 50.0, 210.0], [$s['non_apbn']['investasi_triliun'], $s['campuran']['investasi_triliun'], $s['apbn_apbd']['investasi_triliun']]);
         $this->assertEqualsWithDelta(100, collect($d['skema'])->sum('persen'), 0.2);
 
+        // Rincian nominal per sumber dana (psn_pendanaan.nilai): C dirinci APBN 20 T + BUMN 30 T.
+        DB::table('psn_sumber_dana')->where('psn_id', $this->psn['c']->id)->where('sumber_dana_id', $this->ref('ref_sumber_dana', 'A'))->update(['nilai_rp' => 20e12]);
+        DB::table('psn_sumber_dana')->where('psn_id', $this->psn['c']->id)->where('sumber_dana_id', $this->ref('ref_sumber_dana', 'C'))->update(['nilai_rp' => 30e12]);
+        // A menulis Rp 400 T untuk investasi Rp 200 T -> tidak konsisten, tidak dijumlahkan.
+        DB::table('psn_sumber_dana')->where('psn_id', $this->psn['a']->id)->update(['nilai_rp' => 400e12]);
+        DashboardCache::flush();
+        $n = $this->getJson('/api/v1/dashboard/ikhtisar')->json('data.skema_nominal');
+        $this->assertEquals([1, 1, 20.0, 30.0, 60.0], [$n['cakupan_psn'], $n['tidak_konsisten'], $n['apbn_apbd_triliun'], $n['non_apbn_triliun'], $n['persen_non_apbn']]);
+        $this->get(route('proyek.show', $this->psn['a']))->assertSee('melebihi nilai investasi')->assertSee('Rp 400,00 triliun');
+        $this->get(route('proyek.show', $this->psn['c']))->assertDontSee('melebihi nilai investasi')->assertSee('Rp 20,00 triliun');
+
         // Filter global berlaku (Sumber PSN = Permenko -> hanya E).
         $this->assertSame(1, collect($this->getJson('/api/v1/dashboard/ikhtisar?sumber=permenko')->json('data.wilayah.kelompok'))->sum('jumlah'));
     }

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\EvaluasiPsn;
 use App\Models\PeriodeCutoff;
 use App\Models\Psn;
+use App\Support\Evaluasi\KebutuhanStatus;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -81,10 +82,20 @@ class EvaluasiStatusService
         }
         $regulasi = DB::table('regulasi')->whereIn('psn_id', $id)->whereNull('deleted_at')->groupBy('psn_id')
             ->selectRaw("psn_id, COUNT(*) AS total, SUM(tahap = 'DITETAPKAN') AS ditetapkan")->get()->keyBy('psn_id');
+        // D1 profil: isian K/L "Kebutuhan Status PSN" di SIRENDA (psn_kebutuhan jenis B), tahun terbaru dulu.
+        $kebutuhan = DB::table('psn_evaluasi_status')->whereIn('psn_id', $id)->whereNull('deleted_at')
+            ->orderBy('psn_id')->orderByDesc('tahun')->orderBy('id')->get(['psn_id', 'kebutuhan_status'])
+            ->groupBy('psn_id')->map(fn ($g) => $g->pluck('kebutuhan_status')->filter()->implode(' | '));
+        // Rujukan D2: fasilitas kemudahan yang pernah diterima menurut SIRENDA (master FAST) -> kode D2.
+        $petaFasilitas = config('psn_dashboard.evaluasi_status.peta_fasilitas');
+        $fasilitas = DB::table('psn_fasilitas as f')->join('ref_kode as k', 'k.id', '=', 'f.fasilitas_id')->whereIn('f.psn_id', $id)->whereNull('f.deleted_at')
+            ->orderBy('f.tahun')->get(['f.psn_id', 'f.tahun', 'k.kode'])->groupBy('psn_id')
+            ->map(fn ($g) => $g->filter(fn ($f) => isset($petaFasilitas[$f->kode]))->groupBy(fn ($f) => $petaFasilitas[$f->kode])
+                ->map(fn ($x) => $x->pluck('tahun')->filter()->unique()->sort()->values()->all())->all());
         $evaluasi = EvaluasiPsn::where('tahun_rkp', $this->tahun())->whereIn('psn_id', $id)
             ->with(['capaian', 'milestone', 'isu', 'lampiran'])->get()->keyBy('psn_id');
 
-        return $psn->map(function ($p) use ($tahapan, $isuProfil, $maksIsu, $kegiatan, $manfaat, $regulasi, $evaluasi) {
+        return $psn->map(function ($p) use ($tahapan, $isuProfil, $maksIsu, $kegiatan, $manfaat, $regulasi, $evaluasi, $kebutuhan, $fasilitas) {
             $data = [
                 'tahapan' => $tahapan[(string) $p->status_kode] ?? null,
                 'keluar' => ! $p->is_aktif,
@@ -92,6 +103,10 @@ class EvaluasiStatusService
                 'tahun_selesai' => $p->tahun_selesai ? (int) $p->tahun_selesai : null,
                 // A6 profil: tahun penetapan (tahun_terbit) di SIRENDA; isian A6 Evaluasi menimpanya bila diisi.
                 'tahun_terbit' => $p->tahun_terbit ? (int) $p->tahun_terbit : null,
+                // D1 profil dari teks SIRENDA (MASIH/TIDAK; null bila kosong/tidak tegas) & rujukan D2.
+                'kebutuhan_status' => $kebutuhan[$p->id] ?? null,
+                'd1_profil' => KebutuhanStatus::d1($kebutuhan[$p->id] ?? null),
+                'fasilitas_profil' => $fasilitas[$p->id] ?? [],
                 'progres_rencana' => $p->progres_rencana_persen !== null ? (float) $p->progres_rencana_persen : null,
                 'progres_realisasi' => $p->progres_realisasi_persen !== null ? (float) $p->progres_realisasi_persen : null,
                 'pagu_rp' => $p->pagu_rp !== null ? (float) $p->pagu_rp : null,
@@ -164,10 +179,11 @@ class EvaluasiStatusService
             && ! collect($isuEfektif)->contains(fn ($i) => filled($i['uraian']) && filled($i['dukungan']))) {
             $kurang[] = 'C2 Isu dan dukungan yang dibutuhkan';
         }
-        $e?->d1_kebutuhan || $kurang[] = 'D1 Kebutuhan status PSN';
-        if ($e?->d1_kebutuhan === 'MASIH') {
-            $e->d2_fasilitas || $kurang[] = 'D2 Fasilitas';
-            if ($berjalan && ! ($e->d3_tahapan && $e->d3_target && $e->d3_tahun_selesai)) {
+        $d1 = self::d1($e, $d);
+        $d1 || $kurang[] = 'D1 Kebutuhan status PSN';
+        if ($d1 === 'MASIH') {
+            $e?->d2_fasilitas || $kurang[] = 'D2 Fasilitas';
+            if ($berjalan && ! ($e?->d3_tahapan && $e?->d3_target && $e?->d3_tahun_selesai)) {
                 $kurang[] = 'D3 Target selanjutnya';
             }
         }
@@ -192,19 +208,20 @@ class EvaluasiStatusService
         $umur !== null && in_array($t, ['PENYIAPAN', 'TRANSAKSI'], true) && $umur >= $a['penyiapan_maks_tahun']
             && $sinyal[] = 'Masih tahap '.mb_strtolower(config("psn_dashboard.evaluasi_status.tahapan.{$t}"))." {$umur} tahun sejak ditetapkan";
         $jalurKritis && $sinyal[] = "{$jalurKritis} isu terbuka menghambat jalur kritis";
-        $e?->d1_kebutuhan === 'MASIH' && ! $e->d2_fasilitas && $sinyal[] = 'Membutuhkan status PSN tanpa fasilitas yang dipilih';
+        $d1 === 'MASIH' && ! $e?->d2_fasilitas && $sinyal[] = 'Membutuhkan status PSN tanpa fasilitas yang dipilih';
 
         $rekomendasi = match (true) {
-            $e?->d1_kebutuhan === 'TIDAK', $d['keluar'] ?? false => 'DIKELUARKAN',
-            $t === 'KUMULATIF_SELESAI' && $e?->d1_kebutuhan !== 'MASIH' => 'DIKELUARKAN',
+            $d1 === 'TIDAK', $d['keluar'] ?? false => 'DIKELUARKAN',
+            $t === 'KUMULATIF_SELESAI' && $d1 !== 'MASIH' => 'DIKELUARKAN',
             $kurang !== [] => 'BELUM_CUKUP_DATA',
             $sinyal !== [] => 'PERLU_PENDALAMAN',
             default => 'DIPERTAHANKAN',
         };
         if ($d['keluar'] ?? false) {
             array_unshift($sinyal, 'Status PSN di SIRENDA: Keluar dari PSN');
-        } elseif ($e?->d1_kebutuhan === 'TIDAK') {
-            array_unshift($sinyal, 'PJ menyatakan tidak lagi membutuhkan status PSN'.($e->d1_alasan ? ': '.config("psn_dashboard.evaluasi_status.d1_alasan.{$e->d1_alasan}") : ''));
+        } elseif ($d1 === 'TIDAK') {
+            array_unshift($sinyal, ($e?->d1_kebutuhan ? 'PJ menyatakan' : 'Isian Kebutuhan Status PSN di SIRENDA menyatakan').' tidak lagi membutuhkan status PSN'
+                .($e?->d1_alasan ? ': '.config("psn_dashboard.evaluasi_status.d1_alasan.{$e->d1_alasan}") : ''));
         } elseif ($t === 'KUMULATIF_SELESAI') {
             array_unshift($sinyal, 'Tahapan kumulatif selesai');
         }
@@ -315,6 +332,12 @@ class EvaluasiStatusService
             ['uraian', 'tipologi', 'jalur_kritis', 'upaya', 'dukungan'], ['uraian']);
         isset($r['lampiran']) && $sinkron('lampiran', $r['lampiran'], ['jenis', 'judul', 'bentuk', 'tautan'], ['judul']);
         $e->unsetRelation('capaian')->unsetRelation('milestone')->unsetRelation('isu')->unsetRelation('lampiran');
+    }
+
+    /** D1 efektif: isian Evaluasi, atau golongan teks "Kebutuhan Status PSN" di SIRENDA bila isian kosong. */
+    public static function d1(?EvaluasiPsn $e, array $data): ?string
+    {
+        return $e?->d1_kebutuhan ?: ($data['d1_profil'] ?? null);
     }
 
     /** A6 efektif: isian Evaluasi, atau tahun penetapan (tahun_terbit) dari profil SIRENDA bila isian kosong. */

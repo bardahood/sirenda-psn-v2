@@ -82,7 +82,7 @@ class KertasKerjaIsianService
             } else {
                 $isian[self::KOLOM[$kunci]] = $nilai;
             }
-            if ($kunci === 'd1' && $nilai !== 'TIDAK') {
+            if ($kunci === 'd1' && $nilai === 'MASIH') {
                 $isian += ['d1_alasan' => null, 'd1_alasan_lain' => null];
             }
             if ($kunci === 'tl' && $nilai === null) {

@@ -6,6 +6,7 @@ use App\Models\PeriodeCutoff;
 use App\Models\SnapshotPsn;
 use App\Models\User;
 use App\Support\Dashboard\FilterGlobal;
+use App\Support\Evaluasi\KebutuhanStatus;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +25,7 @@ class IkhtisarPortofolioService
 
     public function ringkasan(PeriodeCutoff $c, FilterGlobal $f): array
     {
-        return $this->dashboard->cacheIkhtisar('ikhtisar.v1', $c, $f, function () use ($c, $f) {
+        return $this->dashboard->cacheIkhtisar('ikhtisar.v2', $c, $f, function () use ($c, $f) {
             $semua = $this->dashboard->baris($c, $f);
             $aktif = $semua->where('is_aktif', true);
             $sebelumnya = ($p = $c->sebelumnya()) ? $this->dashboard->baris($p, $f)->where('is_aktif', true) : null;
@@ -33,6 +34,7 @@ class IkhtisarPortofolioService
                 'pkpn' => $this->pkpn($aktif, $sebelumnya),
                 'wilayah' => $this->wilayah($aktif),
                 'skema' => $this->skema($aktif),
+                'skema_nominal' => $this->skemaNominal($aktif),
                 'selesai' => $this->selesai($aktif),
                 'status' => $this->statusTarget($semua),
                 'rkp' => $this->riwayatRkp($c),
@@ -125,6 +127,36 @@ class IkhtisarPortofolioService
             'persen' => $total > 0 ? round($h['investasi'] / $total * 100, 1) : null])->values()->all();
     }
 
+    /**
+     * Pelengkap porsi skema: jumlah nominal per sumber dana yang dirinci K/L di SIRENDA (psn_pendanaan.nilai),
+     * dipisah APBN/APBD vs Non-APBN. Hanya PSN aktif yang nominalnya konsisten (Σ nominal ≤ nilai investasi + 1%);
+     * PSN yang menulis total investasi di setiap sumber dihitung sebagai "tidak konsisten" dan tidak dijumlahkan.
+     */
+    protected function skemaNominal(Collection $aktif): array
+    {
+        $pemerintah = config('psn_dashboard.ikhtisar.dana_pemerintah');
+        $investasi = $aktif->pluck('nilai_investasi_rp', 'psn_id');
+        $perPsn = DB::table('psn_sumber_dana as d')->join('ref_sumber_dana as r', 'r.id', '=', 'd.sumber_dana_id')
+            ->whereIn('d.psn_id', $aktif->pluck('psn_id'))->where('d.nilai_rp', '>', 0)->get(['d.psn_id', 'd.nilai_rp', 'r.kode'])->groupBy('psn_id');
+        $konsisten = $perPsn->filter(fn ($g, $id) => self::nominalKonsisten($g->sum(fn ($b) => (float) $b->nilai_rp), $investasi[$id] ?? null));
+        $baris = $konsisten->flatten(1);
+        $apbn = $baris->whereIn('kode', $pemerintah)->sum(fn ($b) => (float) $b->nilai_rp);
+        $non = $baris->whereNotIn('kode', $pemerintah)->sum(fn ($b) => (float) $b->nilai_rp);
+        $total = $apbn + $non;
+
+        return [
+            'cakupan_psn' => $konsisten->count(), 'tidak_konsisten' => $perPsn->count() - $konsisten->count(),
+            'apbn_apbd_triliun' => round($apbn / 1e12, 1), 'non_apbn_triliun' => round($non / 1e12, 1),
+            'persen_non_apbn' => $total > 0 ? round($non / $total * 100, 1) : null,
+        ];
+    }
+
+    /** Σ nominal per sumber wajar bila tidak melebihi nilai investasi PSN (toleransi 1%); tanpa nilai investasi dianggap wajar. */
+    public static function nominalKonsisten(float $jumlah, $investasi): bool
+    {
+        return ! ((float) $investasi > 0) || $jumlah <= (float) $investasi * 1.01;
+    }
+
     // ------------------------------------------------------------------ PSN selesai x kebutuhan status
 
     protected function selesai(Collection $aktif): array
@@ -138,11 +170,10 @@ class IkhtisarPortofolioService
         $d1 = DB::table('evaluasi_psn')->whereIn('psn_id', $rows->pluck('psn_id'))->whereNull('deleted_at')->pluck('d1_kebutuhan', 'psn_id');
 
         $daftar = $rows->map(function ($r) use ($psn, $teks, $d1) {
+            // Sama dengan D1 menu Evaluasi: isian D1 Evaluasi bila ada, selain itu golongan teks isian SIRENDA.
             $isian = trim((string) ($teks[$r->psn_id] ?? ''));
-            [$kategori, $sumber] = $isian !== '' ? [$this->kategoriKebutuhan($isian), 'SIRENDA'] : [null, null];
-            if (($kategori === null || $kategori === 'KONFIRMASI') && in_array($d1[$r->psn_id] ?? null, ['MASIH', 'TIDAK'], true)) {
-                [$kategori, $sumber] = [$d1[$r->psn_id], 'EVALUASI'];
-            }
+            [$kategori, $sumber] = in_array($d1[$r->psn_id] ?? null, ['MASIH', 'TIDAK'], true) ? [$d1[$r->psn_id], 'EVALUASI']
+                : ($isian !== '' ? [$this->kategoriKebutuhan($isian), 'SIRENDA'] : [null, null]);
             $p = $psn[$r->psn_id] ?? null;
 
             return ['psn_id' => $r->psn_id, 'kode' => $p?->kode_psn, 'nama' => $p?->nama, 'urut' => $p?->legacy_id ?? PHP_INT_MAX,
@@ -158,18 +189,10 @@ class IkhtisarPortofolioService
         ];
     }
 
-    /** TIDAK / MASIH / KONFIRMASI dari teks isian K/L (pola di config, TIDAK diuji lebih dulu). */
+    /** TIDAK / MASIH / KONFIRMASI dari teks isian K/L (lihat App\Support\Evaluasi\KebutuhanStatus). */
     public function kategoriKebutuhan(string $teks): string
     {
-        foreach (config('psn_dashboard.ikhtisar.kebutuhan_status') as $kategori => $pola) {
-            foreach ($pola as $p) {
-                if (preg_match($p, $teks)) {
-                    return $kategori;
-                }
-            }
-        }
-
-        return 'KONFIRMASI';
+        return KebutuhanStatus::kategori($teks);
     }
 
     // ------------------------------------------------------------------ status & target selesai

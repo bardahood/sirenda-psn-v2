@@ -86,6 +86,12 @@
                                 <div class="angka pl-4 text-[10.5px] text-slate-500" x-text="'Rp ' + angka(s.investasi_triliun) + ' T · ' + angka(s.jumlah, 0) + ' PSN (' + angka(s.pkpn, 0) + ' PKPN)'"></div>
                             </li>
                         </template>
+                        <li x-show="d.ikhtisar?.skema_nominal?.cakupan_psn" class="border-t border-slate-100 pt-1 text-[10.5px] leading-tight text-slate-500"
+                            :title="'Dari ' + angka(d.ikhtisar?.skema_nominal?.cakupan_psn, 0) + ' PSN yang nominal per sumber dananya dirinci konsisten di SIRENDA' + (d.ikhtisar?.skema_nominal?.tidak_konsisten ? '; ' + angka(d.ikhtisar.skema_nominal.tidak_konsisten, 0) + ' PSN tidak dihitung karena jumlah nominalnya melebihi nilai investasi' : '')">
+                            Rincian nominal per sumber (<span x-text="angka(d.ikhtisar?.skema_nominal?.cakupan_psn, 0)"></span> PSN): Non-APBN
+                            <b class="angka text-slate-700" x-text="angka(d.ikhtisar?.skema_nominal?.persen_non_apbn) + '%'"></b>
+                            · APBN/APBD <span class="angka" x-text="'Rp ' + angka(d.ikhtisar?.skema_nominal?.apbn_apbd_triliun) + ' T'"></span>
+                        </li>
                     </ul>
                 </div>
             </x-panel>

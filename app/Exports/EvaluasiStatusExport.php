@@ -41,7 +41,7 @@ class EvaluasiStatusExport implements FromCollection, ShouldAutoSize, WithHeadin
             return [$i + 1, $r['kode'], $r['nama'], $r['sumber'], $r['klaster'], $l('tahapan', $d['tahapan']), $d['tahun_selesai'], EvaluasiStatusService::a6($e, $d),
                 $d['progres_rencana'], $d['progres_realisasi'], $r['indikator']['deviasi_fisik'], $r['indikator']['serapan'], $r['indikator']['isu_terbuka'], $r['indikator']['isu_jalur_kritis'],
                 $e?->form_diterima_at?->format('Y-m-d'), implode('; ', $r['kurang']), $r['lengkap'] ? 'Lengkap' : 'Belum Lengkap',
-                $l('d1', $e?->d1_kebutuhan), $e?->d1_alasan === 'LAINNYA' ? $e->d1_alasan_lain : $l('d1_alasan', $e?->d1_alasan),
+                $l('d1', EvaluasiStatusService::d1($e, $d)), $e?->d1_alasan === 'LAINNYA' ? $e->d1_alasan_lain : $l('d1_alasan', $e?->d1_alasan),
                 collect($e?->d2_fasilitas ?? [])->map(fn ($k) => $c['d2_fasilitas'][$k] ?? $k)->implode('; '), $l('tahapan', $e?->d3_tahapan), $e?->d3_target, $e?->d3_tahun_selesai,
                 $l('hasil_pengecekan', $e?->hasil_pengecekan), $l('tindak_lanjut', $e?->tindak_lanjut), $e?->catatan_analisis, $l('indikasi', $e?->indikasi_status),
                 $c['status'][$r['status_akhir']], $c['rekomendasi'][$r['rekomendasi']], implode('; ', $r['sinyal'])];

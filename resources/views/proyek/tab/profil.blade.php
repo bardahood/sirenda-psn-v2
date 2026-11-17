@@ -31,6 +31,7 @@
                 <h4 class="label mt-3 first:mt-0">{{ $label }}</h4>
                 @if ($daftar)
                     <ul class="mt-1 list-inside list-disc">@foreach ($daftar as $v)<li>{{ $v }}</li>@endforeach</ul>
+                    @if ($label === 'Indikasi sumber pendanaan' && ($data['sumber_dana_catatan'] ?? null))<p class="mt-1 rounded bg-amber-50 px-2 py-1 text-[12px] text-amber-900" role="note">{{ $data['sumber_dana_catatan'] }}</p>@endif
                 @else
                     <p class="mt-1 text-slate-500">Belum diisi.</p>
                 @endif

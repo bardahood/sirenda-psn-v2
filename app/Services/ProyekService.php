@@ -79,7 +79,11 @@ class ProyekService
                     ->map(fn ($k) => $k->penanggungJawab?->nama ?? $k->instansi?->nama ?? $k->nama_teks)->filter()->values()->all(),
             ])->filter(fn ($k) => $k['nama'])->values()->all(),
             'lokasi' => $psn->lokasi->map(fn ($l) => trim(($l->provinsi?->nama ?? $l->provinsi_kode).($l->kabupaten ? ' — '.$l->kabupaten->nama : '')))->unique()->values()->all(),
-            'sumber_dana' => $psn->sumberDana->map(fn ($d) => $d->sumberDana?->nama)->filter()->values()->all(),
+            // Nama sumber dana beserta nominalnya bila dirinci di SIRENDA (psn_pendanaan.nilai).
+            'sumber_dana' => $psn->sumberDana->filter(fn ($d) => $d->sumberDana)->map(fn ($d) => $d->sumberDana->nama
+                .($d->nilai_rp > 0 ? ' · Rp '.number_format($d->nilai_rp / 1e12, 2, ',', '.').' triliun' : ''))->values()->all(),
+            'sumber_dana_catatan' => IkhtisarPortofolioService::nominalKonsisten((float) $psn->sumberDana->sum('nilai_rp'), $psn->nilai_investasi_rp) ? null
+                : 'Jumlah nominal per sumber dana melebihi nilai investasi; kemungkinan total investasi ditulis di setiap sumber. Mohon diperiksa di SIRENDA.',
             'unit_pengampu' => $psn->unitPengampu->map(fn ($u) => $u->unitKerja?->nama)->filter()->values()->all(),
             'item_profil' => $psn->profilItem->sortBy(fn ($i) => $i->bagian?->urutan)->groupBy(fn ($i) => $i->bagian?->nama ?? 'Lainnya')
                 ->map(fn ($g) => $g->pluck('isi')->filter()->values()->all())->filter()->all(),

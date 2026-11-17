@@ -175,7 +175,7 @@ class FormatRingkas
             ? '['.implode('; ', array_filter([$i['tipologi'] ? "Tipologi {$i['tipologi']}" : null, $i['jalur_kritis'] === null ? null : ($i['jalur_kritis'] ? 'menghambat jalur kritis' : 'tidak menghambat jalur kritis')])).'] '
             : '').$i['uraian'].(filled($i['upaya']) ? ' – Upaya: '.$i['upaya'] : ''), $r['isu'])), $isuDariProfil ? 'PROFIL' : 'ISIAN');
         $set('c2_dukungan', $daftar(array_map(fn ($i) => $i['dukungan'] ?: '–', $r['isu'])), $isuDariProfil ? 'PROFIL' : 'ISIAN');
-        $set('d1', $label('d1', $e?->d1_kebutuhan));
+        $set('d1', $label('d1', EvaluasiStatusService::d1($e, $d)), $e?->d1_kebutuhan ? 'ISIAN' : (($d['d1_profil'] ?? null) ? 'PROFIL' : 'ISIAN'));
         $set('d1_alasan', $label('d1_alasan', $e?->d1_alasan));
         $set('d1_alasan_lain', $e?->d1_alasan_lain);
         $set('d2', collect($e?->d2_fasilitas ?? [])->map(fn ($k) => (array_search($k, array_keys($c['d2_fasilitas'])) + 1).'. '.($c['d2_fasilitas'][$k] ?? $k))->implode("\n") ?: null);
@@ -251,7 +251,7 @@ class FormatRingkas
         $e = $r['evaluasi'];
         $m = [
             'a6' => EvaluasiStatusService::a6($e, $r['data']), 'a8' => $e?->a8_sumber_pendanaan ?: $a8Profil, 'a12' => $e?->jenis_psn, 'b4' => $e?->b4_manfaat, 'c1' => $e?->c1_tipologi ?? [], 'c1_lainnya' => $e?->c1_lainnya,
-            'd1' => $e?->d1_kebutuhan, 'd1_alasan' => $e?->d1_alasan, 'd1_alasan_lain' => $e?->d1_alasan_lain, 'd2' => $e?->d2_fasilitas ?? [], 'd2_justifikasi' => $e?->d2_justifikasi,
+            'd1' => EvaluasiStatusService::d1($e, $r['data']), 'd1_alasan' => $e?->d1_alasan, 'd1_alasan_lain' => $e?->d1_alasan_lain, 'd2' => $e?->d2_fasilitas ?? [], 'd2_justifikasi' => $e?->d2_justifikasi,
             'd3_tahapan' => $e?->d3_tahapan, 'd3_target' => $e?->d3_target, 'd3_tahun' => $e?->d3_tahun_selesai, 'info' => $e?->info_tambahan,
             'hasil' => $e?->hasil_pengecekan, 'tl' => $e?->tindak_lanjut, 'catatan' => $e?->catatan_analisis, 'indikasi' => $e?->indikasi_status,
         ];

@@ -204,7 +204,8 @@
                                     @if ($r['lengkap'])<span class="badge bg-green-50 text-green-800 ring-green-600/40">Lengkap</span>
                                     @else<span class="badge bg-amber-50 text-amber-900 ring-amber-600/40" title="{{ implode('; ', $r['kurang']) }}">{{ count($r['kurang']) }} isian kurang</span>@endif
                                 </td>
-                                <td class="py-2 pr-3 text-[12px]">{{ $r['evaluasi']?->d1_kebutuhan ? ($r['evaluasi']->d1_kebutuhan === 'MASIH' ? 'Masih butuh' : 'Tidak butuh') : '–' }}</td>
+                                @php($d1Efektif = \App\Services\EvaluasiStatusService::d1($r['evaluasi'], $r['data']))
+                                <td class="py-2 pr-3 text-[12px]" title="{{ $r['evaluasi']?->d1_kebutuhan ? 'Isian evaluasi' : ($d1Efektif ? 'Dari isian Kebutuhan Status PSN di SIRENDA: '.$r['data']['kebutuhan_status'] : '') }}">{{ $d1Efektif ? ($d1Efektif === 'MASIH' ? 'Masih butuh' : 'Tidak butuh') : '–' }}@if ($d1Efektif && ! $r['evaluasi']?->d1_kebutuhan)<span class="block text-[10.5px] text-sky-700">dari SIRENDA</span>@endif</td>
                                 <td class="py-2 pr-3"><span class="badge-REK_{{ $r['rekomendasi'] }}" title="{{ implode('; ', $r['sinyal']) }}"><span class="titik-REK_{{ $r['rekomendasi'] }}"></span>{{ $cfg['rekomendasi'][$r['rekomendasi']] }}</span></td>
                                 <td class="py-2"><span class="badge-EV_{{ $r['status_akhir'] }}"><span class="titik-EV_{{ $r['status_akhir'] }}"></span>{{ $cfg['status'][$r['status_akhir']] }}</span></td>
                             </tr>
