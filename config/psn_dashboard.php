@@ -220,6 +220,9 @@ return [
         // Koreksi tahun realisasi bulanan KP/RO (psn_kegiatan_detil). Aplikasi lama menyimpan seluruh baris
         // dengan tahun 2029 (dump 7 & 28 Okt 2026), padahal isiannya realisasi 2026 (dibuat Sep-Okt 2026,
         // terisi s.d. bulan berjalan). Setiap baris yang dikoreksi dicatat di laporan ETL. Kosongkan [] untuk mematikan.
+        // Isian penanda "tidak ada" (bukan data sungguhan) pada uraian risiko & nama regulasi: dilewati saat impor
+        // dan dicatat di laporan ETL. Contoh: "Belum ada", "Tidak ada kebutuhan regulasi tambahan", "Test".
+        'penanda_kosong' => ['/^(belum|tidak)\s+ada\b/iu', '/^test(ing)?$/iu'],
         'koreksi_tahun_kegiatan_detil' => [2029 => 2026],
     ],
 

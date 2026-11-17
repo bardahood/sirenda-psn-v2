@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\LevelRisiko;
 use App\Models\AuditLog;
 use App\Models\Kegiatan;
 use App\Models\PeriodeCutoff;
@@ -199,6 +200,188 @@ class ProyekService
     }
 
     /** Ringkasan untuk JSON GET /api/v1/proyek/{id}. */
+    // ------------------------------------------------------------------ tab Perencanaan
+
+    /**
+     * Rencana & sasaran PSN: target tahunan, indikator kinerja, penerima manfaat, kontribusi Trisula, SDGs, dukungan
+     * yang dibutuhkan, fasilitas kemudahan yang pernah diterima, asal usulan (bila PSN berasal dari usulan PSI),
+     * dan ringkasan evaluasi keberlanjutan status. Semua dari data terkini (isian SIRENDA PEKS3).
+     */
+    public function perencanaan(Psn $psn): array
+    {
+        $tahun = range(2026, 2029);
+        $target = fn (string $tabel, string $fk, array $id) => DB::table($tabel)->whereIn($fk, $id)
+            ->when($tabel === 'trisula_target', fn ($q) => $q->where('periode', 'TAHUNAN'))
+            ->get([$fk, 'tahun', 'target', 'realisasi'])->groupBy($fk)
+            ->map(fn ($g) => $g->keyBy('tahun')->map(fn ($t) => ['target' => $this->angkaAtauNull($t->target), 'realisasi' => $this->angkaAtauNull($t->realisasi)]));
+        $baris = function (string $tabel, string $targetTabel, string $fk, ?\Closure $tambah = null) use ($psn, $target, $tahun) {
+            $rows = DB::table($tabel)->where('psn_id', $psn->id)->whereNull('deleted_at')->orderBy('id')->get();
+            $t = $target($targetTabel, $fk, $rows->pluck('id')->all());
+
+            return $rows->map(fn ($r) => [
+                'uraian' => $r->uraian ?? $r->indikator ?? null, 'satuan' => $r->satuan,
+                'baseline' => $this->angkaAtauNull($r->baseline), 'baseline_tahun' => $r->baseline_tahun,
+                'target_akhir' => $this->angkaAtauNull($r->target_akhir), 'capaian' => $this->angkaAtauNull($r->capaian),
+                'persen' => $r->target_akhir > 0 && $r->capaian !== null ? round($r->capaian / $r->target_akhir * 100, 1) : null,
+                'tahun' => collect($tahun)->mapWithKeys(fn ($th) => [$th => $t[$r->id][$th] ?? ['target' => null, 'realisasi' => null]])->all(),
+            ] + ($tambah ? $tambah($r) : []))->values()->all();
+        };
+        $kategoriTrisula = DB::table('ref_kode')->where('tipe', 'KTAC')->pluck('nama', 'id');
+
+        $usulan = DB::table('usulan_psn as u')->where('u.psn_id', $psn->id)->whereNull('u.deleted_at')
+            ->leftJoin('penilaian as p', fn ($j) => $j->on('p.usulan_id', '=', 'u.id')
+                ->whereRaw('p.id = (SELECT MAX(p2.id) FROM penilaian p2 WHERE p2.usulan_id = u.id AND p2.deleted_at IS NULL)'))
+            ->leftJoin('usulan_rekomendasi as r', fn ($j) => $j->on('r.usulan_id', '=', 'u.id')->whereNull('r.deleted_at'))
+            ->orderByDesc('u.tahun_rkp')->get(['u.id', 'u.nama', 'u.tahun_rkp', 'u.status', 'p.nilai_akhir', 'p.rekomendasi as rekomendasi_skor', 'p.status as status_penilaian',
+                'r.rekomendasi', 'r.status as status_rekomendasi']);
+        $evaluasi = DB::table('evaluasi_psn')->where('psn_id', $psn->id)->whereNull('deleted_at')
+            ->where('tahun_rkp', config('psn_dashboard.evaluasi_status.tahun_rkp'))->first(['status_akhir', 'd1_kebutuhan', 'indikasi_status']);
+
+        return [
+            'tahun' => $tahun,
+            'target_tahunan' => DB::table('psn_target_tahunan')->where('psn_id', $psn->id)->whereNull('deleted_at')->orderBy('tahun')->get(['tahun', 'uraian'])
+                ->map(fn ($t) => ['tahun' => $t->tahun, 'uraian' => $t->uraian])->all(),
+            'indikator' => $baris('indikator', 'indikator_target', 'indikator_id'),
+            'penerima' => $baris('penerima_manfaat', 'penerima_manfaat_target', 'penerima_manfaat_id'),
+            'trisula' => $baris('trisula', 'trisula_target', 'trisula_id', fn ($r) => ['kategori' => $kategoriTrisula[$r->kategori_id] ?? 'Tanpa kategori', 'kontribusi' => $r->kontribusi]),
+            'sdgs' => DB::table('psn_sdgs as s')->join('ref_kode as k', 'k.id', '=', 's.sdgs_id')->where('s.psn_id', $psn->id)
+                ->orderBy('k.urutan')->orderBy('k.kode')->get(['k.kode', 'k.nama', 's.keterangan'])->map(fn ($s) => (array) $s)->all(),
+            'dukungan' => DB::table('psn_dukungan')->where('psn_id', $psn->id)->whereNull('deleted_at')->orderBy('id')->pluck('uraian')->all(),
+            'fasilitas' => DB::table('psn_fasilitas as f')->join('ref_kode as k', 'k.id', '=', 'f.fasilitas_id')->where('f.psn_id', $psn->id)->whereNull('f.deleted_at')
+                ->orderBy('k.kode')->orderBy('f.tahun')->get(['k.nama', 'f.tahun', 'f.keterangan'])->groupBy('nama')
+                ->map(fn ($g, $nama) => ['nama' => $nama, 'tahun' => $g->pluck('tahun')->filter()->unique()->values()->all(), 'keterangan' => $g->pluck('keterangan')->filter()->unique()->implode('; ')])->values()->all(),
+            'usulan' => $usulan->unique('id')->map(fn ($u) => (array) $u)->values()->all(),
+            'evaluasi' => $evaluasi ? (array) $evaluasi : null,
+        ];
+    }
+
+    // ------------------------------------------------------------------ tab Risiko & Isu
+
+    /** Register risiko PSN (inheren -> residual harapan -> aktual pemantauan terakhir) beserta perlakuan, dan seluruh isu. */
+    public function risikoIsu(Psn $psn): array
+    {
+        $risiko = DB::table('risiko as r')->leftJoin('ref_kode as k', 'k.id', '=', 'r.kategori_id')->leftJoin('kegiatan as g', 'g.id', '=', 'r.kegiatan_id')
+            ->where('r.psn_id', $psn->id)->whereNull('r.deleted_at')
+            ->get(['r.*', 'k.nama as kategori', 'g.nama as kegiatan', 'g.is_critical_path']);
+        $id = $risiko->pluck('id')->all();
+        $perlakuan = DB::table('risiko_perlakuan as p')->leftJoin('ref_instansi as i', 'i.id', '=', 'p.instansi_id')->whereIn('p.risiko_id', $id)
+            ->orderBy('p.id')->get(['p.risiko_id', 'p.uraian', 'i.nama as instansi', 'p.keterangan'])->groupBy('risiko_id');
+        $tahun = DB::table('risiko_tahun_perlakuan')->whereIn('risiko_id', $id)->orderBy('tahun')->get()->groupBy('risiko_id');
+        $pantau = DB::table('risiko_pemantauan')->whereIn('risiko_id', $id)->orderByDesc('tanggal')->orderByDesc('id')->get()->unique('risiko_id')->keyBy('risiko_id');
+        $urut = fn (?string $l) => $l ? (LevelRisiko::tryFrom($l)?->urutan() ?? 0) : 0;
+
+        $daftar = $risiko->map(function ($r) use ($perlakuan, $tahun, $pantau) {
+            $a = $pantau[$r->id] ?? null;
+
+            return [
+                'id' => $r->id, 'uraian' => $r->uraian, 'kategori' => $r->kategori, 'kegiatan' => $r->kegiatan, 'critical_path' => (bool) $r->is_critical_path,
+                'titik_kritis' => (bool) $r->is_titik_kritis,
+                'awal' => ['level' => $r->level_awal, 'kemungkinan' => $r->kemungkinan_awal, 'dampak' => $r->dampak_awal],
+                'harapan' => ['level' => $r->level_harapan, 'kemungkinan' => $r->kemungkinan_harapan, 'dampak' => $r->dampak_harapan],
+                'aktual' => $a ? ['level' => $a->level_aktual, 'kemungkinan' => $a->kemungkinan_aktual, 'dampak' => $a->dampak_aktual,
+                    'tanggal' => $a->tanggal, 'progres' => $a->progres_persen !== null ? (float) $a->progres_persen : null, 'status' => $a->status_perlakuan] : null,
+                'rencana' => $r->rencana_perlakuan, 'pj' => $r->penanggung_jawab, 'catatan' => $r->catatan,
+                'perlakuan' => collect($perlakuan[$r->id] ?? [])->map(fn ($p) => ['uraian' => $p->uraian, 'instansi' => $p->instansi, 'keterangan' => $p->keterangan])->all(),
+                'tahun' => collect($tahun[$r->id] ?? [])->pluck('tahun')->all(),
+            ];
+        })
+            // Entri identik (uraian, kategori, level, rencana, PJ, KP/RO sama) digabung; tahun perlakuan disatukan.
+            ->groupBy(fn ($r) => md5(json_encode([$r['uraian'], $r['kategori'], $r['kegiatan'], $r['awal'], $r['harapan'], $r['aktual']['level'] ?? null, $r['rencana'], $r['pj'], $r['perlakuan']])))
+            ->map(fn ($g) => $g->first() + ['jumlah' => $g->count()] + ['tahun_gabung' => $g->flatMap(fn ($r) => $r['tahun'])->unique()->sort()->values()->all()])
+            ->map(fn ($r) => array_merge($r, ['tahun' => $r['tahun_gabung']]))
+            ->sort(fn ($x, $y) => [$urut($y['aktual']['level'] ?? $y['harapan']['level']), $urut($y['harapan']['level']), $x['id']]
+            <=> [$urut($x['aktual']['level'] ?? $x['harapan']['level']), $urut($x['harapan']['level']), $y['id']])->values();
+
+        $hariIni = now()->toDateString();
+        $isu = DB::table('isu as i')->leftJoin('kegiatan as g', 'g.id', '=', 'i.kegiatan_id')->leftJoin('ref_unit_kerja as u', 'u.id', '=', 'i.pic_unit_kerja_id')
+            ->where('i.psn_id', $psn->id)->whereNull('i.deleted_at')
+            ->orderByRaw("i.status = 'SELESAI'")->orderByRaw('i.tenggat IS NULL')->orderBy('i.tenggat')->orderBy('i.id')
+            ->get(['i.*', 'g.nama as kegiatan', 'g.is_critical_path', 'u.nama as pic_unit'])
+            ->map(fn ($i) => [
+                'id' => $i->id, 'uraian' => $i->uraian, 'kebutuhan_dukungan' => $i->kebutuhan_dukungan, 'kegiatan' => $i->kegiatan, 'critical_path' => (bool) $i->is_critical_path,
+                'pic' => $i->pic_nama ?? $i->pic_unit, 'tenggat' => $i->tenggat, 'status' => $i->status, 'tanggal_selesai' => $i->tanggal_selesai,
+                'tindak_lanjut' => $i->tindak_lanjut, 'file_bukti' => $i->file_bukti,
+                'lewat_tenggat' => $i->tenggat !== null && $i->tenggat < $hariIni && $i->status !== 'SELESAI',
+            ]);
+
+        return [
+            'risiko' => $daftar->all(),
+            'jumlah_risiko' => $daftar->sum('jumlah'),
+            'per_level' => collect(LevelRisiko::cases())->map(fn ($l) => ['level' => $l->value,
+                'harapan' => $daftar->where('harapan.level', $l->value)->sum('jumlah'), 'aktual' => $daftar->where('aktual.level', $l->value)->sum('jumlah')])->all(),
+            'kritis_min' => config('psn_dashboard.risiko.kritis_min_level'),
+            'isu' => $isu->all(),
+            'isu_ringkas' => ['terbuka' => $isu->where('status', '<>', 'SELESAI')->count(), 'lewat_tenggat' => $isu->where('lewat_tenggat', true)->count(),
+                'jalur_kritis' => $isu->where('status', '<>', 'SELESAI')->where('critical_path', true)->count(), 'selesai' => $isu->where('status', 'SELESAI')->count()],
+        ];
+    }
+
+    // ------------------------------------------------------------------ tab Regulasi
+
+    /** Kebutuhan regulasi PSN: tahap pipeline, target tahun penyelesaian, penanggung jawab, penetapan. */
+    public function regulasi(Psn $psn): array
+    {
+        $rows = DB::table('regulasi')->where('psn_id', $psn->id)->whereNull('deleted_at')->orderBy('id')->get();
+        $tahun = DB::table('regulasi_target_tahun')->whereIn('regulasi_id', $rows->pluck('id'))->orderBy('tahun')->get()->groupBy('regulasi_id');
+        $tahap = RisikoService::TAHAP_REGULASI;
+
+        return [
+            'tahap' => collect($tahap)->map(fn ($l, $k) => ['kode' => $k, 'label' => $l, 'jumlah' => $rows->where('tahap', $k)->count()])->values()->all(),
+            'regulasi' => $rows->map(fn ($r) => [
+                'id' => $r->id, 'nama' => $r->nama, 'justifikasi' => $r->justifikasi, 'pj' => $r->penanggung_jawab, 'tahap' => $r->tahap, 'tahap_label' => $tahap[$r->tahap] ?? $r->tahap,
+                'tahap_ke' => array_search($r->tahap, array_keys($tahap), true), 'nomor' => $r->nomor_penetapan, 'tanggal' => $r->tanggal_penetapan, 'catatan' => $r->catatan,
+                'target_tahun' => collect($tahun[$r->id] ?? [])->pluck('tahun')->all(),
+            ])->all(),
+        ];
+    }
+
+    // ------------------------------------------------------------------ tab Stakeholder
+
+    /**
+     * Pemetaan stakeholder (jenis A) dan kerangka kelembagaan (jenis B) dari SIRENDA. Kolom instansi berisi kode
+     * master INST (mis. "145") yang diterjemahkan ke nama instansi; teks bebas ditampilkan apa adanya.
+     */
+    public function stakeholder(Psn $psn): array
+    {
+        $rows = DB::table('psn_stakeholder as s')->leftJoin('ref_kode as k', 'k.id', '=', 's.peran_id')
+            ->where('s.psn_id', $psn->id)->whereNull('s.deleted_at')->orderBy('s.jenis')->orderBy('k.kode')->orderBy('s.id')
+            ->get(['s.*', 'k.nama as kategori']);
+        $kode = $rows->flatMap(fn ($r) => array_merge($this->kodeInstansi($r->instansi_utama), $this->kodeInstansi($r->instansi_pendukung)))->unique()->values();
+        // Kode 3 digit = master INST (K/L); kode "53" / "53.14" = wilayah (pemerintah daerah provinsi/kabupaten/kota).
+        $instansi = DB::table('ref_instansi')->whereIn('kode', $kode)->pluck('nama', 'kode');
+        $wilayah = DB::table('ref_wilayah')->whereIn('kode', $kode)->get(['kode', 'nama', 'level'])->keyBy('kode');
+        $namaKode = fn (string $k) => $instansi[$k] ?? (isset($wilayah[$k]) ? ($wilayah[$k]->level == 1 ? 'PEMERINTAH PROVINSI ' : 'PEMERINTAH ').$wilayah[$k]->nama : $k);
+        $nama = fn (?string $v) => collect($this->kodeInstansi($v))->map($namaKode)->implode('; ') ?: ($v !== null && trim($v) !== '' ? trim($v) : null);
+        $bentuk = fn ($r) => ['kategori' => $r->kategori ?? 'Lainnya', 'peran' => $r->peran, 'instansi_utama' => $nama($r->instansi_utama),
+            'instansi_pendukung' => $nama($r->instansi_pendukung), 'keterangan' => $r->keterangan, 'catatan' => $r->catatan, 'level' => $r->level, 'file_bukti' => $r->file_bukti];
+        $kelompok = fn (string $jenis) => $rows->where('jenis', $jenis)->map($bentuk)->groupBy('kategori')
+            ->map(fn ($g, $k) => ['kategori' => $k, 'baris' => $g->values()->all()])->values()->all();
+
+        return [
+            'pemetaan' => $kelompok('A'),
+            'kelembagaan' => $kelompok('B'),
+            'lainnya' => $rows->whereNotIn('jenis', ['A', 'B'])->map($bentuk)->values()->all(),
+            'jumlah_instansi' => $rows->map(fn ($r) => $nama($r->instansi_utama))->filter()->unique()->count(),
+        ];
+    }
+
+    /** "145" / "145, 056" / '["145","056"]' / "53.14" -> daftar kode instansi atau wilayah; teks bebas -> []. */
+    protected function kodeInstansi(?string $v): array
+    {
+        $v = trim((string) $v);
+        if ($v === '') {
+            return [];
+        }
+        $daftar = str_starts_with($v, '[') ? (json_decode($v, true) ?: []) : preg_split('/[;,]\s*/', $v);
+
+        return collect($daftar)->map(fn ($x) => trim((string) $x))->every(fn ($x) => preg_match('/^(\d{3}|\d{2}(\.\d{2})?)$/', $x)) ? array_values(array_map('trim', $daftar)) : [];
+    }
+
+    protected function angkaAtauNull($v): ?float
+    {
+        return $v === null ? null : (float) $v;
+    }
+
     public function semua(Psn $psn, ?PeriodeCutoff $c): array
     {
         return [

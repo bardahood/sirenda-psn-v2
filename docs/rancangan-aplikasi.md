@@ -238,7 +238,8 @@ Parameter filter: `periode=2026-09`, `prov=31,32`, `klaster=3,7`, `dit=12`, `sta
   - Kinerja: 18 ms per halaman tabel.
 - **Detail Proyek** (`/proyek/{id}`, `GET /api/v1/proyek/{id}`) dirender di server dan tidak di-cache (37 ms).
   - Tab yang tersedia: Profil, KP/RO (hierarki + critical path), Progres & Anggaran (kurva S dari snapshot terbit dengan penanda merah bila Terlambat, ringkasan deviasi, tabel RO + tautan bukti, isu terbuka dengan penanda lewat tenggat, jejak audit), serta Dokumen & Riwayat (riwayat 100 perubahan dengan nilai lama/baru).
-  - Tab Perencanaan, Risiko & Isu, Regulasi, dan Stakeholder masih placeholder.
+  - Tab Perencanaan (target tahunan, indikator kinerja, penerima manfaat, kontribusi Trisula dengan target/realisasi 2026–2029, SDGs, dukungan, fasilitas kemudahan diterima, asal usulan PSI & penilaiannya, status evaluasi), Risiko & Isu (ringkasan per level residual/aktual, register risiko inheren → residual → aktual dengan perlakuan & tahun perlakuan, entri identik digabung; isu dengan tenggat, jalur kritis, tindak lanjut), Regulasi (pipeline 4 tahap, justifikasi, PJ, target tahun, penetapan), dan Stakeholder (pemetaan stakeholder jenis A & kerangka kelembagaan jenis B per kategori; kode INST diterjemahkan ke nama K/L, kode wilayah ke pemerintah daerah) tersedia sejak 17 Nov 2026.
+  - Impor: uraian risiko & nama regulasi berupa penanda "Belum ada"/"Tidak ada…"/"Test" dilewati dan dicatat di laporan ETL (`legacy.penanda_kosong`); sebelumnya 21 risiko "Belum ada" berlevel Tinggi ikut menaikkan K4.
   - PSN di luar cakupan Operator K/L menghasilkan 404. Breadcrumb dan tombol Kembali mempertahankan filter serta opsi tabel portofolio.
 - **Kualitas Data** (`/kualitas-data`, `GET /api/v1/kualitas-data`):
   - KPI dengan pembanding cut-off sebelumnya;

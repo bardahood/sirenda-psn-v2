@@ -23,8 +23,8 @@ class ProyekController extends Controller
         'dokumen' => 'Dokumen & Riwayat',
     ];
 
-    /** Tab yang sudah tersedia pada Fase 3; lainnya placeholder. */
-    public const TAB_TERSEDIA = ['profil', 'kpro', 'progres', 'dokumen'];
+    /** Seluruh tab sudah tersedia. */
+    public const TAB_TERSEDIA = ['profil', 'perencanaan', 'kpro', 'progres', 'risiko', 'regulasi', 'stakeholder', 'dokumen'];
 
     public function index()
     {
@@ -40,6 +40,10 @@ class ProyekController extends Controller
 
         $data = match ($tab) {
             'profil' => $proyek->profil($psn),
+            'perencanaan' => $proyek->perencanaan($psn),
+            'risiko' => $proyek->risikoIsu($psn),
+            'regulasi' => $proyek->regulasi($psn),
+            'stakeholder' => $proyek->stakeholder($psn),
             'kpro' => $proyek->kegiatan($psn, $c),
             'progres' => $proyek->progres($psn, $c),
             'dokumen' => [

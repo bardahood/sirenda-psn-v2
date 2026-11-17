@@ -525,6 +525,11 @@ class LegacyImporter
             if (! ($psn = $this->psnId($r->psn_id, 'psn_risiko')) || ! ($u = $this->teks($r->risiko))) {
                 continue;
             }
+            if ($this->penandaKosong($u)) {
+                $this->peringatan('risiko', "psn_risiko#{$r->id}: isian penanda '{$u}' (bukan risiko), dilewati");
+
+                continue;
+            }
             $kategori = trim((string) $r->kategori);
             $kategoriId = $kategori === 'Sosial' ? $this->refKode('RISK', 'A') : $this->refKode('RISK', $kategori, 'psn_risiko');
             $id = DB::table('risiko')->insertGetId([
@@ -572,8 +577,8 @@ class LegacyImporter
             if (! ($psn = $this->psnId($r->psn_id, 'psn_regulasi'))) {
                 continue;
             }
-            if (! ($u = $this->teks($r->regulasi))) {
-                $this->peringatan('regulasi', "psn_regulasi#{$r->id}: nama regulasi kosong ('{$r->regulasi}'), dilewati");
+            if (! ($u = $this->teks($r->regulasi)) || $this->penandaKosong($u)) {
+                $this->peringatan('regulasi', "psn_regulasi#{$r->id}: nama regulasi kosong atau penanda ('{$r->regulasi}'), dilewati");
 
                 continue;
             }
@@ -943,6 +948,18 @@ class LegacyImporter
     }
 
     /** Teks bersih: buang karakter pengganti (U+FFFD) & NBSP hasil salah encoding, kosong -> null. */
+    /** Teks penanda "tidak ada" (config legacy.penanda_kosong), bukan data sungguhan. */
+    protected function penandaKosong(string $teks): bool
+    {
+        foreach (config('psn_dashboard.legacy.penanda_kosong', []) as $pola) {
+            if (preg_match($pola, trim($teks))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     protected function teks($v): ?string
     {
         if ($v === null) {

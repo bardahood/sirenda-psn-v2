@@ -57,13 +57,6 @@
             </ul>
         </nav>
 
-        @if (in_array($tab, \App\Http\Controllers\ProyekController::TAB_TERSEDIA, true))
-            @include('proyek.tab.'.$tab, ['data' => $data, 'labelStatus' => $labelStatus])
-        @else
-            <section class="kartu text-center">
-                <p class="judul-panel">{{ \App\Http\Controllers\ProyekController::TAB[$tab] }}</p>
-                <p class="mt-1 text-slate-600">Tab ini disiapkan pada fase berikutnya ({{ $tab === 'perencanaan' ? 'Fase 4: hasil penilaian 14 kriteria' : 'rilis v2: risiko harapan vs aktual, regulasi, dan stakeholder 4 level' }}).</p>
-            </section>
-        @endif
+        @include('proyek.tab.'.$tab, ['data' => $data, 'labelStatus' => $labelStatus])
     </div>
 </x-app-layout>

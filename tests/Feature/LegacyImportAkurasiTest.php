@@ -34,13 +34,15 @@ class LegacyImportAkurasiTest extends TestCase
         $this->assertSame($legacy->table('lokasi_psn')->count(), DB::table('psn_lokasi')->count());
         $this->assertSame($legacy->table('psn_item')->count(), DB::table('psn_profil_item')->count());
         // Regulasi tanpa nama (kosong/"-") dilewati dan dicatat di laporan ETL.
-        $this->assertSame($legacy->table('psn_regulasi')->whereRaw("TRIM(COALESCE(regulasi, '')) NOT IN ('', '-', '.', 'NULL')")->count(), DB::table('regulasi')->count());
+        $this->assertSame($legacy->table('psn_regulasi')->whereRaw("TRIM(COALESCE(regulasi, '')) NOT IN ('', '-', '.', 'NULL')")
+            ->whereRaw("TRIM(regulasi) NOT REGEXP '^(belum|tidak)[[:space:]]+ada([^[:alnum:]]|$)|^test(ing)?$'")->count(), DB::table('regulasi')->count());
         $this->assertSame(
             $legacy->table('psn_kegiatan')->count() + $legacy->table('psn_kegiatan_cp')->count(),
             DB::table('kegiatan')->count()
         );
         // Risiko tanpa psn_id pada data lama tidak dapat diimpor (dicatat di laporan ETL).
-        $this->assertSame($legacy->table('psn_risiko')->whereNotNull('psn_id')->count(), DB::table('risiko')->count());
+        $this->assertSame($legacy->table('psn_risiko')->whereNotNull('psn_id')
+            ->whereRaw("TRIM(COALESCE(risiko, '')) NOT REGEXP '^(belum|tidak)[[:space:]]+ada([^[:alnum:]]|$)|^test(ing)?$'")->count(), DB::table('risiko')->count());
     }
 
     public function test_agregat_provinsi_dan_klaster_identik(): void

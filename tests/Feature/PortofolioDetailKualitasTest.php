@@ -142,7 +142,7 @@ class PortofolioDetailKualitasTest extends TestCase
             ->assertSee('https://contoh.go.id/bukti.pdf', false);
 
         $this->get("/proyek/{$id}?tab=dokumen")->assertOk()->assertSee('Riwayat Perubahan');
-        $this->get("/proyek/{$id}?tab=risiko")->assertOk()->assertSee('rilis v2');
+        $this->get("/proyek/{$id}?tab=risiko")->assertOk()->assertSee('Register Risiko')->assertDontSee('rilis v2');
         $this->get("/proyek/{$id}?tab=tidak-ada")->assertOk()->assertSee('Gambaran Umum');
         $this->get('/proyek/999999')->assertNotFound();
     }
