@@ -442,13 +442,16 @@ class EvaluasiStatusTest extends TestCase
         $this->assertNotContains('B1 Tahapan', $keluar['kurang']);
 
         $alur = $layanan->alur($daftar);
-        $this->assertSame([3, 1, 2], [$alur['total'], $alur['keluar'], $alur['proyeksi']]);
+        // Proyeksi hanya mengurangi keputusan PMO (Indikasi Dikeluarkan); Keluar dari PSN di SIRENDA tidak dikurangkan.
+        $this->assertSame([3, 1, 3], [$alur['total'], $alur['keluar'], $alur['proyeksi']]);
+        EvaluasiPsn::create(['psn_id' => $k->id, 'tahun_rkp' => $layanan->tahun(), 'form_diterima_at' => '2026-11-10', 'catatan_analisis' => 'Sudah keluar', 'indikasi_status' => 'DIKELUARKAN', 'status_akhir' => 'DIKELUARKAN']);
+        $this->assertSame(2, $layanan->alur($layanan->daftar())['proyeksi']);
 
         $this->actingAs($this->buatPengguna('Tim Koordinasi/PMO'));
         $html = $this->get(route('evaluasi.kertas-kerja'))->assertOk()->assertSee('Keluar dari PSN')->getContent();
         $this->assertTrue(strpos($html, 'Zona Aktif') < strpos($html, 'Keluar Tol') && strpos($html, 'Keluar Tol') < strpos($html, 'Awal Bendungan'));
         // Basis evaluasi tidak menampilkan baris "sudah keluar" (tidak ambigu); proyeksi = total + baru - dikeluarkan.
-        $this->get(route('evaluasi.index'))->assertDontSee('sudah keluar PSN')->assertSee('PSN tahun berjalan')->assertSee('= 3 PSN tahun berjalan + 0 usulan baru − 1 dikeluarkan');
+        $this->get(route('evaluasi.index'))->assertDontSee('sudah keluar PSN')->assertSee('PSN tahun berjalan')->assertSee('= 3 PSN tahun berjalan + 0 usulan baru − 1 dikeluarkan')->assertSee('keputusan PMO');
     }
 
     public function test_a6_otomatis_dari_tahun_terbit_profil(): void

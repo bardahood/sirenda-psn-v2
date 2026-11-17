@@ -128,9 +128,9 @@
                                 </ol>
                             @endif
                         </li>
-                        <li class="flex items-center gap-2" title="Indikasi status Dikeluarkan{{ $alur['dikeluarkan_keluar'] ? ', termasuk '.$n($alur['dikeluarkan_keluar']).' PSN berstatus Keluar dari PSN di SIRENDA' : '' }}">
+                        <li class="flex items-center gap-2" title="Hanya keputusan PMO (Indikasi status = Dikeluarkan)">
                             <span class="angka inline-flex min-w-[2.75rem] justify-center rounded-md bg-red-700 px-2 py-0.5 font-bold text-white">−{{ $n($alur['dikeluarkan_total']) }}</span>
-                            <span class="text-slate-700">PSN tahun berjalan dikeluarkan</span>
+                            <a href="{{ $tautan(['status' => 'DIKELUARKAN', 'page' => null]) }}" class="text-slate-700 hover:underline">PSN tahun berjalan dikeluarkan (keputusan PMO)</a>
                         </li>
                         <li class="flex items-center gap-2">
                             <span class="angka inline-flex min-w-[2.75rem] justify-center rounded-md bg-slate-400 px-2 py-0.5 font-bold text-white">{{ $n($belumDiputus) }}</span>

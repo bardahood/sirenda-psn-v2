@@ -355,7 +355,8 @@ class EvaluasiStatusService
             ->where('r.status', 'FINAL')->where('r.rekomendasi', 'DIREKOMENDASIKAN')->whereNull('r.deleted_at')->whereNull('u.deleted_at')
             ->where('u.tahun_rkp', $this->tahun())->orderBy('u.nama')->get(['u.id', 'u.nama']);
         $dikeluarkan = $per['DIKELUARKAN'] ?? 0;
-        $dikeluarkanTotal = $daftar->filter(fn ($r) => $r['status_akhir'] === 'DIKELUARKAN' || ($r['data']['keluar'] ?? false))->count();
+        // Hanya keputusan PMO (Indikasi status = Dikeluarkan); status "Keluar dari PSN" di SIRENDA dan rekomendasi sistem tidak dihitung.
+        $dikeluarkanTotal = $daftar->where('status_akhir', 'DIKELUARKAN')->count();
 
         return [
             'total' => $daftar->count(),
@@ -372,7 +373,7 @@ class EvaluasiStatusService
             'baru' => $baru->count(),
             'baru_nama' => $baru->take(5)->map(fn ($u) => ['id' => $u->id, 'nama' => $u->nama])->all(),
             // Proyeksi daftar RKP berikutnya = PSN tahun berjalan + usulan baru ditetapkan - PSN tahun berjalan yang dikeluarkan.
-            // Dikeluarkan = indikasi status Dikeluarkan, atau status "Keluar dari PSN" di SIRENDA.
+            // Dikeluarkan = keputusan PMO (Indikasi status Dikeluarkan).
             'proyeksi' => $daftar->count() + $baru->count() - $dikeluarkanTotal,
             'dikeluarkan_total' => $dikeluarkanTotal,
             'dikeluarkan_keluar' => $daftar->filter(fn ($r) => $r['data']['keluar'] && $r['status_akhir'] !== 'DIKELUARKAN')->count(),
