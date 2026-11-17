@@ -19,7 +19,7 @@ use Throwable;
  */
 class IntegrasiController extends Controller
 {
-    public const JENIS = ['PSN' => 'Paket PSN', 'REFERENSI' => 'Referensi', 'REKONSILIASI' => 'Rekonsiliasi', 'TERAPKAN' => 'Penerapan'];
+    public const JENIS = ['PSN' => 'Paket PSN', 'REFERENSI' => 'Referensi', 'REKONSILIASI' => 'Rekonsiliasi', 'TERAPKAN' => 'Penerapan', 'KOLOM' => 'Kolom baru'];
 
     public const HASIL = ['DITERIMA' => 'Diterima', 'TETAP' => 'Tidak berubah', 'VERSI_LAMA' => 'Versi lama', 'BERHASIL' => 'Berhasil', 'GAGAL' => 'Gagal atau ditolak'];
 

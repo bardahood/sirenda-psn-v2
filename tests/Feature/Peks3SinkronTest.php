@@ -119,6 +119,23 @@ class Peks3SinkronTest extends TestCase
         $this->assertSame(['KP 1 (ubah)'], $c->table('psn_kegiatan')->where('psn_id', 7)->pluck('kegiatan')->all());
         $this->assertSame(1, $c->table('psn_kebutuhan')->where('psn_id', 7)->count());
         $this->assertSame(2, $c->table('psn_kegiatan')->where('psn_id', 9)->count());
+        // Kolom baru di PEKS3 ditambahkan otomatis ke tabel cermin (bukan ke tabel dashboard).
+        $this->assertSame('x', $c->table('psn')->where('id', 7)->value('kolom_baru'));
+        $this->assertFalse(Schema::hasColumn('psn', 'kolom_baru'));
+        $this->assertTrue(DB::table('integrasi_peks3_log')->where('jenis', 'KOLOM')->where('pesan', 'like', '%psn.kolom_baru%')->exists());
+
+        // Beberapa baris dengan kolom baru yang sama: kolom dibuat sekali, semua nilai tersimpan.
+        $q = $this->paket(9, '2026-11-14T09:00:00Z');
+        $q['tabel']['psn_kegiatan'] = [['id' => 91, 'psn_id' => 9, 'kegiatan' => 'KP 1', 'bobot_baru' => '1'], ['id' => 92, 'psn_id' => 9, 'kegiatan' => 'KP 2', 'bobot_baru' => '2']];
+        $this->kirim('psn', $q)->assertStatus(202)->assertJsonPath('data.0.hasil', 'DITERIMA');
+        $this->assertSame(['1', '2'], $c->table('psn_kegiatan')->where('psn_id', 9)->orderBy('id')->pluck('bobot_baru')->all());
+
+        // Bila dimatikan, kolom baru diabaikan dengan peringatan.
+        config(['psn_dashboard.peks3.tambah_kolom_otomatis' => false]);
+        $q = $this->paket(9, '2026-11-14T10:00:00Z');
+        $q['tabel']['psn'][0]['kolom_lain'] = 'y';
+        $this->kirim('psn', $q)->assertStatus(202)->assertJsonPath('data.0.peringatan.0', 'Kolom psn.kolom_lain tidak ada di cermin, diabaikan.');
+        $this->assertFalse(Schema::connection('legacy')->hasColumn('psn', 'kolom_lain'));
 
         // Isi sama -> TETAP; versi lebih lama -> diabaikan.
         $this->kirim('psn', $p)->assertJsonPath('data.0.hasil', 'TETAP');
@@ -126,7 +143,8 @@ class Peks3SinkronTest extends TestCase
         $this->assertSame(1, $c->table('psn_kegiatan')->where('psn_id', 7)->count());
 
         $this->assertNotNull(DB::table('integrasi_peks3_status')->value('tertunda_sejak'));
-        $this->assertSame(['DITERIMA', 'DITERIMA', 'DITERIMA', 'TETAP', 'VERSI_LAMA'], DB::table('integrasi_peks3_log')->orderBy('id')->pluck('hasil')->all());
+        $this->assertSame(['DITERIMA', 'DITERIMA', 'DITERIMA', 'DITERIMA', 'DITERIMA', 'TETAP', 'VERSI_LAMA'], DB::table('integrasi_peks3_log')->where('jenis', 'PSN')->orderBy('id')->pluck('hasil')->all());
+        $this->assertSame(2, DB::table('integrasi_peks3_log')->where('jenis', 'KOLOM')->count()); // psn.kolom_baru, psn_kegiatan.bobot_baru
     }
 
     public function test_validasi_kepemilikan_baris_dan_monev(): void

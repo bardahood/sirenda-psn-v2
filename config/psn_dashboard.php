@@ -364,6 +364,8 @@ return [
         'tabel_monev' => ['monev_detil', 'monev_kelembagaan', 'monev_capaian', 'monev_anggaran', 'monev_risiko', 'monev_regulasi', 'monev_dokumentasi', 'monev_evaluasi'],
         // Tabel referensi/global: upsert per kunci (tanpa hapus).
         'tabel_referensi' => ['master' => ['tipe_tabel', 'kode_tabel'], 'users' => ['username'], 'psn_2027' => ['id'], 'peta' => ['code', 'hc-key']],
+        // Kolom baru di PEKS3 ditambahkan otomatis ke tabel cermin (bukan ke tabel dashboard; itu lewat migrasi).
+        'tambah_kolom_otomatis' => (bool) env('PEKS3_TAMBAH_KOLOM_OTOMATIS', true),
         // Kolom yang tidak boleh dikirim/disimpan (kredensial aplikasi lama).
         'kolom_dibuang' => ['users' => ['password', 'token', 'remember_token']],
     ],

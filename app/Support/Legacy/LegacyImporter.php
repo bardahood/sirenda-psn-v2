@@ -234,6 +234,7 @@ class LegacyImporter
                 'ketersediaan_info_id' => $this->refKode('SKIF', $p->status),
                 'tahun_selesai' => $this->tahun($p->tahun_selesai),
                 'ket_tahun_selesai' => $this->potong($p->ket_tahun, 255),
+                'tahun_terbit' => $this->tahun($p->tahun_terbit ?? null),
                 'rencana_investasi_rp' => $this->angka($p->rencana_investasi),
                 'nilai_investasi_rp' => $nilai,
                 'investasi_anomali' => $anomali,

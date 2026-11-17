@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Connection;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use InvalidArgumentException;
@@ -277,7 +278,7 @@ class Peks3CerminService
         $kolom = $this->ada($tabel) ? array_flip($this->kolom($tabel)) : null;
         $buang = array_flip(config("psn_dashboard.peks3.kolom_dibuang.{$tabel}", []));
 
-        return array_map(function ($r, $i) use ($tabel, $kolom, $buang) {
+        return array_map(function ($r, $i) use ($tabel, &$kolom, $buang) {
             if (! is_array($r) || array_is_list($r)) {
                 throw new InvalidArgumentException("{$tabel}[{$i}] harus berupa objek kolom => nilai.");
             }
@@ -287,15 +288,36 @@ class Peks3CerminService
                     continue;
                 }
                 if ($kolom !== null && ! isset($kolom[$k])) {
-                    $this->peringatan[] = "Kolom {$tabel}.{$k} tidak ada di cermin, diabaikan.";
+                    if (! $this->tambahKolom($tabel, (string) $k)) {
+                        $this->peringatan[] = "Kolom {$tabel}.{$k} tidak ada di cermin, diabaikan.";
 
-                    continue;
+                        continue;
+                    }
+                    $kolom[$k] = true;
                 }
                 $hasil[$k] = is_array($nilai) ? json_encode($nilai, JSON_UNESCAPED_UNICODE) : (is_bool($nilai) ? (int) $nilai : $nilai);
             }
 
             return $hasil;
         }, $v, array_keys($v));
+    }
+
+    /**
+     * Kolom baru di SIRENDA PEKS3 ikut ditambahkan ke tabel cermin (TEXT NULL, menampung nilai apa pun), sehingga
+     * data tidak hilang dan siap dipetakan ke tabel dashboard lewat migrasi + LegacyImporter. Dijalankan sebelum
+     * transaksi penulisan (DDL MySQL melakukan commit implisit). Hanya nama kolom yang aman yang diterima.
+     */
+    protected function tambahKolom(string $tabel, string $kolom): bool
+    {
+        if (! config('psn_dashboard.peks3.tambah_kolom_otomatis') || ! preg_match('/^[A-Za-z][A-Za-z0-9_]{0,63}$/', $kolom)) {
+            return false;
+        }
+        Schema::connection('legacy')->table($tabel, fn (Blueprint $t) => $t->text($kolom)->nullable()->comment('ditambahkan otomatis dari kiriman SIRENDA PEKS3'));
+        unset($this->kolom[$tabel]);
+        $this->peringatan[] = "Kolom baru {$tabel}.{$kolom} ditambahkan otomatis ke cermin; tampil di dashboard setelah dipetakan.";
+        $this->log('KOLOM', null, 'DITERIMA', "Kolom baru {$tabel}.{$kolom} ditambahkan ke basis data cermin.");
+
+        return true;
     }
 
     protected function sisipkan(string $tabel, array $baris): int

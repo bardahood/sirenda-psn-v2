@@ -845,6 +845,7 @@ CREATE TABLE `psn` (
   `ketersediaan_info_id` bigint(20) unsigned DEFAULT NULL,
   `tahun_selesai` smallint(5) unsigned DEFAULT NULL,
   `ket_tahun_selesai` varchar(255) DEFAULT NULL,
+  `tahun_terbit` smallint(5) unsigned DEFAULT NULL COMMENT 'tahun penetapan PSN (SIRENDA PEKS3 psn.tahun_terbit)',
   `rencana_investasi_rp` decimal(24,2) DEFAULT NULL,
   `nilai_investasi_rp` decimal(24,2) DEFAULT NULL,
   `investasi_anomali` tinyint(1) NOT NULL DEFAULT 0,

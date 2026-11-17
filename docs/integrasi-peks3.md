@@ -111,7 +111,7 @@ Aturan isi paket:
 1. **Tabel yang dikirim diganti seluruhnya** untuk PSN tersebut. Daftar kosong `[]` berarti PSN itu tidak lagi memiliki baris di tabel tersebut. Tabel yang tidak disebut tidak diubah. Kit selalu mengirim semua tabel.
 2. Setiap baris tabel per PSN wajib memiliki `psn_id` (untuk `psn` dan `psn_log`: `id`) sama dengan `psn_id` paket; tabel anak monev wajib merujuk `monev_header` yang ada di paket yang sama. Bila tidak, paket ditolak tanpa ada data yang ditulis.
 3. Kirim baris apa adanya, termasuk baris yang di-soft-delete (`deleted_at` terisi) dan string kosong. Dashboard yang menentukan baris mana yang ditampilkan.
-4. Kolom yang tidak dikenal (kolom baru di PEKS3) diabaikan dengan peringatan; tabel yang tidak dikenal juga diabaikan. Kabari konsultan bila ada kolom/tabel baru yang perlu tampil.
+4. **Kolom baru di PEKS3 ditambahkan otomatis ke tabel cermin** (TEXT NULL, tercatat di log jenis "Kolom baru" pada Pengaturan → Integrasi Data; dapat dimatikan dengan `PEKS3_TAMBAH_KOLOM_OTOMATIS=false`), sehingga datanya tidak hilang. Kolom itu **tidak** otomatis muncul di tabel dashboard: tabel dashboard memakai struktur sendiri dan setiap kolom dipetakan oleh `LegacyImporter`, jadi penambahannya lewat migrasi + pemetaan oleh konsultan (contoh: `psn.tahun_terbit`, migrasi `2026_11_18_100000`). **Jangan menambah kolom manual di tabel dashboard**; kolom NOT NULL tanpa default menggagalkan penerapan. Tabel yang tidak dikenal tetap diabaikan. Kabari konsultan bila ada kolom/tabel baru yang perlu tampil.
 5. Isi paket yang sama persis dengan kiriman sebelumnya tidak memicu penerapan (`TETAP`).
 
 Tabel per PSN (kunci `psn_id`, kecuali `psn` dan `psn_log` memakai `id`):

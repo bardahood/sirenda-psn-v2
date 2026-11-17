@@ -685,6 +685,7 @@
 | `ketersediaan_info_id` | bigint(20) unsigned | ya | → `ref_kode.id` |  |
 | `tahun_selesai` | smallint(5) unsigned | ya |  |  |
 | `ket_tahun_selesai` | varchar(255) | ya |  |  |
+| `tahun_terbit` | smallint(5) unsigned | ya |  | tahun penetapan PSN (SIRENDA PEKS3 psn.tahun_terbit) |
 | `rencana_investasi_rp` | decimal(24,2) | ya |  |  |
 | `nilai_investasi_rp` | decimal(24,2) | ya |  |  |
 | `investasi_anomali` | tinyint(1) |  |  |  |
