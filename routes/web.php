@@ -155,6 +155,7 @@ Route::middleware(['auth', 'akun.aktif'])->group(function () {
             Route::get('/timeline-dp', 'timelineDp')->name('timeline-dp');
             Route::get('/aktivitas', 'aktivitas')->name('aktivitas');
             Route::get('/ikhtisar', 'ikhtisar')->name('ikhtisar');
+            Route::get('/pelaksanaan', 'pelaksanaan')->name('pelaksanaan');
         });
     });
 });

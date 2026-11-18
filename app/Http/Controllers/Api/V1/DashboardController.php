@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PeriodeCutoff;
 use App\Services\DashboardService;
 use App\Services\IkhtisarPortofolioService;
+use App\Services\PemantauanPelaksanaanService;
 use App\Support\Dashboard\FilterGlobal;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -84,6 +85,12 @@ class DashboardController extends Controller
     public function ikhtisar(Request $r, IkhtisarPortofolioService $ikhtisar): JsonResponse
     {
         return $this->jawab($r, fn ($c, $f) => $ikhtisar->ringkasan($c, $f));
+    }
+
+    /** GET /api/v1/dashboard/pelaksanaan -- seluruh panel Pemantauan Pelaksanaan dalam satu permintaan. */
+    public function pelaksanaan(Request $r, PemantauanPelaksanaanService $pelaksanaan): JsonResponse
+    {
+        return $this->jawab($r, fn ($c, $f) => $pelaksanaan->ringkasan($c, $f));
     }
 
     public function aktivitas(Request $r): JsonResponse

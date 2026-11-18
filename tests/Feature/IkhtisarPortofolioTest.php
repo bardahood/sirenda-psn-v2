@@ -63,7 +63,7 @@ class IkhtisarPortofolioTest extends TestCase
     public function test_halaman_ikhtisar_dan_pelaksanaan(): void
     {
         $this->get('/dashboard')->assertOk()->assertSee('Perjalanan Daftar PSN dalam RKP')->assertSee('Ikhtisar Portofolio')->assertSee('Pemantauan Pelaksanaan');
-        $this->get('/dashboard/pelaksanaan')->assertOk()->assertSee('Distribusi PSN per Klaster')->assertSee('Ikhtisar Portofolio');
+        $this->get('/dashboard/pelaksanaan')->assertOk()->assertSee('Peta Prioritas: Nilai Investasi vs Deviasi')->assertSee('Ikhtisar Portofolio');
     }
 
     public function test_pkpn_wilayah_dan_skema_tiga_kelompok(): void

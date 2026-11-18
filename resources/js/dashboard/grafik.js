@@ -3,10 +3,10 @@
 // sudut data 4px, grid/axis samar, tooltip per-batang & crosshair untuk garis.
 import * as echarts from 'echarts/core';
 import { BarChart, LineChart, HeatmapChart, PieChart, ScatterChart } from 'echarts/charts';
-import { GridComponent, TooltipComponent, LegendComponent, MarkLineComponent, MarkPointComponent, VisualMapComponent } from 'echarts/components';
+import { GridComponent, TooltipComponent, LegendComponent, MarkLineComponent, MarkPointComponent, MarkAreaComponent, VisualMapComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 
-echarts.use([BarChart, LineChart, HeatmapChart, PieChart, ScatterChart, GridComponent, TooltipComponent, LegendComponent, MarkLineComponent, MarkPointComponent, VisualMapComponent, CanvasRenderer]);
+echarts.use([BarChart, LineChart, HeatmapChart, PieChart, ScatterChart, GridComponent, TooltipComponent, LegendComponent, MarkLineComponent, MarkPointComponent, MarkAreaComponent, VisualMapComponent, CanvasRenderer]);
 
 export const WARNA = {
     aksen: '#1F6FD1',
@@ -322,4 +322,53 @@ export function trenArea(bulan) {
     opsi.series.forEach((s) => { s.endLabel = { show: false }; });
     opsi.series[1].areaStyle = { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: `${WARNA.seri1}33` }, { offset: 1, color: `${WARNA.seri1}05` }]) };
     return opsi;
+}
+
+/** Kurva S portofolio + proyeksi realisasi Desember (garis putus-putus biru dari titik terakhir). */
+export function kurvaProyeksi(bulan, proyeksi) {
+    const opsi = trenArea(bulan);
+    opsi.grid = { left: 8, right: 16, top: 36, bottom: 8, containLabel: true };
+    if (proyeksi) {
+        const data = bulan.map((b) => (b.bulan === proyeksi.bulan_awal ? proyeksi.nilai_awal : b.bulan === 12 ? proyeksi.desember : null));
+        opsi.series.push({
+            name: 'Proyeksi realisasi', type: 'line', data, connectNulls: true, symbol: (v, p) => (p.dataIndex === 11 ? 'circle' : 'none'), symbolSize: 8,
+            lineStyle: { width: 2, type: [4, 4], color: WARNA.seri1, opacity: 0.8 }, itemStyle: { color: '#fff', borderColor: WARNA.seri1, borderWidth: 2 },
+            label: { show: true, position: 'top', formatter: (p) => (p.dataIndex === 11 ? `${angka(p.value)}%` : ''), color: WARNA.seri1, fontSize: 11, fontWeight: 700 },
+            tooltip: { valueFormatter: (v) => (v === null || v === undefined ? '–' : `${angka(v)}% (proyeksi laju saat ini)`) },
+        });
+    }
+    return opsi;
+}
+
+/**
+ * Peta prioritas: x = deviasi progres (pp), y = nilai investasi (Rp triliun, skala log), ukuran = isu terbuka.
+ * Satu seri per status (warna status + label di legenda). Area kiri atas = besar dan tertinggal.
+ */
+export function kuadran(q, warnaStatus, labelStatus) {
+    const urut = ['TERLAMBAT', 'BERISIKO', 'ON_TRACK'];
+    const xs = q.titik.map((t) => t.deviasi_pp);
+    const xMin = Math.min(q.garis_x - 10, ...xs);
+    const xMax = Math.max(10, ...xs);
+    const seri = urut.map((s, i) => ({
+        name: labelStatus[s], type: 'scatter', cursor: 'pointer',
+        data: q.titik.filter((t) => t.status === s).map((t) => ({ value: [t.deviasi_pp, Math.max(t.investasi_triliun, 0.001)], ...t })),
+        symbolSize: (v, p) => 8 + Math.sqrt(p.data.isu) * 4,
+        itemStyle: { color: warnaStatus[s], opacity: 0.8, borderColor: '#fff', borderWidth: 1 },
+        ...(i === 0 && q.garis_y ? {
+            markArea: { silent: true, itemStyle: { color: 'rgba(220,38,38,0.06)' }, label: { position: 'insideTopLeft', color: '#b91c1c', fontSize: 10.5, fontWeight: 600 },
+                data: [[{ name: 'Besar dan tertinggal', coord: [xMin, q.garis_y] }, { coord: [q.garis_x, 'max'] }]] },
+            markLine: { silent: true, symbol: 'none', lineStyle: { color: WARNA.teksSamar, type: 'dashed', width: 1 }, label: { show: false },
+                data: [{ xAxis: q.garis_x }, { yAxis: q.garis_y }] },
+        } : {}),
+    }));
+    return {
+        grid: { left: 22, right: 16, top: 26, bottom: 22, containLabel: true },
+        legend: { top: 0, right: 0, itemWidth: 10, itemHeight: 10, textStyle: { color: WARNA.teks, fontSize: 11 } },
+        tooltip: { ...dasar.tooltip, trigger: 'item', formatter: (p) => `<b>${p.data.nama}</b>${p.data.pj ? `<br/>${p.data.pj}` : ''}<br/>Deviasi ${p.data.deviasi_pp > 0 ? '+' : ''}${angka(p.data.deviasi_pp)} pp · ${labelStatus[p.data.status]}<br/>Investasi Rp ${angka(p.data.investasi_triliun, 2)} T · ${p.data.isu} isu terbuka<br/><span style="color:#64748b">Klik untuk membuka detail</span>` },
+        xAxis: { type: 'value', min: Math.floor(xMin / 10) * 10, max: Math.ceil(xMax / 10) * 10, name: 'Deviasi realisasi terhadap rencana (pp)', nameLocation: 'middle', nameGap: 20, nameTextStyle: { color: WARNA.teksSamar, fontSize: 10.5 },
+            axisLabel: { color: WARNA.teksSamar, fontSize: 10.5 }, splitLine: { lineStyle: { color: WARNA.grid } } },
+        yAxis: { type: 'log', logBase: 10, min: 10 ** Math.floor(Math.log10(Math.max(0.001, Math.min(...q.titik.map((t) => t.investasi_triliun).filter((v) => v > 0), 1)))), name: 'Investasi (Rp T, skala log)', nameLocation: 'middle', nameGap: 38, nameTextStyle: { color: WARNA.teksSamar, fontSize: 10.5 },
+            axisLabel: { color: WARNA.teksSamar, fontSize: 10.5, formatter: (v) => angka(v, 3) }, splitLine: { lineStyle: { color: WARNA.grid } } },
+        series: seri,
+    };
 }

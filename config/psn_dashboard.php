@@ -217,6 +217,36 @@ return [
     // Jumlah baris panel ringkas dashboard.
     'dashboard_top' => ['direktorat' => 5, 'dp_proyek' => 6],
 
+    // Dashboard > Pemantauan Pelaksanaan (tampilan pengambilan keputusan pimpinan). Lihat docs/kamus-indikator.md.
+    'pelaksanaan' => [
+        // Daftar Perhatian Pimpinan: skor = jumlah bobot alasan; investasi = bobot x peringkat persentil nilai investasi.
+        'prioritas' => [
+            'jumlah' => 10,
+            'bobot' => [
+                'TERLAMBAT' => 40, 'BERISIKO' => 20, 'TANPA_DATA' => 10,
+                'risiko_sangat_tinggi' => 25, 'risiko_tinggi' => 15,
+                'isu_jalur_kritis' => 15, 'isu_banyak' => 10, 'investasi' => 20,
+            ],
+            'isu_banyak_min' => 5,              // isu terbuka >= n => alasan "Isu menumpuk"
+            'investasi_besar_persentil' => 90,  // persentil >= n => alasan "Investasi besar"
+        ],
+        // Matriks status: n klaster terbanyak, sisanya digabung "Lainnya".
+        'matriks_top_n' => 8,
+        // Kepatuhan pelaporan: n K/L terendah yang ditampilkan (CSV memuat semua).
+        'kepatuhan_top_n' => 8,
+        // Pergerakan status: n PSN memburuk/berhenti melapor yang ditampilkan (investasi terbesar dulu).
+        'pergerakan_top_n' => 4,
+        // Kategori hambatan isu: pola regex atas uraian + kebutuhan dukungan, urutan = prioritas (pertama cocok).
+        'kategori_isu' => [
+            'LAHAN' => ['label' => 'Lahan', 'pola' => '/lahan|tanah|pembebasan|bidang|penlok|ganti rugi|konsinyasi|relokasi|kawasan hutan|ppkh|okupasi/i'],
+            'PERIZINAN' => ['label' => 'Perizinan & regulasi', 'pola' => '/izin|perizinan|amdal|persetujuan|rekomendasi|regulasi|perpres|permen|perda|peraturan|kebijakan|tata ruang|rtrw|rdtr|kkpr|statuta|penetapan/i'],
+            'PENDANAAN' => ['label' => 'Pendanaan', 'pola' => '/dana|pendanaan|anggaran|pembiayaan|biaya|investor|mitra|kpbu|apbn|harga|tarif|blokir/i'],
+            'SOSIAL' => ['label' => 'Sosial & lingkungan', 'pola' => '/warga|masyarakat|sosial|demo|penolakan|adat|konflik|lingkungan|banjir|limbah/i'],
+            'TEKNIS' => ['label' => 'Teknis & infrastruktur pendukung', 'pola' => '/teknis|konstruksi|desain|\bded\b|kontraktor|material|jaringan|listrik|gas|air baku|akses|jalan|transmisi|interkoneksi/i'],
+        ],
+        'kategori_isu_lainnya' => 'Lainnya',
+    ],
+
     // Integrasi usulan PSN dengan aplikasi permohonan Dit. PSI (Fase 8). Lihat docs/integrasi-psi.md.
     // Form Pengendalian PSN (cetak per PSN; /proyek/{id}/form-pengendalian). Isian terisi dari data SIRENDA,
     // sisanya dilengkapi PIC. Teks batas pengembalian diubah per putaran evaluasi.

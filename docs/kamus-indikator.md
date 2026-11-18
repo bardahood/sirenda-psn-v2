@@ -55,7 +55,7 @@ Status selalu ditampilkan sebagai badge berlabel, tidak pernah warna saja.
 
 ## Ikhtisar Portofolio (Dashboard, tampilan bawaan)
 
-Tampilan gaya paparan Bahan Rapat Tim Koordinasi PSN (16 November 2026). Endpoint `GET /api/v1/dashboard/ikhtisar`, layanan `App\Services\IkhtisarPortofolioService`, pengaturan `psn_dashboard.ikhtisar`. Tampilan lama tetap tersedia sebagai **Pemantauan Pelaksanaan** (`/dashboard/pelaksanaan`).
+Tampilan gaya paparan Bahan Rapat Tim Koordinasi PSN (16 November 2026). Endpoint `GET /api/v1/dashboard/ikhtisar`, layanan `App\Services\IkhtisarPortofolioService`, pengaturan `psn_dashboard.ikhtisar`. Tab kedua, **Pemantauan Pelaksanaan** (`/dashboard/pelaksanaan`), dijelaskan di bagian berikut.
 
 | Kode | Indikator | Definisi |
 |---|---|---|
@@ -65,6 +65,25 @@ Tampilan gaya paparan Bahan Rapat Tim Koordinasi PSN (16 November 2026). Endpoin
 | IKH_WILAYAH | Sebaran menurut Wilayah | PSN aktif per wilayah (Sumatera, Jawa, Kalimantan, Sulawesi, Bali & Nusa Tenggara, Maluku & Papua). PSN yang lokasinya di ≥ 2 wilayah atau tanpa lokasi masuk **Nasional & Lintas Pulau**, sehingga Σ wilayah = jumlah PSN. Ditampilkan juga jumlah PKPN dan Σ investasi. |
 | IKH_SELESAI | PSN Selesai menurut Kebutuhan Status | PSN aktif berstatus Kumulatif Proyek Selesai, dikelompokkan dari isian K/L "Kebutuhan Status PSN" di SIRENDA (`psn_kebutuhan` jenis B → `psn_evaluasi_status`) dengan pola teks di config: pola **Tidak lagi memerlukan** diuji lebih dulu, lalu **Masih memerlukan**; teks lain atau kosong = **Perlu konfirmasi**. Isian D1 menu Evaluasi (bila diisi) didahulukan, sama dengan aturan D1 efektif di menu Evaluasi (ditandai "D1 Evaluasi"). Penggolongan teks: `App\Support\Evaluasi\KebutuhanStatus`. |
 | IKH_STATUS | Status Tahapan & Target Selesai | PSN aktif per status tahapan SIRENDA (Penyiapan, Transaksi, Konstruksi, Beroperasi sebagian, Kumulatif selesai, Belum ada data) + jumlah Keluar dari PSN. Target selesai PSN yang belum Kumulatif Selesai dibanding batas RPJMN 2029: s.d. 2027, 2028–2029, > 2029, belum diisi. |
+
+## Pemantauan Pelaksanaan (Dashboard, tab kedua)
+
+Tampilan pengambilan keputusan pimpinan atas PSN aktif. Endpoint `GET /api/v1/dashboard/pelaksanaan`, layanan `App\Services\PemantauanPelaksanaanService`, pengaturan `psn_dashboard.pelaksanaan`. Seluruh filter global berlaku. Panel P1, P6, P7, P8, Direktorat, RO kritis, Tahapan, dan Timeline DP tidak lagi ditampilkan di sini; endpoint lamanya tetap tersedia (PDF Ringkasan Eksekutif).
+
+| Kode | Nama | Rumus | Sumber |
+|---|---|---|---|
+| PL_AKTIF | PSN Aktif | COUNT PSN aktif; rincian melapor dan Tanpa data. Δ % | `snapshot_psn` |
+| PL_PROGRES | Progres Fisik vs Rencana | realisasi dan rencana rata-rata tertimbang investasi (metode K3) atas PSN yang memiliki keduanya; deviasi = realisasi − rencana; status memakai ambang On Track/Berisiko/Terlambat. Δ pp realisasi | `snapshot_psn` |
+| PL_SERAPAN | Serapan Anggaran | Σ realisasi anggaran ÷ Σ pagu tahun berjalan (sama dengan P3). Δ pp | `snapshot_psn` |
+| PL_KRITIS | PSN Kritis | sama dengan K4. Δ % (turun = hijau) | `snapshot_psn.is_kritis` |
+| PL_CAKUPAN | Cakupan Pelaporan | PSN aktif berstatus selain TANPA_DATA ÷ PSN aktif × 100. Δ pp | `snapshot_psn.status_progres` |
+| PL_KURVA | Kurva S Portofolio | P5 + proyeksi realisasi Desember = realisasi terakhir + (realisasi terakhir − realisasi pertama) ÷ selisih bulan × sisa bulan, dibatasi 0–100. Satu titik: realisasi ÷ bulan sebagai laju | `snapshot_psn` lintas cut-off |
+| PL_KUADRAN | Peta Prioritas | titik = PSN aktif dengan `deviasi_pp` dan investasi > 0; x = deviasi, y = investasi (log), ukuran = isu terbuka; garis x = `on_track_min_deviasi`, garis y = median investasi titik. "Besar dan tertinggal" = deviasi ≤ ambang dan investasi ≥ median | `snapshot_psn`, `isu` |
+| PL_PERHATIAN | Daftar Perhatian Pimpinan | skor = Σ bobot alasan (`pelaksanaan.prioritas.bobot`): status Terlambat/Berisiko/Tanpa data, risiko residual Sangat Tinggi/Tinggi, ada isu di KP/RO critical path, isu terbuka ≥ `isu_banyak_min`, ditambah bobot investasi × persentil investasi. Hanya PSN dengan ≥ 1 alasan selain investasi; 10 teratas, skor menurun lalu nama menaik. Penanggung jawab = `psn_kelembagaan` peran PENANGGUNG_JAWAB urutan pertama | `snapshot_psn`, `isu`, `psn_kelembagaan` |
+| PL_MATRIKS | Status per Klaster | COUNT PSN aktif per klaster × status; `matriks_top_n` klaster terbanyak, sisanya "Lainnya". Klik sel = filter klaster + status | `snapshot_psn` |
+| PL_KEPATUHAN | Kepatuhan Pelaporan per K/L | per K/L induk (filter `kl`): PSN aktif melapor ÷ PSN aktif K/L; PSN multi-K/L dihitung di tiap K/L. Urut persen menaik, jumlah PSN menurun, nama menaik | `snapshot_psn.unit_kerja_id` |
+| PL_HAMBATAN | Hambatan Utama | isu status ≠ SELESAI milik PSN aktif terfilter, dikategorikan dengan pola `pelaksanaan.kategori_isu` atas uraian + kebutuhan dukungan (pola pertama yang cocok; tidak cocok = Lainnya), dipisah pada PSN kritis (K4) dan PSN lain. **Dibaca dari register isu terkini**, tidak dibekukan per cut-off | `isu` |
+| PL_PERGERAKAN | Pergerakan Status | status progres tiap PSN aktif dibanding cut-off terbit sebelumnya: Membaik/Memburuk (On Track > Berisiko > Terlambat), Tetap, Mulai melapor (dari TANPA_DATA), Berhenti melapor (ke TANPA_DATA), Baru tercatat. Sorotan: memburuk lalu berhenti melapor, investasi terbesar dulu, `pergerakan_top_n` | `snapshot_psn` dua cut-off |
 
 ## Komponen lain
 
