@@ -49,7 +49,11 @@ class PeranSeeder extends Seeder
                     $izin[] = "{$modul}.{$aksi}";
                 }
             }
-            Role::findOrCreate($peran)->syncPermissions($izin);
+            // Izin peran yang sudah ada tidak ditimpa: bisa telah diubah lewat Pengaturan > Peran & Hak Akses.
+            $role = Role::findOrCreate($peran);
+            if ($role->wasRecentlyCreated || $role->permissions()->doesntExist()) {
+                $role->syncPermissions($izin);
+            }
         }
     }
 }

@@ -15,6 +15,7 @@ use App\Http\Controllers\Pengaturan\CutoffController;
 use App\Http\Controllers\Pengaturan\IntegrasiController;
 use App\Http\Controllers\Pengaturan\MasterDataController;
 use App\Http\Controllers\Pengaturan\PenggunaController;
+use App\Http\Controllers\Pengaturan\PeranController;
 use App\Http\Controllers\PengisianController;
 use App\Http\Controllers\PerencanaanController;
 use App\Http\Controllers\PetaController;
@@ -81,6 +82,10 @@ Route::middleware(['auth', 'akun.aktif'])->group(function () {
         Route::get('/pengguna/{pengguna}', [PenggunaController::class, 'edit'])->whereNumber('pengguna')->name('pengguna.edit');
         Route::put('/pengguna/{pengguna}', [PenggunaController::class, 'update'])->whereNumber('pengguna')->name('pengguna.update');
         Route::post('/pengguna/{pengguna}/reset-sandi', [PenggunaController::class, 'resetSandi'])->whereNumber('pengguna')->name('pengguna.reset');
+        Route::get('/peran', [PeranController::class, 'index'])->name('peran.index');
+        Route::post('/peran', [PeranController::class, 'store'])->name('peran.store');
+        Route::put('/peran/{peran}', [PeranController::class, 'update'])->whereNumber('peran')->name('peran.update');
+        Route::delete('/peran/{peran}', [PeranController::class, 'destroy'])->whereNumber('peran')->name('peran.destroy');
         Route::get('/cutoff', [CutoffController::class, 'index'])->name('cutoff');
         Route::post('/cutoff', [CutoffController::class, 'bangun'])->name('cutoff.bangun');
         Route::get('/integrasi', [IntegrasiController::class, 'index'])->name('integrasi');

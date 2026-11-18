@@ -110,6 +110,22 @@ return [
     'rbac' => [
         'peran_lihat_terbatas' => ['Operator K/L'],
         'peran_ubah_terbatas' => ['Operator K/L', 'Direktorat Sektor'],
+        // Pengaturan > Peran & Hak Akses: label modul, menu yang dibuka, dan tingkat yang dipakai aplikasi.
+        // Tingkat bersifat kumulatif (lihat < input < verifikasi < kelola); hanya tingkat di 'aksi' yang ditampilkan.
+        'modul' => [
+            'ringkasan' => ['label' => 'Dashboard & Peta', 'menu' => ['Dashboard', 'Peta Sebaran'], 'aksi' => ['lihat' => 'Melihat dashboard dan peta sebaran']],
+            'portofolio' => ['label' => 'Portofolio PSN', 'menu' => ['Portofolio PSN'], 'aksi' => ['lihat' => 'Melihat daftar PSN dan profilnya']],
+            'detail' => ['label' => 'Detail Proyek & Pengisian', 'menu' => ['Detail Proyek', 'Pengisian & Verifikasi (mulai tingkat Input)'], 'aksi' => [
+                'lihat' => 'Melihat detail proyek', 'input' => 'Mengisi pemutakhiran per cut-off', 'verifikasi' => 'Memverifikasi isian', 'kelola' => 'Mengelola seluruh data proyek']],
+            'perencanaan' => ['label' => 'Perencanaan', 'menu' => ['Perencanaan (usulan, penilaian, pleno)'], 'aksi' => [
+                'lihat' => 'Melihat usulan dan penilaian', 'input' => 'Membuat usulan dan mengisi penilaian', 'verifikasi' => 'Memverifikasi penilaian', 'kelola' => 'Memfinalkan, pleno, dan rekomendasi']],
+            'evaluasi' => ['label' => 'Evaluasi Status PSN', 'menu' => ['Evaluasi Status PSN'], 'aksi' => [
+                'lihat' => 'Melihat pemantauan evaluasi', 'input' => 'Mengisi formulir dan kertas kerja', 'verifikasi' => 'Pengecekan dan analisis', 'kelola' => 'Menetapkan indikasi status']],
+            'risiko' => ['label' => 'Risiko, Isu & Regulasi', 'menu' => ['Risiko, Isu & Regulasi'], 'aksi' => ['lihat' => 'Melihat register risiko dan isu', 'input' => 'Memperbarui pemantauan risiko dan isu']],
+            'kualitas' => ['label' => 'Kualitas Data', 'menu' => ['Kualitas Data'], 'aksi' => ['lihat' => 'Melihat keterisian dan kualitas data']],
+            'laporan' => ['label' => 'Laporan', 'menu' => ['Laporan'], 'aksi' => ['lihat' => 'Melihat dan mengunduh laporan']],
+            'pengaturan' => ['label' => 'Pengaturan', 'menu' => ['Pengaturan (pengguna, peran, cut-off, master data, integrasi)'], 'aksi' => ['kelola' => 'Mengelola seluruh pengaturan aplikasi']],
+        ],
     ],
 
     // Snapshot per cut-off.
