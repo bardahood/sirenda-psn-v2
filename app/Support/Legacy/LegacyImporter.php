@@ -203,10 +203,10 @@ class LegacyImporter
         // ID eksplisit: PSN lama memakai ID sebelumnya, PSN baru melanjutkan setelah ID terbesar.
         $idBerikut = max([0, ...array_values($this->idPsnTetap), (int) DB::table('psn')->max('id')]) + 1;
         foreach ($this->legacy->table('psn')->orderBy('id')->get() as $p) {
-            $nilai = $this->angka($p->nilai_investasi);
+            $nilai = $this->rupiah($p->nilai_investasi);
             $anomali = $nilai !== null && $nilai > 0 && ($nilai < $min || $nilai > $max);
             if ($anomali) {
-                $this->peringatan('investasi_anomali', "psn#{$p->id} {$this->potong($p->proyek_psn)}: Rp".number_format($nilai, 0, ',', '.'));
+                $this->peringatan('investasi_anomali', "psn#{$p->id} {$this->potong($p->proyek_psn)}: Rp".number_format((float) $nilai, 0, ',', '.'));
             }
 
             $id = DB::table('psn')->insertGetId([
@@ -236,7 +236,7 @@ class LegacyImporter
                 'tahun_selesai' => $this->tahun($p->tahun_selesai),
                 'ket_tahun_selesai' => $this->potong($p->ket_tahun, 255),
                 'tahun_terbit' => $this->tahun($p->tahun_terbit ?? null),
-                'rencana_investasi_rp' => $this->angka($p->rencana_investasi),
+                'rencana_investasi_rp' => $this->rupiah($p->rencana_investasi),
                 'nilai_investasi_rp' => $nilai,
                 'investasi_anomali' => $anomali,
                 'sumber_input' => $p->sumber,
@@ -296,18 +296,25 @@ class LegacyImporter
             $this->hitung('psn_lokasi');
         }
 
-        foreach ($this->legacy->table('psn_pendanaan')->whereNull('deleted_at')->get() as $r) {
+        $dirinci = []; // [psn][dana] => baris psn_pendanaan sudah dicatat (beberapa baris sumber sama dijumlahkan)
+        foreach ($this->legacy->table('psn_pendanaan')->whereNull('deleted_at')->orderBy('id')->get() as $r) {
             $psn = $this->psnId($r->psn_id, 'psn_pendanaan');
             $dana = $this->kode('ref_sumber_dana', $r->pendanaan, 'psn_pendanaan');
             if ($psn && $dana) {
                 // nilai = nominal Rupiah dari sumber dana ini (0/kosong = belum dirinci).
-                $nominal = $this->angka($r->nilai ?? null);
+                $nominal = $this->rupiah($r->nilai ?? null);
                 $n = DB::table('psn_sumber_dana')->insertOrIgnore(['psn_id' => $psn, 'sumber_dana_id' => $dana, 'nilai_rp' => $nominal > 0 ? $nominal : null,
                     'keterangan' => $this->potong($r->keterangan, 255)] + $this->jejak($r, false));
                 // Baris dari kolom psn.pendanaan (tanpa nominal) bisa sudah ada lebih dulu: lengkapi nominalnya.
+                // Beberapa baris psn_pendanaan dengan sumber sama: nominalnya dijumlahkan (tidak hanya baris pertama).
                 if (! $n && $nominal > 0) {
-                    DB::table('psn_sumber_dana')->where('psn_id', $psn)->where('sumber_dana_id', $dana)->whereNull('nilai_rp')->update(['nilai_rp' => $nominal]);
+                    $q = DB::table('psn_sumber_dana')->where('psn_id', $psn)->where('sumber_dana_id', $dana);
+                    isset($dirinci[$psn][$dana])
+                        ? $q->update(['nilai_rp' => DB::raw('COALESCE(nilai_rp, 0) + '.$nominal)])
+                        : $q->update(['nilai_rp' => $nominal]);
+                    isset($dirinci[$psn][$dana]) && $this->peringatan('pendanaan_ganda', "psn_pendanaan#{$r->id}: sumber {$r->pendanaan} ganda pada psn#{$r->psn_id}, nominal dijumlahkan");
                 }
+                $dirinci[$psn][$dana] = true;
                 $this->hitung('psn_sumber_dana', $n);
             }
         }
@@ -981,6 +988,20 @@ class LegacyImporter
         $v = $this->teks($v);
 
         return $v === null ? null : Str::limit($v, $maks - 3);
+    }
+
+    /**
+     * Nilai Rupiah DECIMAL apa adanya (string), tanpa melewati float: nilai di atas ±10^15 (ratusan triliun)
+     * kehilangan digit terakhir bila diubah ke float.
+     */
+    protected function rupiah($v): ?string
+    {
+        if ($v === null || $v === '' || ! is_numeric($v)) {
+            return null;
+        }
+        $t = trim((string) $v);
+
+        return preg_match('/^-?\d+(\.\d+)?$/', $t) ? $t : sprintf('%.2F', (float) $t);
     }
 
     protected function angka($v): ?float
