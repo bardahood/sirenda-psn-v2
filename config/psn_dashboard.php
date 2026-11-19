@@ -392,6 +392,16 @@ return [
         'tunggu_maks_detik' => (int) env('PEKS3_TUNGGU_MAKS_DETIK', 600),    // terapkan paling lambat setelah ini
         'maks_paket' => 50,
         'maks_baris_referensi' => 5000,
+        // Arah balik Dashboard -> PEKS3 (docs/integrasi-peks3.md §9): isian menu Pengisian dikirim ke penerima di
+        // aplikasi PEKS3 (kit TerimaDariDashboard). Antrean selalu dicatat; pengiriman hanya bila aktif dan url terisi.
+        'balik' => [
+            'aktif' => (bool) env('PEKS3_BALIK_AKTIF', false),
+            'url' => env('PEKS3_BALIK_URL'),                     // mis. https://sirenda-psn.id/api/dashboard/v1
+            'client_id' => env('PEKS3_BALIK_CLIENT_ID', 'dashboard-psn'),
+            'maks_operasi' => 50,                                // per permintaan
+            'maks_percobaan' => 10,                              // gangguan jaringan/5xx; lewat ini -> GAGAL
+            'timeout_detik' => 20,
+        ],
         // Rekonsiliasi ditolak bila akan menghapus lebih dari proporsi ini (indikasi daftar ID terpotong).
         'maks_hapus_rekonsiliasi' => 0.2,
 

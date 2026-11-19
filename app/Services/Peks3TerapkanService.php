@@ -50,6 +50,8 @@ class Peks3TerapkanService
                 $importer->kosongkan(transaksional: true, pertahankanUsulan: true);
                 // Langkah 'usulan' (daftar psn_2027 lama) dilewati: usulan & penilaiannya milik dashboard.
                 $laporan = $importer->jalankan(array_values(array_diff(LegacyImporter::LANGKAH, ['usulan'])));
+                // Isian menu Pengisian yang belum kembali dari PEKS3 dipulihkan sebelum snapshot dibangun (§9).
+                $laporan['kiriman_balik'] = app(Peks3KeluarService::class)->pulihkan();
 
                 $snapshot = app(SnapshotService::class);
                 foreach (PeriodeCutoff::orderBy('kode')->get() as $p) {

@@ -20,3 +20,9 @@ Schedule::command('peks3:terapkan')
     ->everyMinute()
     ->withoutOverlapping(30)
     ->when(fn () => config('psn_dashboard.peks3.aktif'));
+
+// Arah balik: isian menu Pengisian dikirim ke SIRENDA PEKS3 (docs/integrasi-peks3.md §9).
+Schedule::command('peks3:kirim-balik')
+    ->everyMinute()
+    ->withoutOverlapping(10)
+    ->when(fn () => config('psn_dashboard.peks3.balik.aktif'));

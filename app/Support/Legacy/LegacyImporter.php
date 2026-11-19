@@ -36,7 +36,8 @@ class LegacyImporter
     ];
 
     /** Tabel di TABEL_DATA yang tidak di-truncate oleh kosongkan() (dibersihkan selektif). */
-    public const TABEL_DIPERTAHANKAN = ['audit_log', 'penilaian_skor', 'penilaian', 'usulan_lokasi', 'usulan_psn'];
+    // pengisian_psn(_riwayat): alur pengajuan/verifikasi milik dashboard; isian angkanya dipulihkan dari peks3_keluar.
+    public const TABEL_DIPERTAHANKAN = ['audit_log', 'penilaian_skor', 'penilaian', 'usulan_lokasi', 'usulan_psn', 'pengisian_psn_riwayat', 'pengisian_psn'];
 
     protected Connection $legacy;
 
@@ -338,7 +339,11 @@ class LegacyImporter
         // psn_kebutuhan: jenis A = isu & kebutuhan dukungan, jenis B = kebutuhan status PSN tahun berikutnya.
         $this->salinPerPsn('psn_kebutuhan', 'isu', fn ($r) => ($r->jenis === 'A' && ($u = $this->teks($r->point))) ? [
             'legacy_id' => $r->id, 'uraian' => $u, 'kebutuhan_dukungan' => $this->teks($r->deskripsi),
-            'file_bukti' => $this->teks($r->file_bukti), 'status' => 'TERBUKA',
+            'file_bukti' => $this->teks($r->file_bukti),
+            // Kolom pemantauan isu (ditambahkan PEKS3 untuk sinkron dua arah, §9); bila belum ada: TERBUKA.
+            'status' => in_array($st = strtoupper(trim((string) ($r->status ?? ''))), ['TERBUKA', 'PROSES', 'SELESAI'], true) ? $st : 'TERBUKA',
+            'pic_nama' => $this->potong($r->pic_nama ?? null, 255), 'tenggat' => $this->tanggalAman($r->tenggat ?? null),
+            'tindak_lanjut' => $this->teks($r->tindak_lanjut ?? null), 'tanggal_selesai' => $this->tanggalAman($r->tanggal_selesai ?? null),
         ] : null);
         $this->salinPerPsn('psn_kebutuhan', 'psn_evaluasi_status', fn ($r) => ($r->jenis === 'B' && ($u = $this->teks($r->point))) ? [
             'kebutuhan_status' => $u, 'justifikasi' => $this->teks($r->deskripsi), 'file_bukti' => $this->teks($r->file_bukti),
@@ -992,6 +997,16 @@ class LegacyImporter
         $v = (int) $v;
 
         return $v >= 1900 && $v <= 2100 ? $v : null;
+    }
+
+    /** Tanggal Y-m-d dari isian bebas; null bila kosong atau tidak terbaca. */
+    protected function tanggalAman($v): ?string
+    {
+        try {
+            return $this->waktu($v)?->toDateString();
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     protected function waktu($v): ?Carbon

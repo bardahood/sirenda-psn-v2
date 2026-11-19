@@ -247,6 +247,104 @@ Halaman **Pengaturan → Integrasi Data** (`/pengaturan/integrasi`, Super Admin)
 - Riwayat login pengguna PEKS3 (`user_logs`) tidak disinkronkan.
 - Penambahan tabel atau kolom baru di PEKS3 yang perlu tampil di dashboard memerlukan penyesuaian importer dashboard dan daftar tabel di kit/konfigurasi.
 
+## 9. Arah balik: Dashboard ke SIRENDA PEKS3 (sinkron dua arah)
+
+### 9.1 Ruang lingkup
+
+Isian menu **Pengisian & Verifikasi** di dashboard dikirim ke SIRENDA PEKS3. Data lain milik dashboard (Evaluasi Status PSN, usulan, penilaian, pengguna) tidak dikirim karena tidak memiliki padanan di PEKS3.
+
+| Isian dashboard | Tabel dan kolom PEKS3 |
+|---|---|
+| Rencana, realisasi, realisasi anggaran KP/RO bulan *m* | `psn_kegiatan_detil` / `psn_kegiatan_detil_cp`: `target_persen_m`, `realisasi_persen_m`, `realisasi_anggaran_m` (baris per KP/RO dan tahun; dibuat bila belum ada) |
+| Pemantauan risiko (cut-off terbaru) | `psn_risiko`: `risiko_residual` (level), `status` (status perlakuan) |
+| Risiko baru | `psn_risiko` baris baru: `risiko`, `kategori`, `risiko_harapan`, `rencana`, `penanggung_jawab` |
+| Isu: status, PIC, tenggat, tindak lanjut | `psn_kebutuhan` (jenis A): `status`, `pic_nama`, `tenggat`, `tindak_lanjut`, `tanggal_selesai` (**kolom baru**, §9.5) |
+| Isu baru | `psn_kebutuhan` baris baru jenis A: `point`, `deskripsi` + kolom pemantauan |
+
+Tidak dikirim (tetap disimpan di dashboard): catatan permasalahan dan berkas bukti KP/RO, kemungkinan × dampak aktual, serta riwayat pemantauan risiko per cut-off (PEKS3 hanya menyimpan keadaan terakhir).
+
+### 9.2 Alur
+
+```
+Dashboard PSN                                          SIRENDA PEKS3
+─────────────                                          ─────────────
+Operator menyimpan di menu Pengisian
+  1. isian disimpan di tabel dashboard
+  2. dicatat di antrean peks3_keluar
+     (nilai baru + "dasar" = nilai PEKS3 di cermin)
+php artisan peks3:kirim-balik (tiap menit)
+  3. tanda tangani HMAC ─────────── HTTPS ──────▶  POST /api/dashboard/v1/perubahan
+                                                    4. verifikasi tanda tangan & waktu
+                                                    5. per operasi: cek konflik (nilai saat ini = dasar?)
+                                                    6. simpan; updated_by = dashboard:<username>
+  7. status operasi: DITERIMA / KONFLIK / DITOLAK ◀─
+                                                    php artisan dashboard:kirim (tiap menit, kit §5)
+  8. perubahan kembali ke cermin ◀──────────────────  paket PSN berisi isian dashboard
+peks3:terapkan: impor ulang dari cermin, lalu
+  9. operasi yang sudah tampak di cermin → SELESAI
+ 10. isian yang belum kembali dipulihkan (tidak hilang)
+```
+
+Isian dashboard **tidak pernah hilang** karena impor ulang: selama belum kembali dari PEKS3 (antre, gangguan jaringan, konflik, ditolak), isian dipulihkan setiap kali `peks3:terapkan` berjalan. Kolom khusus dashboard (§9.1) selalu dipulihkan.
+
+### 9.3 Konflik
+
+Setiap operasi membawa `dasar`, yaitu nilai kolom PEKS3 yang dilihat dashboard saat isian dibuat. Penerima menolak dengan hasil `KONFLIK` bila nilai saat ini di PEKS3 berbeda dari `dasar` (artinya data yang sama sudah diubah di PEKS3) dan berbeda pula dari nilai baru. Kolom lain pada baris yang sama tidak menimbulkan konflik.
+
+Keputusan diambil Super Admin di **Pengaturan → Integrasi Data → Kiriman Balik Dashboard ke SIRENDA PEKS3**:
+
+| Tindakan | Akibat |
+|---|---|
+| Timpa PEKS3 | Isian dashboard dikirim ulang tanpa pemeriksaan konflik. |
+| Kirim ulang | Untuk operasi DITOLAK/GAGAL setelah penyebabnya diperbaiki. |
+| Ikuti PEKS3 | Isian dashboard tidak dikirim dan tidak dipulihkan lagi; data PEKS3 dipakai pada sinkron berikutnya. |
+
+Status operasi: `ANTRE` → `DITERIMA` → `SELESAI` (sudah tampak di cermin); atau `KONFLIK`, `DITOLAK`, `GAGAL` (10 kali gangguan jaringan/HTTP berturut-turut), `DIABAIKAN`. Setiap tindakan tercatat di `audit_log`.
+
+### 9.4 Spesifikasi `POST /api/dashboard/v1/perubahan` (di SIRENDA PEKS3)
+
+Keamanan sama dengan §3, dengan arah dibalik: header `X-Client-Id: dashboard-psn`, `X-Timestamp`, `X-Signature` (HMAC-SHA256 dengan kunci bersama yang sama, `PEKS3_RAHASIA` = `DASHBOARD_PEKS3_RAHASIA`), toleransi 300 detik, anti-replay.
+
+```json
+{ "perubahan": [
+  { "id": 15, "aksi": "isi_bulan", "tabel": "psn_kegiatan_detil", "psn_id": 471,
+    "induk": { "kolom": "kegiatan_id", "id": 1201, "tahun": 2026 },
+    "dasar": { "realisasi_persen_10": null }, "nilai": { "realisasi_persen_10": 42, "target_persen_10": 45, "realisasi_anggaran_10": 2000000 },
+    "pengguna": "op.pu" },
+  { "id": 16, "aksi": "ubah", "tabel": "psn_risiko", "psn_id": 471, "baris_id": 501,
+    "dasar": { "risiko_residual": "Sedang", "status": null }, "nilai": { "risiko_residual": "Tinggi", "status": "BERJALAN" }, "pengguna": "op.pu" },
+  { "id": 17, "aksi": "tambah", "tabel": "psn_kebutuhan", "psn_id": 471,
+    "nilai": { "jenis": "A", "point": "Akses jalan kerja", "deskripsi": null, "status": "TERBUKA", "pic_nama": "PPK 1", "tenggat": "2026-11-01" }, "pengguna": "op.pu" }
+] }
+```
+
+Respons 200: `{"status": "success", "data": [{"id": 15, "hasil": "DITERIMA", "baris_id": 88}, {"id": 16, "hasil": "KONFLIK", "pesan": "..."}, ...]}`. `hasil`: `DITERIMA` (dengan `baris_id`), `KONFLIK`, `DITOLAK` (dengan `pesan`). Hanya tabel dan kolom di daftar §9.1 yang diterima; kolom yang belum ada di basis data PEKS3 dilewati dan disebut di `pesan` (bila semua kolomnya belum ada: `DITOLAK`). Setiap operasi disimpan dalam transaksi sendiri. Maksimal 50 operasi per permintaan.
+
+### 9.5 Langkah di sisi SIRENDA PEKS3
+
+1. Jalankan sekali di basis data SIRENDA PEKS3: `docs/integrasi-peks3/kit-peks3/database/psn_kebutuhan_pemantauan_isu.sql` (menambah 5 kolom pemantauan isu ke `psn_kebutuhan`). Formulir isu di aplikasi PEKS3 dapat menampilkan kolom ini bila diinginkan.
+2. Salin `docs/integrasi-peks3/kit-peks3/app/Http/Controllers/TerimaDariDashboardController.php` ke `app/Http/Controllers/`.
+3. Tambahkan ke `routes/api.php`:
+   ```php
+   Route::post('/dashboard/v1/perubahan', [\App\Http\Controllers\TerimaDariDashboardController::class, 'perubahan'])->middleware('throttle:120,1');
+   Route::get('/dashboard/v1/status', [\App\Http\Controllers\TerimaDariDashboardController::class, 'status']);
+   ```
+4. Tambahkan ke `config/services.php` pada `'dashboard_peks3'`:
+   ```php
+   'balik_client_id' => env('DASHBOARD_PEKS3_BALIK_CLIENT_ID', 'dashboard-psn'),
+   'balik_aktif' => env('DASHBOARD_PEKS3_BALIK_AKTIF', false),
+   'balik_koneksi' => env('DASHBOARD_PEKS3_BALIK_KONEKSI'),
+   ```
+   dan ke `.env`: `DASHBOARD_PEKS3_BALIK_AKTIF=true`, lalu `php artisan config:cache`.
+5. Pastikan kit pengirim (§5) berjalan tiap menit, karena perubahan dari dashboard kembali ke dashboard lewat kit itu sebagai konfirmasi.
+
+### 9.6 Langkah di sisi Dashboard
+
+1. `php artisan migrate --force` (tabel `peks3_keluar`).
+2. `.env`: `PEKS3_BALIK_URL=https://<domain-sirenda>/api/dashboard/v1` dan `PEKS3_BALIK_AKTIF=true` (kunci memakai `PEKS3_RAHASIA` yang sudah ada), lalu `php artisan config:clear`.
+3. Cron penjadwal (`schedule:run` tiap menit) yang sudah ada menjalankan `peks3:kirim-balik` otomatis. Uji manual: `php artisan peks3:kirim-balik`.
+4. Antrean tetap dicatat walaupun pengiriman belum aktif, sehingga isian yang dibuat sebelum PEKS3 siap ikut terkirim setelah diaktifkan.
+
 ## Lampiran: berkas terkait di repositori dashboard
 
 | Berkas | Isi |
@@ -259,5 +357,7 @@ Halaman **Pengaturan → Integrasi Data** (`/pengaturan/integrasi`, Super Admin)
 | `app/Console/Commands/Peks3*.php` | `peks3:siapkan-cermin`, `peks3:terapkan`, `peks3:kirim-uji` |
 | `app/Http/Controllers/Pengaturan/IntegrasiController.php`, `resources/views/pengaturan/integrasi.blade.php` | Halaman pemantauan Pengaturan → Integrasi Data |
 | `config/psn_dashboard.php` → `peks3` | Daftar tabel, jeda, batas |
-| `docs/integrasi-peks3/kit-peks3/` | Kit pengirim untuk SIRENDA PEKS3 |
-| `tests/Feature/Peks3SinkronTest.php` | Tes otomatis |
+| `docs/integrasi-peks3/kit-peks3/app/Console/` | Kit pengirim untuk SIRENDA PEKS3 |
+| `app/Services/Peks3KeluarService.php`, `app/Models/Peks3Keluar.php`, `app/Console/Commands/Peks3KirimBalik.php` | Arah balik §9: antrean, pengiriman, pemulihan |
+| `docs/integrasi-peks3/kit-peks3/app/Http/Controllers/TerimaDariDashboardController.php`, `docs/integrasi-peks3/kit-peks3/database/` | Kit penerima arah balik untuk SIRENDA PEKS3 |
+| `tests/Feature/Peks3SinkronTest.php`, `tests/Feature/Peks3KirimBalikTest.php` | Tes otomatis (dua arah) |

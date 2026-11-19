@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Peks3KeluarService;
 use App\Support\Legacy\LegacyImporter;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
@@ -34,6 +35,11 @@ class LegacyImport extends Command
         }
 
         $laporan = $importer->onLog(fn ($m) => $this->line($m))->jalankan($langkah);
+        if ($this->option('fresh')) {
+            // Isian menu Pengisian yang belum kembali dari SIRENDA PEKS3 (docs/integrasi-peks3.md §9).
+            $p = app(Peks3KeluarService::class)->pulihkan();
+            $this->line("Isian dashboard dipulihkan: {$p['dipulihkan']} (selesai: {$p['selesai']})");
+        }
 
         $this->table(['Tabel', 'Baris'], collect($laporan['jumlah'])->map(fn ($n, $t) => [$t, $n])->values());
         foreach ($laporan['peringatan'] as $jenis => $daftar) {

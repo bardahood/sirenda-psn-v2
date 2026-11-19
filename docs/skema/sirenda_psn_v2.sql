@@ -1,5 +1,3 @@
--- Skema SIRENDA PSN v2 (DDL saja, tanpa data). Dibangkitkan dari `php artisan migrate` lalu mysqldump --no-data.
--- Sumber kebenaran skema tetap database/migrations; berkas ini untuk telaah DBA.
 
 /*M!999999\- enable the sandbox mode */ 
 
@@ -53,6 +51,167 @@ CREATE TABLE `cache_locks` (
   `owner` varchar(255) NOT NULL,
   `expiration` int(11) NOT NULL,
   PRIMARY KEY (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `evaluasi_psn` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `tahun_rkp` smallint(5) unsigned NOT NULL COMMENT 'RKP yang diputuskan, mis. 2027',
+  `psn_id` bigint(20) unsigned NOT NULL,
+  `form_diterima_at` date DEFAULT NULL COMMENT 'tanggal Form Pengendalian diterima dari PJ',
+  `a6_tahun_penetapan` smallint(5) unsigned DEFAULT NULL COMMENT 'A6 tahun pertama kali ditetapkan sebagai PSN',
+  `a8_sumber_pendanaan` varchar(15) DEFAULT NULL COMMENT 'APBN|APBD|BUMN|BADAN_USAHA|DANANTARA|LAINNYA|CAMPURAN; kosong = dari profil',
+  `jenis_psn` varchar(10) DEFAULT NULL COMMENT 'A12 FISIK|NON_FISIK',
+  `tanpa_isu` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'C1 Lainnya: "Tidak ada isu"',
+  `b4_manfaat` text DEFAULT NULL COMMENT 'B4 manfaat yang sudah terwujud s.d. akhir triwulan',
+  `c1_tipologi` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'C1 kode tipologi isu 1-10 (config evaluasi_status.tipologi_isu)' CHECK (json_valid(`c1_tipologi`)),
+  `c1_lainnya` varchar(255) DEFAULT NULL COMMENT 'C1 tipologi 11 Lainnya; "Tidak ada isu" bila tanpa isu',
+  `d1_kebutuhan` varchar(10) DEFAULT NULL COMMENT 'D1 MASIH|TIDAK',
+  `d1_alasan` varchar(20) DEFAULT NULL COMMENT 'SELESAI|BATAL|TANPA_FASILITAS|LAINNYA',
+  `d1_alasan_lain` text DEFAULT NULL,
+  `d2_fasilitas` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'kode fasilitas PP 42/2021 (config evaluasi_status.d2_fasilitas)' CHECK (json_valid(`d2_fasilitas`)),
+  `d2_justifikasi` text DEFAULT NULL,
+  `d3_tahapan` varchar(30) DEFAULT NULL COMMENT 'tahapan target akhir tahun RKP',
+  `d3_target` text DEFAULT NULL,
+  `d3_tahun_selesai` smallint(5) unsigned DEFAULT NULL COMMENT 'proyeksi tahun selesai berdasarkan capaian aktual',
+  `pic` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'nama, jabatan, unit, kontak, tanggal' CHECK (json_valid(`pic`)),
+  `info_tambahan` text DEFAULT NULL,
+  `hasil_pengecekan` varchar(20) DEFAULT NULL COMMENT 'LENGKAP_BENAR|LENGKAP_ADA_SALAH|BELUM_LENGKAP|PROSES',
+  `tindak_lanjut` varchar(20) DEFAULT NULL COMMENT 'SIAP_DIANALISIS|VERIFIKASI_PJ|BUTUH_DATA',
+  `catatan_analisis` text DEFAULT NULL,
+  `indikasi_status` varchar(20) DEFAULT NULL COMMENT 'DIPERTAHANKAN|DIKELUARKAN',
+  `status_akhir` varchar(20) NOT NULL DEFAULT 'PROSES_PENGECEKAN' COMMENT 'turunan: indikasi > tindak lanjut > PROSES_PENGECEKAN',
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_by` bigint(20) unsigned DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `evaluasi_psn_tahun_rkp_psn_id_unique` (`tahun_rkp`,`psn_id`),
+  KEY `evaluasi_psn_psn_id_foreign` (`psn_id`),
+  KEY `evaluasi_psn_created_by_foreign` (`created_by`),
+  KEY `evaluasi_psn_updated_by_foreign` (`updated_by`),
+  KEY `evaluasi_psn_deleted_by_foreign` (`deleted_by`),
+  KEY `evaluasi_psn_tahun_rkp_status_akhir_index` (`tahun_rkp`,`status_akhir`),
+  CONSTRAINT `evaluasi_psn_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `evaluasi_psn_deleted_by_foreign` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `evaluasi_psn_psn_id_foreign` FOREIGN KEY (`psn_id`) REFERENCES `psn` (`id`),
+  CONSTRAINT `evaluasi_psn_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `evaluasi_psn_capaian` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `evaluasi_psn_id` bigint(20) unsigned NOT NULL,
+  `komponen` varchar(20) NOT NULL COMMENT 'PROGRES_FISIK|OUTPUT_UTAMA|PEMBIAYAAN|PERIZINAN|PENGADAAN_LAHAN|REGULASI|SARANA',
+  `satuan` varchar(100) DEFAULT NULL,
+  `target_akhir` decimal(24,4) DEFAULT NULL COMMENT 'pembiayaan dalam Rp miliar, progres dalam %',
+  `target_kumulatif` decimal(24,4) DEFAULT NULL COMMENT 's.d. akhir triwulan cut-off',
+  `realisasi_kumulatif` decimal(24,4) DEFAULT NULL,
+  `keterangan` text DEFAULT NULL COMMENT 'keterangan / sumber data',
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `evaluasi_psn_capaian_evaluasi_psn_id_komponen_unique` (`evaluasi_psn_id`,`komponen`),
+  KEY `evaluasi_psn_capaian_created_by_foreign` (`created_by`),
+  KEY `evaluasi_psn_capaian_updated_by_foreign` (`updated_by`),
+  CONSTRAINT `evaluasi_psn_capaian_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `evaluasi_psn_capaian_evaluasi_psn_id_foreign` FOREIGN KEY (`evaluasi_psn_id`) REFERENCES `evaluasi_psn` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `evaluasi_psn_capaian_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `evaluasi_psn_isu` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `evaluasi_psn_id` bigint(20) unsigned NOT NULL,
+  `isu_id` bigint(20) unsigned DEFAULT NULL COMMENT 'isu profil asal (tanpa FK: isu dibangun ulang saat sinkron)',
+  `uraian` text NOT NULL,
+  `tipologi` varchar(4) DEFAULT NULL COMMENT 'kode C1 1-11',
+  `jalur_kritis` tinyint(1) DEFAULT NULL COMMENT 'menghambat jalur kritis / capaian sasaran',
+  `upaya` text DEFAULT NULL,
+  `dukungan` text DEFAULT NULL COMMENT 'dukungan yang dibutuhkan (apa dan dari siapa)',
+  `urutan` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `evaluasi_psn_isu_created_by_foreign` (`created_by`),
+  KEY `evaluasi_psn_isu_updated_by_foreign` (`updated_by`),
+  KEY `evaluasi_psn_isu_evaluasi_psn_id_urutan_index` (`evaluasi_psn_id`,`urutan`),
+  CONSTRAINT `evaluasi_psn_isu_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `evaluasi_psn_isu_evaluasi_psn_id_foreign` FOREIGN KEY (`evaluasi_psn_id`) REFERENCES `evaluasi_psn` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `evaluasi_psn_isu_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `evaluasi_psn_lampiran` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `evaluasi_psn_id` bigint(20) unsigned NOT NULL,
+  `jenis` varchar(10) DEFAULT NULL COMMENT 'DOKUMEN|FOTO|VIDEO|LAINNYA',
+  `judul` varchar(255) NOT NULL,
+  `bentuk` varchar(10) DEFAULT NULL COMMENT 'TAUTAN|FILE',
+  `tautan` varchar(1000) DEFAULT NULL COMMENT 'tautan (link) / nama file',
+  `urutan` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `evaluasi_psn_lampiran_created_by_foreign` (`created_by`),
+  KEY `evaluasi_psn_lampiran_updated_by_foreign` (`updated_by`),
+  KEY `evaluasi_psn_lampiran_evaluasi_psn_id_urutan_index` (`evaluasi_psn_id`,`urutan`),
+  CONSTRAINT `evaluasi_psn_lampiran_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `evaluasi_psn_lampiran_evaluasi_psn_id_foreign` FOREIGN KEY (`evaluasi_psn_id`) REFERENCES `evaluasi_psn` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `evaluasi_psn_lampiran_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `evaluasi_psn_milestone` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `evaluasi_psn_id` bigint(20) unsigned NOT NULL,
+  `kode` varchar(30) NOT NULL COMMENT 'kode milestone (config evaluasi_status.milestone_fisik / milestone_non_fisik)',
+  `nama_lain` varchar(255) DEFAULT NULL COMMENT 'nama milestone untuk kode LAIN',
+  `status` varchar(10) DEFAULT NULL COMMENT 'SELESAI|PROSES|BELUM|NA',
+  `tanggal` date DEFAULT NULL COMMENT 'tanggal selesai / target',
+  `keterangan` text DEFAULT NULL,
+  `urutan` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `evaluasi_psn_milestone_created_by_foreign` (`created_by`),
+  KEY `evaluasi_psn_milestone_updated_by_foreign` (`updated_by`),
+  KEY `evaluasi_psn_milestone_evaluasi_psn_id_urutan_index` (`evaluasi_psn_id`,`urutan`),
+  CONSTRAINT `evaluasi_psn_milestone_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `evaluasi_psn_milestone_evaluasi_psn_id_foreign` FOREIGN KEY (`evaluasi_psn_id`) REFERENCES `evaluasi_psn` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `evaluasi_psn_milestone_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `evaluasi_psn_riwayat` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `evaluasi_psn_id` bigint(20) unsigned NOT NULL,
+  `tanggal` date NOT NULL,
+  `status_akhir` varchar(20) NOT NULL,
+  `keterangan` varchar(255) DEFAULT NULL,
+  `user_id` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `evaluasi_psn_riwayat_user_id_foreign` (`user_id`),
+  KEY `evaluasi_psn_riwayat_evaluasi_psn_id_tanggal_index` (`evaluasi_psn_id`,`tanggal`),
+  CONSTRAINT `evaluasi_psn_riwayat_evaluasi_psn_id_foreign` FOREIGN KEY (`evaluasi_psn_id`) REFERENCES `evaluasi_psn` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `evaluasi_psn_riwayat_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -118,6 +277,48 @@ CREATE TABLE `indikator_target` (
   CONSTRAINT `indikator_target_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `indikator_target_indikator_id_foreign` FOREIGN KEY (`indikator_id`) REFERENCES `indikator` (`id`) ON DELETE CASCADE,
   CONSTRAINT `indikator_target_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `integrasi_peks3_log` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `jenis` varchar(20) NOT NULL COMMENT 'PSN|REFERENSI|REKONSILIASI|TERAPKAN',
+  `legacy_psn_id` bigint(20) unsigned DEFAULT NULL,
+  `hasil` varchar(20) NOT NULL COMMENT 'DITERIMA|TETAP|VERSI_LAMA|BERHASIL|GAGAL',
+  `pesan` text DEFAULT NULL,
+  `ringkasan` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`ringkasan`)),
+  `ip_address` varchar(45) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `integrasi_peks3_log_created_at_index` (`created_at`),
+  KEY `integrasi_peks3_log_legacy_psn_id_created_at_index` (`legacy_psn_id`,`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `integrasi_peks3_psn` (
+  `legacy_psn_id` bigint(20) unsigned NOT NULL COMMENT 'psn.id di SIRENDA PEKS3',
+  `versi` bigint(20) unsigned NOT NULL COMMENT 'versi paket (mikrodetik epoch); paket lebih lama diabaikan',
+  `sidik` char(64) NOT NULL COMMENT 'SHA-256 isi paket; isi sama = tidak ada perubahan',
+  `jumlah_baris` int(10) unsigned NOT NULL DEFAULT 0,
+  `dihapus` tinyint(1) NOT NULL DEFAULT 0,
+  `diterima_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`legacy_psn_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `integrasi_peks3_status` (
+  `id` tinyint(3) unsigned NOT NULL,
+  `tertunda_sejak` timestamp NULL DEFAULT NULL COMMENT 'perubahan pertama yang belum diterapkan; null = tidak ada antrean',
+  `perubahan_terakhir_at` timestamp NULL DEFAULT NULL,
+  `diterapkan_at` timestamp NULL DEFAULT NULL,
+  `durasi_detik` decimal(8,1) DEFAULT NULL,
+  `hasil` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`hasil`)),
+  `galat` text DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -573,6 +774,37 @@ CREATE TABLE `password_reset_tokens` (
   `token` varchar(255) NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `peks3_keluar` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `jenis` varchar(30) NOT NULL COMMENT 'RO_BULAN|RISIKO_PANTAU|RISIKO_BARU|ISU_UBAH|ISU_BARU',
+  `psn_id` bigint(20) unsigned NOT NULL,
+  `kunci` varchar(191) NOT NULL COMMENT 'sasaran perubahan, untuk menggabungkan isian berurutan yang belum terkirim',
+  `kirim` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT 'operasi untuk PEKS3: aksi, tabel, baris_id, dasar, nilai' CHECK (json_valid(`kirim`)),
+  `lokal` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT 'pemulihan isian dashboard setelah impor ulang' CHECK (json_valid(`lokal`)),
+  `bergantung_id` bigint(20) unsigned DEFAULT NULL COMMENT 'operasi tambah yang harus diterima PEKS3 lebih dulu',
+  `v2_id` bigint(20) unsigned DEFAULT NULL COMMENT 'baris dashboard yang dibuat operasi tambah (diperbarui saat dipulihkan)',
+  `status` varchar(15) NOT NULL DEFAULT 'ANTRE' COMMENT 'ANTRE|DITERIMA|SELESAI|KONFLIK|DITOLAK|GAGAL|DIABAIKAN',
+  `percobaan` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `berikutnya_at` timestamp NULL DEFAULT NULL,
+  `pesan` text DEFAULT NULL,
+  `peks3_id` bigint(20) unsigned DEFAULT NULL COMMENT 'id baris di PEKS3 (hasil tambah atau sasaran ubah)',
+  `user_id` bigint(20) unsigned DEFAULT NULL,
+  `dikirim_at` timestamp NULL DEFAULT NULL,
+  `diterima_at` timestamp NULL DEFAULT NULL,
+  `selesai_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `peks3_keluar_psn_id_foreign` (`psn_id`),
+  KEY `peks3_keluar_user_id_foreign` (`user_id`),
+  KEY `peks3_keluar_status_berikutnya_at_index` (`status`,`berikutnya_at`),
+  KEY `peks3_keluar_kunci_status_index` (`kunci`,`status`),
+  CONSTRAINT `peks3_keluar_psn_id_foreign` FOREIGN KEY (`psn_id`) REFERENCES `psn` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `peks3_keluar_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2003,7 +2235,7 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 SQL SECURITY DEFINER */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
 /*!50001 VIEW `v_kegiatan_progres` AS select `g`.`id` AS `kegiatan_id`,`g`.`psn_id` AS `psn_id`,`g`.`nama` AS `nama`,`g`.`is_critical_path` AS `is_critical_path`,`t`.`tahun` AS `tahun`,`t`.`periode` AS `periode`,`t`.`periode_ke` AS `periode_ke`,`t`.`target_persen` AS `target_persen`,`t`.`realisasi_persen` AS `realisasi_persen`,`t`.`realisasi_persen` - `t`.`target_persen` AS `deviasi_pp`,`t`.`pagu_rp` AS `pagu_rp`,`t`.`realisasi_anggaran_rp` AS `realisasi_anggaran_rp`,coalesce(`t`.`dilaporkan_at`,`t`.`updated_at`) AS `dilaporkan_at` from (`kegiatan` `g` join `kegiatan_target` `t` on(`t`.`kegiatan_id` = `g`.`id`)) where `g`.`deleted_at` is null and `t`.`id` = (select `t2`.`id` from `kegiatan_target` `t2` where `t2`.`kegiatan_id` = `g`.`id` and `t2`.`tahun` = `t`.`tahun` order by `t2`.`realisasi_persen` is null,field(`t2`.`periode`,'BULANAN','TRIWULAN','TAHUNAN'),`t2`.`periode_ke` desc limit 1) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -2016,7 +2248,7 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 SQL SECURITY DEFINER */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
 /*!50001 VIEW `v_psn_ringkas` AS select `p`.`id` AS `psn_id`,`p`.`kode_psn` AS `kode_psn`,`p`.`nama` AS `nama`,`p`.`klaster_id` AS `klaster_id`,`k`.`kode` AS `klaster_kode`,`k`.`nama` AS `klaster_nama`,`p`.`klaster_pkpn_id` AS `klaster_pkpn_id`,case when `p`.`klaster_pkpn_id` is not null then 'PKPN' else 'PSN' end AS `kategori`,`p`.`status_psn_id` AS `status_psn_id`,`s`.`nama` AS `status_psn_nama`,`s`.`tahap` AS `tahap`,coalesce(`s`.`is_aktif`,1) AS `is_aktif`,`p`.`nilai_investasi_rp` AS `nilai_investasi_rp`,`p`.`investasi_anomali` AS `investasi_anomali`,`p`.`tahun_selesai` AS `tahun_selesai`,(select group_concat(distinct `l`.`provinsi_kode` order by `l`.`provinsi_kode` ASC separator ',') from `psn_lokasi` `l` where `l`.`psn_id` = `p`.`id` and `l`.`deleted_at` is null) AS `provinsi_kode_list`,(select group_concat(distinct `u`.`unit_kerja_id` order by `u`.`unit_kerja_id` ASC separator ',') from `psn_unit_pengampu` `u` where `u`.`psn_id` = `p`.`id`) AS `unit_kerja_id_list`,(select group_concat(distinct `d`.`sumber_dana_id` order by `d`.`sumber_dana_id` ASC separator ',') from `psn_sumber_dana` `d` where `d`.`psn_id` = `p`.`id`) AS `sumber_dana_id_list`,`p`.`updated_at` AS `updated_at` from ((`psn` `p` left join `ref_klaster` `k` on(`k`.`id` = `p`.`klaster_id`)) left join `ref_status_psn` `s` on(`s`.`id` = `p`.`status_psn_id`)) where `p`.`deleted_at` is null */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -2030,234 +2262,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
---
--- Table structure for table `integrasi_peks3_log`
---
-
-DROP TABLE IF EXISTS `integrasi_peks3_log`;
-CREATE TABLE `integrasi_peks3_log` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `jenis` varchar(20) NOT NULL COMMENT 'PSN|REFERENSI|REKONSILIASI|TERAPKAN',
-  `legacy_psn_id` bigint(20) unsigned DEFAULT NULL,
-  `hasil` varchar(20) NOT NULL COMMENT 'DITERIMA|TETAP|VERSI_LAMA|BERHASIL|GAGAL',
-  `pesan` text DEFAULT NULL,
-  `ringkasan` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`ringkasan`)),
-  `ip_address` varchar(45) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `integrasi_peks3_log_created_at_index` (`created_at`),
-  KEY `integrasi_peks3_log_legacy_psn_id_created_at_index` (`legacy_psn_id`,`created_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Table structure for table `integrasi_peks3_psn`
---
-
-DROP TABLE IF EXISTS `integrasi_peks3_psn`;
-CREATE TABLE `integrasi_peks3_psn` (
-  `legacy_psn_id` bigint(20) unsigned NOT NULL COMMENT 'psn.id di SIRENDA PEKS3',
-  `versi` bigint(20) unsigned NOT NULL COMMENT 'versi paket (mikrodetik epoch); paket lebih lama diabaikan',
-  `sidik` char(64) NOT NULL COMMENT 'SHA-256 isi paket; isi sama = tidak ada perubahan',
-  `jumlah_baris` int(10) unsigned NOT NULL DEFAULT 0,
-  `dihapus` tinyint(1) NOT NULL DEFAULT 0,
-  `diterima_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`legacy_psn_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Table structure for table `integrasi_peks3_status`
---
-
-DROP TABLE IF EXISTS `integrasi_peks3_status`;
-CREATE TABLE `integrasi_peks3_status` (
-  `id` tinyint(3) unsigned NOT NULL,
-  `tertunda_sejak` timestamp NULL DEFAULT NULL COMMENT 'perubahan pertama yang belum diterapkan; null = tidak ada antrean',
-  `perubahan_terakhir_at` timestamp NULL DEFAULT NULL,
-  `diterapkan_at` timestamp NULL DEFAULT NULL,
-  `durasi_detik` decimal(8,1) DEFAULT NULL,
-  `hasil` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`hasil`)),
-  `galat` text DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Table structure for table `evaluasi_psn`
---
-
-DROP TABLE IF EXISTS `evaluasi_psn`;
-CREATE TABLE `evaluasi_psn` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `tahun_rkp` smallint(5) unsigned NOT NULL COMMENT 'RKP yang diputuskan, mis. 2027',
-  `psn_id` bigint(20) unsigned NOT NULL,
-  `form_diterima_at` date DEFAULT NULL COMMENT 'tanggal Form Pengendalian diterima dari PJ',
-  `a6_tahun_penetapan` smallint(5) unsigned DEFAULT NULL COMMENT 'A6 tahun pertama kali ditetapkan sebagai PSN',
-  `a8_sumber_pendanaan` varchar(15) DEFAULT NULL COMMENT 'APBN|APBD|BUMN|BADAN_USAHA|DANANTARA|LAINNYA|CAMPURAN; kosong = dari profil',
-  `jenis_psn` varchar(10) DEFAULT NULL COMMENT 'A12 FISIK|NON_FISIK',
-  `tanpa_isu` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'C1 Lainnya: "Tidak ada isu"',
-  `b4_manfaat` text DEFAULT NULL COMMENT 'B4 manfaat yang sudah terwujud s.d. akhir triwulan',
-  `c1_tipologi` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'C1 kode tipologi isu 1-10 (config evaluasi_status.tipologi_isu)' CHECK (json_valid(`c1_tipologi`)),
-  `c1_lainnya` varchar(255) DEFAULT NULL COMMENT 'C1 tipologi 11 Lainnya; "Tidak ada isu" bila tanpa isu',
-  `d1_kebutuhan` varchar(10) DEFAULT NULL COMMENT 'D1 MASIH|TIDAK',
-  `d1_alasan` varchar(20) DEFAULT NULL COMMENT 'SELESAI|BATAL|TANPA_FASILITAS|LAINNYA',
-  `d1_alasan_lain` text DEFAULT NULL,
-  `d2_fasilitas` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'kode fasilitas PP 42/2021 (config evaluasi_status.d2_fasilitas)' CHECK (json_valid(`d2_fasilitas`)),
-  `d2_justifikasi` text DEFAULT NULL,
-  `d3_tahapan` varchar(30) DEFAULT NULL COMMENT 'tahapan target akhir tahun RKP',
-  `d3_target` text DEFAULT NULL,
-  `d3_tahun_selesai` smallint(5) unsigned DEFAULT NULL COMMENT 'proyeksi tahun selesai berdasarkan capaian aktual',
-  `pic` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'nama, jabatan, unit, kontak, tanggal' CHECK (json_valid(`pic`)),
-  `info_tambahan` text DEFAULT NULL,
-  `hasil_pengecekan` varchar(20) DEFAULT NULL COMMENT 'LENGKAP_BENAR|LENGKAP_ADA_SALAH|BELUM_LENGKAP|PROSES',
-  `tindak_lanjut` varchar(20) DEFAULT NULL COMMENT 'SIAP_DIANALISIS|VERIFIKASI_PJ|BUTUH_DATA',
-  `catatan_analisis` text DEFAULT NULL,
-  `indikasi_status` varchar(20) DEFAULT NULL COMMENT 'DIPERTAHANKAN|DIKELUARKAN',
-  `status_akhir` varchar(20) NOT NULL DEFAULT 'PROSES_PENGECEKAN' COMMENT 'turunan: indikasi > tindak lanjut > PROSES_PENGECEKAN',
-  `created_by` bigint(20) unsigned DEFAULT NULL,
-  `updated_by` bigint(20) unsigned DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  `deleted_by` bigint(20) unsigned DEFAULT NULL,
-  `deleted_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `evaluasi_psn_tahun_rkp_psn_id_unique` (`tahun_rkp`,`psn_id`),
-  KEY `evaluasi_psn_psn_id_foreign` (`psn_id`),
-  KEY `evaluasi_psn_created_by_foreign` (`created_by`),
-  KEY `evaluasi_psn_updated_by_foreign` (`updated_by`),
-  KEY `evaluasi_psn_deleted_by_foreign` (`deleted_by`),
-  KEY `evaluasi_psn_tahun_rkp_status_akhir_index` (`tahun_rkp`,`status_akhir`),
-  CONSTRAINT `evaluasi_psn_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `evaluasi_psn_deleted_by_foreign` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `evaluasi_psn_psn_id_foreign` FOREIGN KEY (`psn_id`) REFERENCES `psn` (`id`),
-  CONSTRAINT `evaluasi_psn_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Table structure for table `evaluasi_psn_riwayat`
---
-
-DROP TABLE IF EXISTS `evaluasi_psn_riwayat`;
-CREATE TABLE `evaluasi_psn_riwayat` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `evaluasi_psn_id` bigint(20) unsigned NOT NULL,
-  `tanggal` date NOT NULL,
-  `status_akhir` varchar(20) NOT NULL,
-  `keterangan` varchar(255) DEFAULT NULL,
-  `user_id` bigint(20) unsigned DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `evaluasi_psn_riwayat_user_id_foreign` (`user_id`),
-  KEY `evaluasi_psn_riwayat_evaluasi_psn_id_tanggal_index` (`evaluasi_psn_id`,`tanggal`),
-  CONSTRAINT `evaluasi_psn_riwayat_evaluasi_psn_id_foreign` FOREIGN KEY (`evaluasi_psn_id`) REFERENCES `evaluasi_psn` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `evaluasi_psn_riwayat_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Table structure for table `evaluasi_psn_capaian`
---
-
-DROP TABLE IF EXISTS `evaluasi_psn_capaian`;
-CREATE TABLE `evaluasi_psn_capaian` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `evaluasi_psn_id` bigint(20) unsigned NOT NULL,
-  `komponen` varchar(20) NOT NULL COMMENT 'PROGRES_FISIK|OUTPUT_UTAMA|PEMBIAYAAN|PERIZINAN|PENGADAAN_LAHAN|REGULASI|SARANA',
-  `satuan` varchar(100) DEFAULT NULL,
-  `target_akhir` decimal(24,4) DEFAULT NULL COMMENT 'pembiayaan dalam Rp miliar, progres dalam %',
-  `target_kumulatif` decimal(24,4) DEFAULT NULL COMMENT 's.d. akhir triwulan cut-off',
-  `realisasi_kumulatif` decimal(24,4) DEFAULT NULL,
-  `keterangan` text DEFAULT NULL COMMENT 'keterangan / sumber data',
-  `created_by` bigint(20) unsigned DEFAULT NULL,
-  `updated_by` bigint(20) unsigned DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `evaluasi_psn_capaian_evaluasi_psn_id_komponen_unique` (`evaluasi_psn_id`,`komponen`),
-  KEY `evaluasi_psn_capaian_created_by_foreign` (`created_by`),
-  KEY `evaluasi_psn_capaian_updated_by_foreign` (`updated_by`),
-  CONSTRAINT `evaluasi_psn_capaian_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `evaluasi_psn_capaian_evaluasi_psn_id_foreign` FOREIGN KEY (`evaluasi_psn_id`) REFERENCES `evaluasi_psn` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `evaluasi_psn_capaian_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Table structure for table `evaluasi_psn_milestone`
---
-
-DROP TABLE IF EXISTS `evaluasi_psn_milestone`;
-CREATE TABLE `evaluasi_psn_milestone` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `evaluasi_psn_id` bigint(20) unsigned NOT NULL,
-  `kode` varchar(30) NOT NULL COMMENT 'kode milestone (config evaluasi_status.milestone_fisik / milestone_non_fisik)',
-  `nama_lain` varchar(255) DEFAULT NULL COMMENT 'nama milestone untuk kode LAIN',
-  `status` varchar(10) DEFAULT NULL COMMENT 'SELESAI|PROSES|BELUM|NA',
-  `tanggal` date DEFAULT NULL COMMENT 'tanggal selesai / target',
-  `keterangan` text DEFAULT NULL,
-  `urutan` smallint(5) unsigned NOT NULL DEFAULT 0,
-  `created_by` bigint(20) unsigned DEFAULT NULL,
-  `updated_by` bigint(20) unsigned DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `evaluasi_psn_milestone_created_by_foreign` (`created_by`),
-  KEY `evaluasi_psn_milestone_updated_by_foreign` (`updated_by`),
-  KEY `evaluasi_psn_milestone_evaluasi_psn_id_urutan_index` (`evaluasi_psn_id`,`urutan`),
-  CONSTRAINT `evaluasi_psn_milestone_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `evaluasi_psn_milestone_evaluasi_psn_id_foreign` FOREIGN KEY (`evaluasi_psn_id`) REFERENCES `evaluasi_psn` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `evaluasi_psn_milestone_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Table structure for table `evaluasi_psn_isu`
---
-
-DROP TABLE IF EXISTS `evaluasi_psn_isu`;
-CREATE TABLE `evaluasi_psn_isu` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `evaluasi_psn_id` bigint(20) unsigned NOT NULL,
-  `isu_id` bigint(20) unsigned DEFAULT NULL COMMENT 'isu profil asal (tanpa FK: isu dibangun ulang saat sinkron)',
-  `uraian` text NOT NULL,
-  `tipologi` varchar(4) DEFAULT NULL COMMENT 'kode C1 1-11',
-  `jalur_kritis` tinyint(1) DEFAULT NULL COMMENT 'menghambat jalur kritis / capaian sasaran',
-  `upaya` text DEFAULT NULL,
-  `dukungan` text DEFAULT NULL COMMENT 'dukungan yang dibutuhkan (apa dan dari siapa)',
-  `urutan` smallint(5) unsigned NOT NULL DEFAULT 0,
-  `created_by` bigint(20) unsigned DEFAULT NULL,
-  `updated_by` bigint(20) unsigned DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `evaluasi_psn_isu_created_by_foreign` (`created_by`),
-  KEY `evaluasi_psn_isu_updated_by_foreign` (`updated_by`),
-  KEY `evaluasi_psn_isu_evaluasi_psn_id_urutan_index` (`evaluasi_psn_id`,`urutan`),
-  CONSTRAINT `evaluasi_psn_isu_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `evaluasi_psn_isu_evaluasi_psn_id_foreign` FOREIGN KEY (`evaluasi_psn_id`) REFERENCES `evaluasi_psn` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `evaluasi_psn_isu_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Table structure for table `evaluasi_psn_lampiran`
---
-
-DROP TABLE IF EXISTS `evaluasi_psn_lampiran`;
-CREATE TABLE `evaluasi_psn_lampiran` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `evaluasi_psn_id` bigint(20) unsigned NOT NULL,
-  `jenis` varchar(10) DEFAULT NULL COMMENT 'DOKUMEN|FOTO|VIDEO|LAINNYA',
-  `judul` varchar(255) NOT NULL,
-  `bentuk` varchar(10) DEFAULT NULL COMMENT 'TAUTAN|FILE',
-  `tautan` varchar(1000) DEFAULT NULL COMMENT 'tautan (link) / nama file',
-  `urutan` smallint(5) unsigned NOT NULL DEFAULT 0,
-  `created_by` bigint(20) unsigned DEFAULT NULL,
-  `updated_by` bigint(20) unsigned DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `evaluasi_psn_lampiran_created_by_foreign` (`created_by`),
-  KEY `evaluasi_psn_lampiran_updated_by_foreign` (`updated_by`),
-  KEY `evaluasi_psn_lampiran_evaluasi_psn_id_urutan_index` (`evaluasi_psn_id`,`urutan`),
-  CONSTRAINT `evaluasi_psn_lampiran_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `evaluasi_psn_lampiran_evaluasi_psn_id_foreign` FOREIGN KEY (`evaluasi_psn_id`) REFERENCES `evaluasi_psn` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `evaluasi_psn_lampiran_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

@@ -78,6 +78,50 @@
             </section>
         </div>
 
+        @if ($balik)
+            @php($labelBalik = ['ANTRE' => 'Antre', 'DITERIMA' => 'Diterima PEKS3', 'SELESAI' => 'Selesai', 'KONFLIK' => 'Konflik', 'DITOLAK' => 'Ditolak', 'GAGAL' => 'Gagal', 'DIABAIKAN' => 'Diabaikan'])
+            @php($warnaBalik = ['ANTRE' => 'netral', 'DITERIMA' => 'ok', 'SELESAI' => 'ok', 'KONFLIK' => 'waspada', 'DITOLAK' => 'galat', 'GAGAL' => 'galat', 'DIABAIKAN' => 'netral'])
+            @php($jenisBalik = ['RO_BULAN' => 'Realisasi KP/RO', 'RISIKO_PANTAU' => 'Pemantauan risiko', 'RISIKO_BARU' => 'Risiko baru', 'ISU_UBAH' => 'Pemantauan isu', 'ISU_BARU' => 'Isu baru'])
+            <section class="kartu mb-6" aria-labelledby="h-balik">
+                <h2 id="h-balik" class="judul-panel">Kiriman Balik Dashboard ke SIRENDA PEKS3</h2>
+                <p class="label mt-1">Isian menu Pengisian dikirim ke SIRENDA PEKS3 tiap menit: {{ $balik['aktif'] ? 'aktif' : 'tidak aktif (PEKS3_BALIK_AKTIF)' }} · alamat penerima {{ $balik['url_terpasang'] ? 'terpasang' : 'belum diisi (PEKS3_BALIK_URL)' }} · kiriman terakhir {{ $lalu($balik['terakhir']) }}. Selama belum kembali lewat sinkron PEKS3, isian dashboard tetap dipertahankan.</p>
+                <ul class="mt-3 flex flex-wrap gap-2">
+                    @foreach ($labelBalik as $k => $l)
+                        <li><span class="badge {{ $warna[$warnaBalik[$k]] }}">{{ $l }}: <b class="angka ml-1">{{ $balik['rekap'][$k] ?? 0 }}</b></span></li>
+                    @endforeach
+                </ul>
+                @if ($balik['perlu']->isNotEmpty())
+                    <h3 class="mt-4 text-isi font-semibold text-slate-800">Perlu keputusan</h3>
+                    <p class="label">Konflik = data yang sama sudah diubah di PEKS3 setelah diisi di dashboard. Pilih <b>Timpa PEKS3</b> untuk mengirim isian dashboard, atau <b>Ikuti PEKS3</b> untuk memakai data PEKS3.</p>
+                    <div class="mt-2 overflow-x-auto">
+                        <table class="w-full text-left text-isi">
+                            <thead class="border-b border-slate-200 text-label text-slate-600"><tr><th class="py-2 pr-3">Waktu isian</th><th class="py-2 pr-3">PSN</th><th class="py-2 pr-3">Isian</th><th class="py-2 pr-3">Status</th><th class="py-2 pr-3">Keterangan</th><th class="py-2">Tindakan</th></tr></thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @foreach ($balik['perlu'] as $op)
+                                    <tr class="align-top">
+                                        <td class="whitespace-nowrap py-2 pr-3">{{ $waktu($op->created_at) }}<span class="block text-label text-slate-500">{{ $op->user?->username ?? 'sistem' }}</span></td>
+                                        <td class="max-w-[16rem] py-2 pr-3">{{ $op->psn?->nama ?? '–' }}</td>
+                                        <td class="py-2 pr-3">{{ $jenisBalik[$op->jenis] ?? $op->jenis }}</td>
+                                        <td class="py-2 pr-3"><span class="badge {{ $warna[$warnaBalik[$op->status]] }}">{{ $labelBalik[$op->status] }}</span></td>
+                                        <td class="max-w-[28rem] py-2 pr-3 break-words text-label">{{ $op->pesan }}</td>
+                                        <td class="whitespace-nowrap py-2">
+                                            <form method="POST" action="{{ route('pengaturan.integrasi.balik-ulang', $op->id) }}" class="inline">@csrf
+                                                @if ($op->status === 'KONFLIK')<input type="hidden" name="timpa" value="1"><button class="tombol-garis py-1 text-label">Timpa PEKS3</button>
+                                                @else<button class="tombol-garis py-1 text-label">Kirim ulang</button>@endif
+                                            </form>
+                                            <form method="POST" action="{{ route('pengaturan.integrasi.balik-abaikan', $op->id) }}" class="inline" onsubmit="return confirm('Pakai data SIRENDA PEKS3 dan buang isian dashboard ini?')">@csrf
+                                                <button class="tombol-garis py-1 text-label">Ikuti PEKS3</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </section>
+        @endif
+
         <section class="kartu" aria-labelledby="h-log">
             <div class="mb-3 flex flex-wrap items-end justify-between gap-3">
                 <h2 id="h-log" class="judul-panel">Log Kiriman dan Penerapan</h2>

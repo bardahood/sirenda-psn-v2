@@ -31,7 +31,7 @@ class PengisianService
 
     public const DAPAT_DIUBAH = ['BELUM', 'DRAFT', 'DIKEMBALIKAN'];
 
-    public function __construct(protected StatusResolver $status) {}
+    public function __construct(protected StatusResolver $status, protected Peks3KeluarService $balik) {}
 
     /** Periode pengisian: kode yang diminta, periode DRAFT terbaru, atau bulan berjalan. Bulan mendatang ditolak. */
     public function periode(?string $kode): PeriodeCutoff
@@ -215,12 +215,13 @@ class PengisianService
                 if ($t->isDirty()) {
                     $t->save();
                     $hitung['ro']++;
+                    $this->balik->catatRo(Kegiatan::withoutGlobalScopes()->find($kid), $t, $u);
                 }
             }
 
             if ($bolehRisiko) {
-                $hitung['risiko'] += $this->simpanRisiko($p, $psn, $d);
-                $hitung['isu'] += $this->simpanIsu($psn, $d);
+                $hitung['risiko'] += $this->simpanRisiko($p, $psn, $d, $u);
+                $hitung['isu'] += $this->simpanIsu($psn, $d, $u);
             }
 
             $g = $this->pengisian($p, $psn);
@@ -236,7 +237,7 @@ class PengisianService
         return $hitung;
     }
 
-    protected function simpanRisiko(PeriodeCutoff $p, Psn $psn, array $d): int
+    protected function simpanRisiko(PeriodeCutoff $p, Psn $psn, array $d, User $u): int
     {
         $n = 0;
         $milik = Risiko::where('psn_id', $psn->id)->pluck('id')->all();
@@ -258,6 +259,7 @@ class PengisianService
             if ($m->isDirty()) {
                 $m->save();
                 $n++;
+                $this->balik->catatPemantauan(Risiko::find($rid), $m, $u);
             }
         }
 
@@ -266,16 +268,17 @@ class PengisianService
             $k = $this->bulat($b['kemungkinan_harapan'] ?? null);
             $dm = $this->bulat($b['dampak_harapan'] ?? null);
             [$level] = $this->status->levelRisiko($k, $dm);
-            Risiko::create(['psn_id' => $psn->id, 'uraian' => $uraian, 'kategori_id' => $b['kategori_id'] ?? null ?: null,
+            $r = Risiko::create(['psn_id' => $psn->id, 'uraian' => $uraian, 'kategori_id' => $b['kategori_id'] ?? null ?: null,
                 'kemungkinan_harapan' => $k, 'dampak_harapan' => $dm, 'level_harapan' => $level?->value,
                 'rencana_perlakuan' => $this->teks($b['rencana_perlakuan'] ?? null), 'penanggung_jawab' => $this->teks($b['penanggung_jawab'] ?? null)]);
+            $this->balik->catatRisikoBaru($r, $u);
             $n++;
         }
 
         return $n;
     }
 
-    protected function simpanIsu(Psn $psn, array $d): int
+    protected function simpanIsu(Psn $psn, array $d, User $u): int
     {
         $n = 0;
         $isu = Isu::where('psn_id', $psn->id)->get()->keyBy('id');
@@ -291,13 +294,15 @@ class PengisianService
             if ($i->isDirty()) {
                 $i->save();
                 $n++;
+                $this->balik->catatIsu($i, $u);
             }
         }
 
         $b = $d['isu_baru'] ?? [];
         if ($uraian = $this->teks($b['uraian'] ?? null)) {
-            Isu::create(['psn_id' => $psn->id, 'uraian' => $uraian, 'kebutuhan_dukungan' => $this->teks($b['kebutuhan_dukungan'] ?? null),
+            $i = Isu::create(['psn_id' => $psn->id, 'uraian' => $uraian, 'kebutuhan_dukungan' => $this->teks($b['kebutuhan_dukungan'] ?? null),
                 'pic_nama' => $this->teks($b['pic_nama'] ?? null), 'tenggat' => $b['tenggat'] ?? null ?: null, 'status' => 'TERBUKA']);
+            $this->balik->catatIsuBaru($i, $u);
             $n++;
         }
 

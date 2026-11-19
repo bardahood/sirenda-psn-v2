@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Pengaturan;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Models\Peks3Keluar;
 use App\Services\Peks3CerminService;
+use App\Services\Peks3KeluarService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -74,7 +76,51 @@ class IntegrasiController extends Controller
             'psi' => $psi,
             'jeda' => $cfg['jeda_terapkan_detik'],
             'urlApi' => url('/api/integrasi/peks3/v1'),
+            'balik' => $this->balik(),
         ]);
+    }
+
+    /** Ringkasan antrean kiriman balik Dashboard -> PEKS3 (§9) dan operasi yang perlu keputusan admin. */
+    protected function balik(): ?array
+    {
+        if (! Schema::hasTable('peks3_keluar')) {
+            return null;
+        }
+        $cfg = config('psn_dashboard.peks3.balik');
+
+        return [
+            'aktif' => (bool) $cfg['aktif'], 'url_terpasang' => filled($cfg['url']),
+            'rekap' => Peks3Keluar::groupBy('status')->selectRaw('status, COUNT(*) AS n')->pluck('n', 'status'),
+            'terakhir' => Peks3Keluar::max('dikirim_at'),
+            'perlu' => Peks3Keluar::with(['user:id,username', 'psn:id,nama'])->whereIn('status', ['KONFLIK', 'DITOLAK', 'GAGAL'])->orderByDesc('id')->limit(50)->get(),
+        ];
+    }
+
+    /** Kirim ulang operasi kiriman balik; timpa=1 mengabaikan pemeriksaan konflik (isian dashboard menimpa PEKS3). */
+    public function balikUlang(Request $r, Peks3Keluar $op, Peks3KeluarService $layanan)
+    {
+        abort_unless(in_array($op->status, ['KONFLIK', 'DITOLAK', 'GAGAL'], true), 422, 'Operasi ini tidak sedang menunggu keputusan.');
+        $timpa = $r->boolean('timpa');
+        $layanan->kirimUlang($op, $timpa);
+        $this->catatBalik($op, $timpa ? 'kirim_ulang_timpa' : 'kirim_ulang');
+
+        return back()->with('status', 'Perubahan dijadwalkan untuk dikirim ulang ke SIRENDA PEKS3.');
+    }
+
+    /** Ikuti data PEKS3: isian dashboard untuk operasi ini tidak dikirim dan tidak dipulihkan lagi. */
+    public function balikAbaikan(Peks3Keluar $op, Peks3KeluarService $layanan)
+    {
+        abort_unless(in_array($op->status, ['KONFLIK', 'DITOLAK', 'GAGAL'], true), 422, 'Operasi ini tidak sedang menunggu keputusan.');
+        $layanan->abaikan($op);
+        $this->catatBalik($op, 'abaikan');
+
+        return back()->with('status', 'Isian dashboard diabaikan; data SIRENDA PEKS3 dipakai pada sinkron berikutnya.');
+    }
+
+    protected function catatBalik(Peks3Keluar $op, string $aksi): void
+    {
+        AuditLog::create(['user_id' => Auth::id(), 'user_label' => Auth::user()?->username, 'tabel' => 'peks3_keluar', 'record_id' => $op->id, 'psn_id' => $op->psn_id,
+            'aksi' => 'UPDATE', 'sumber' => 'APLIKASI', 'nilai_baru' => ['kiriman_balik' => $aksi]]);
     }
 
     /**

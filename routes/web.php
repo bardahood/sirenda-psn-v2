@@ -90,6 +90,8 @@ Route::middleware(['auth', 'akun.aktif'])->group(function () {
         Route::post('/cutoff', [CutoffController::class, 'bangun'])->name('cutoff.bangun');
         Route::get('/integrasi', [IntegrasiController::class, 'index'])->name('integrasi');
         Route::post('/integrasi/terapkan', [IntegrasiController::class, 'terapkan'])->middleware('throttle:6,1')->name('integrasi.terapkan');
+        Route::post('/integrasi/balik/{op}/ulang', [IntegrasiController::class, 'balikUlang'])->whereNumber('op')->name('integrasi.balik-ulang');
+        Route::post('/integrasi/balik/{op}/abaikan', [IntegrasiController::class, 'balikAbaikan'])->whereNumber('op')->name('integrasi.balik-abaikan');
         Route::get('/master', [MasterDataController::class, 'index'])->name('master');
         Route::put('/master/klaster/{id}', [MasterDataController::class, 'ubahKlaster'])->whereNumber('id')->name('master.klaster');
         Route::put('/master/sub-klaster/{id}', [MasterDataController::class, 'ubahSubKlaster'])->whereNumber('id')->name('master.sub-klaster');
