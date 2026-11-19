@@ -110,9 +110,9 @@ class FormPengendalianWord
             $this->tulis($this->sel(self::TABEL['A'], $no, 2), $teks);
         }
         // A9 berisi "Rp. ": angka ditambahkan di paragraf yang sama.
-        $this->tulis($this->sel(self::TABEL['A'], 'A9', 2), [$rp($a['nilai_investasi_rp'])], sambung: true);
-        if ($a['investasi_anomali']) {
-            $this->tulis($this->sel(self::TABEL['A'], 'A9', 2), ['Nilai di SIRENDA ditandai perlu verifikasi; mohon dikoreksi.'], tambah: true);
+        $this->tulis($this->sel(self::TABEL['A'], 'A9', 2), [$rp($a['kebutuhan_rp'])], sambung: true);
+        if ($a['kebutuhan_catatan']) {
+            $this->tulis($this->sel(self::TABEL['A'], 'A9', 2), [$a['kebutuhan_catatan']], tambah: true);
         }
         if ($d['jenis']) {
             $this->centang($this->sel(self::TABEL['A'], 'A12', 2), $d['jenis'] === 'fisik' ? 'Fisik' : 'Non-Fisik');

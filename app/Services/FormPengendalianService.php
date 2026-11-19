@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\PeriodeCutoff;
 use App\Models\Psn;
 use App\Models\SnapshotPsn;
+use App\Support\Pendanaan\KebutuhanPendanaan;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -30,6 +31,7 @@ class FormPengendalianService
         $cfg = config('psn_dashboard.form_pengendalian');
         $snap = $c ? SnapshotPsn::where('periode_cutoff_id', $c->id)->where('psn_id', $psn->id)->first() : null;
         $miliar = fn ($v) => $v === null ? null : (float) $v / 1e9;
+        $kebutuhan = KebutuhanPendanaan::pilih(KebutuhanPendanaan::indikasi([$psn->id])[$psn->id] ?? null, $psn->nilai_investasi_rp);
 
         $peran = fn (string $p) => $psn->kelembagaan->where('peran', $p)->sortBy('urutan')
             ->map(fn ($k) => $k->penanggungJawab?->nama ?? $k->instansi?->nama ?? $k->nama_teks)->filter()->unique()->values()->all();
@@ -54,6 +56,9 @@ class FormPengendalianService
                 'sumber_dana' => $psn->sumberDana->map(fn ($d) => $d->sumberDana?->nama)->filter()->unique()->values()->all(),
                 'nilai_investasi_rp' => $psn->nilai_investasi_rp !== null ? (float) $psn->nilai_investasi_rp : null,
                 'investasi_anomali' => (bool) $psn->investasi_anomali,
+                // A9: jumlah indikasi pendanaan bila dirinci, bila belum nilai investasi (App\Support\Pendanaan\KebutuhanPendanaan).
+                'kebutuhan_rp' => $kebutuhan['nilai'],
+                'kebutuhan_catatan' => KebutuhanPendanaan::catatan($kebutuhan, (bool) $psn->investasi_anomali),
                 'deskripsi' => $psn->deskripsi,
                 'output' => $psn->output,
             ],
@@ -61,7 +66,7 @@ class FormPengendalianService
             'b2' => [
                 'progres_rencana' => $snap?->progres_rencana_persen !== null ? (float) $snap->progres_rencana_persen : null,
                 'progres_realisasi' => $snap?->progres_realisasi_persen !== null ? (float) $snap->progres_realisasi_persen : null,
-                'pembiayaan_akhir' => $miliar($psn->nilai_investasi_rp),
+                'pembiayaan_akhir' => $miliar($kebutuhan['nilai']),
                 'pembiayaan_target' => $miliar($snap?->pagu_rp),
                 'pembiayaan_realisasi' => $miliar($snap?->realisasi_anggaran_rp),
                 'regulasi_total' => $regulasi->count(),

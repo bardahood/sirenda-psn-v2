@@ -6,6 +6,7 @@ use App\Models\EvaluasiPsn;
 use App\Models\PeriodeCutoff;
 use App\Models\Psn;
 use App\Support\Evaluasi\KebutuhanStatus;
+use App\Support\Pendanaan\KebutuhanPendanaan;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -67,6 +68,8 @@ class EvaluasiStatusService
             return collect();
         }
 
+        $indikasi = KebutuhanPendanaan::indikasi($id);
+
         // Isu terbuka profil (jalur kritis dulu, lalu tenggat terdekat) sebagai isian C2 bawaan.
         $maksIsu = (int) config('psn_dashboard.evaluasi_status.maks_isu');
         $isuProfil = DB::table('isu as i')->leftJoin('kegiatan as kg', 'kg.id', '=', 'i.kegiatan_id')
@@ -95,7 +98,7 @@ class EvaluasiStatusService
         $evaluasi = EvaluasiPsn::where('tahun_rkp', $this->tahun())->whereIn('psn_id', $id)
             ->with(['capaian', 'milestone', 'isu', 'lampiran'])->get()->keyBy('psn_id');
 
-        return $psn->map(function ($p) use ($tahapan, $isuProfil, $maksIsu, $kegiatan, $manfaat, $regulasi, $evaluasi, $kebutuhan, $fasilitas) {
+        return $psn->map(function ($p) use ($tahapan, $isuProfil, $maksIsu, $kegiatan, $manfaat, $regulasi, $evaluasi, $kebutuhan, $fasilitas, $indikasi) {
             $data = [
                 'tahapan' => $tahapan[(string) $p->status_kode] ?? null,
                 'keluar' => ! $p->is_aktif,
@@ -121,7 +124,8 @@ class EvaluasiStatusService
                 'regulasi_total' => (int) ($regulasi[$p->id]->total ?? 0),
                 'regulasi_ditetapkan' => (int) ($regulasi[$p->id]->ditetapkan ?? 0),
                 'regulasi_belum' => (int) (($regulasi[$p->id]->total ?? 0) - ($regulasi[$p->id]->ditetapkan ?? 0)),
-                'nilai_investasi_rp' => $p->nilai_investasi_rp !== null ? (float) $p->nilai_investasi_rp : null,
+                // A9 & target akhir pembiayaan: jumlah indikasi pendanaan bila dirinci, bila belum nilai investasi.
+                'nilai_investasi_rp' => KebutuhanPendanaan::pilih($indikasi[$p->id] ?? null, $p->nilai_investasi_rp)['nilai'],
             ];
             $e = $evaluasi[$p->id] ?? null;
 

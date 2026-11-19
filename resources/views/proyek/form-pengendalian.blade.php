@@ -139,7 +139,7 @@
         <tr><td class="no">A7</td><td class="komponen">Target tahun proyek / program selesai</td><td class="auto">{{ $a['tahun_selesai'] }}</td></tr>
         <tr><td class="no">A8</td><td class="komponen">Sumber pendanaan (APBN / APBD / BUMN / Badan Usaha-Swasta / Danantara / Lainnya)</td><td class="auto">{{ implode(', ', $a['sumber_dana']) }}</td></tr>
         <tr><td class="no">A9</td><td class="komponen">Total kebutuhan pendanaan / nilai investasi / anggaran program</td>
-            <td>Rp. <span class="auto">{{ $a['nilai_investasi_rp'] !== null ? $n($a['nilai_investasi_rp'], 0) : '' }}</span>@if ($a['investasi_anomali'])<div class="hint">Nilai di SIRENDA ditandai perlu verifikasi; mohon dikoreksi.</div>@endif</td></tr>
+            <td>Rp. <span class="auto">{{ $a['kebutuhan_rp'] !== null ? $n($a['kebutuhan_rp'], 0) : '' }}</span>@if ($a['kebutuhan_catatan'])<div class="hint">{{ $a['kebutuhan_catatan'] }}</div>@endif</td></tr>
         <tr><td class="no">A10</td><td class="komponen">Deskripsi ringkas proyek / program (maksud / tujuan umum)</td><td class="auto">{!! nl2br(e($a['deskripsi'] ?? '')) !!}</td></tr>
         <tr><td class="no">A11</td><td class="komponen">Output akhir <span class="hint">(misal fisik: 100 km, 220 MW, 1.000 ha; non-fisik: jumlah penerima manfaat, unit layanan, lembaga terbentuk)</span></td><td class="auto">{!! nl2br(e($a['output'] ?? '')) !!}</td></tr>
         <tr><td class="no">A12</td><td class="komponen">Jenis PSN</td>

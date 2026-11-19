@@ -4,6 +4,7 @@ namespace App\Support\Evaluasi;
 
 use App\Models\Psn;
 use App\Services\EvaluasiStatusService;
+use App\Support\Pendanaan\KebutuhanPendanaan;
 use Illuminate\Support\Collection;
 
 /**
@@ -100,7 +101,7 @@ class FormatRingkas
                 'a4' => collect(['PJ' => $peran('PENANGGUNG_JAWAB'), 'Pengelola' => $peran('PENGELOLA'), 'Pelaksana' => $peran('PELAKSANA')])->filter()->map(fn ($v, $k) => "{$k}: {$v}")->implode('; '),
                 'a5' => $p->dasar_penetapan,
                 'a8' => $this->sumberPendanaan($p->sumberDana->map(fn ($d) => $d->sumberDana?->kode)->filter()->all()),
-                'a9' => $p->nilai_investasi_rp !== null ? (float) $p->nilai_investasi_rp : null,
+                'a9' => KebutuhanPendanaan::pilih((float) $p->sumberDana->sum('nilai_rp') ?: null, $p->nilai_investasi_rp)['nilai'],
                 'a10' => $p->deskripsi,
                 'a11' => $p->output,
             ];

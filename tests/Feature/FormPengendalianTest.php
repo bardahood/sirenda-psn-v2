@@ -95,4 +95,24 @@ class FormPengendalianTest extends TestCase
         $this->get(route('proyek.form-pengendalian', $psn))->assertNotFound();
         $this->get(route('form-pengendalian.lama', 777))->assertNotFound();
     }
+
+    public function test_a9_memakai_jumlah_indikasi_pendanaan_bila_sudah_dirinci(): void
+    {
+        $this->seed([ReferensiSeeder::class, PeranSeeder::class]);
+        $dana = fn (string $kode) => (int) DB::table('ref_sumber_dana')->where('kode', $kode)->value('id');
+        // Contoh R.5-2026.1-12: nilai investasi profil 23,8 T, indikasi pendanaan per sumber 23,14 T.
+        $a = $this->buatPsn(['nama' => 'PSN Indikasi', 'nilai_investasi_rp' => 23_800_000_000_000], ['19']);
+        DB::table('psn_sumber_dana')->insert([['psn_id' => $a->id, 'sumber_dana_id' => $dana('D'), 'nilai_rp' => 20_000_000_000_000],
+            ['psn_id' => $a->id, 'sumber_dana_id' => $dana('A'), 'nilai_rp' => 3_140_000_000_000]]);
+        // Belum dirinci: tetap nilai investasi.
+        $b = $this->buatPsn(['nama' => 'PSN Tanpa Rincian', 'nilai_investasi_rp' => 5_000_000_000_000], ['19']);
+        DB::table('psn_sumber_dana')->insert(['psn_id' => $b->id, 'sumber_dana_id' => $dana('A'), 'nilai_rp' => null]);
+        app(SnapshotService::class)->buat('2026-10', terbit: true);
+        $this->actingAs($this->buatPengguna('Pimpinan'));
+
+        $this->get(route('proyek.form-pengendalian', $a))->assertOk()->assertSee('23.140.000.000.000')->assertDontSee('>23.800.000.000.000<', false)
+            ->assertSee('Nilai investasi di profil PSN: Rp 23.800.000.000.000');
+        $this->get(route('proyek.form-pengendalian', $b))->assertOk()->assertSee('5.000.000.000.000')->assertSee('indikasi pendanaan per sumber dana belum dirinci');
+        $this->get(route('proyek.form-pengendalian', [$a, 'format' => 'docx']))->assertOk();
+    }
 }
