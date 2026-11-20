@@ -46,6 +46,13 @@ class Peks3TerapkanService
 
             $importer = app(LegacyImporter::class);
             $log && $importer->onLog($log);
+            // READ COMMITTED: penghapusan & impor ulang dalam satu transaksi panjang tidak memasang gap lock di seluruh
+            // tabel (mis. audit_log), sehingga simpan isian pengguna dan penyelarasan Evaluasi tidak menunggu sampai
+            // "Lock wait timeout". Atomisitas penerapan tetap (satu transaksi). Berlaku untuk transaksi berikutnya saja.
+            // Hanya bila aman untuk binary log (READ COMMITTED + binlog_format=STATEMENT menolak penulisan InnoDB).
+            if ($this->bolehReadCommitted()) {
+                DB::statement('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
+            }
             $laporan = DB::transaction(function () use ($importer, $log) {
                 $importer->kosongkan(transaksional: true, pertahankanUsulan: true);
                 // Langkah 'usulan' (daftar psn_2027 lama) dilewati: usulan & penilaiannya milik dashboard.
@@ -90,6 +97,17 @@ class Peks3TerapkanService
             return ['status' => 'GAGAL', 'pesan' => $pesan];
         } finally {
             $kunci->release();
+        }
+    }
+
+    protected function bolehReadCommitted(): bool
+    {
+        try {
+            $v = (array) DB::selectOne('SELECT @@log_bin AS log_bin, @@binlog_format AS fmt');
+
+            return ! (int) ($v['log_bin'] ?? 0) || strtoupper((string) ($v['fmt'] ?? '')) !== 'STATEMENT';
+        } catch (Throwable) {
+            return false;
         }
     }
 }

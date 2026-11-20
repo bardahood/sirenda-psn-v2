@@ -16,6 +16,11 @@ class EvaluasiSelaraskan extends Command
     {
         $h = $layanan->selaraskan();
         $this->info("Form kembali dicatat: {$h['dibuat']} · Siap Dianalisis otomatis: {$h['siap']} · dikembalikan ke pengecekan: {$h['dikembalikan']}");
+        if ($h['gagal']) {
+            $this->warn("{$h['gagal']} PSN gagal diproses (contoh: {$h['pesan']}). Jalankan ulang perintah ini; PSN yang sudah selesai tidak diproses dua kali.");
+
+            return self::FAILURE;
+        }
 
         return self::SUCCESS;
     }

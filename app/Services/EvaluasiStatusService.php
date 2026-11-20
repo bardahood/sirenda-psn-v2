@@ -339,33 +339,24 @@ class EvaluasiStatusService
      *  - Kumulatif selesai + D1 "Tidak lagi membutuhkan status" + lengkap: langsung Siap Dianalisis tanpa pengecekan.
      *    Bila syarat itu tidak lagi terpenuhi dan belum ada hasil pengecekan, kembali ke Proses Pengecekan.
      *
-     * @return array{dibuat:int, siap:int, dikembalikan:int}
+     * Kegagalan satu PSN (mis. basis data sibuk) tidak menghentikan PSN lain; dapat dijalankan ulang (idempoten).
+     *
+     * @return array{dibuat:int, siap:int, dikembalikan:int, gagal:int, pesan:?string}
      */
     public function selaraskan(?array $psnId = null): array
     {
-        $hitung = ['dibuat' => 0, 'siap' => 0, 'dikembalikan' => 0];
+        $hitung = ['dibuat' => 0, 'siap' => 0, 'dikembalikan' => 0, 'gagal' => 0, 'pesan' => null];
         $this->menyelaraskan = true;
         try {
             foreach ($this->daftar($psnId) as $r) {
-                $e = $r['evaluasi'];
-                if (! $e && ! $r['lengkap']) {
-                    continue;
-                }
-                if (! $e) {
-                    $e = $this->simpan(EvaluasiPsn::firstOrNew(['tahun_rkp' => $this->tahun(), 'psn_id' => $r['psn_id']]),
-                        ['form_diterima_at' => now()->toDateString()], 'Form kembali: isian wajib lengkap');
-                    $hitung['dibuat']++;
-                }
-                if ($e->indikasi_status || filled($e->hasil_pengecekan)) {
-                    continue; // keputusan pemeriksa/PMO tidak diubah otomatis
-                }
-                $siap = $r['data']['tahapan'] === 'KUMULATIF_SELESAI' && self::d1($e, $r['data']) === 'TIDAK' && $r['lengkap'];
-                if ($siap && $e->tindak_lanjut !== 'SIAP_DIANALISIS') {
-                    $this->simpan($e, ['tindak_lanjut' => 'SIAP_DIANALISIS'], 'Otomatis: kumulatif selesai dan tidak lagi membutuhkan status PSN');
-                    $hitung['siap']++;
-                } elseif (! $siap && $e->tindak_lanjut === 'SIAP_DIANALISIS') {
-                    $this->simpan($e, ['tindak_lanjut' => null], 'Otomatis: syarat Siap Dianalisis tanpa pengecekan tidak lagi terpenuhi');
-                    $hitung['dikembalikan']++;
+                try {
+                    $this->selaraskanSatu($r, $hitung);
+                } catch (ValidationException) {
+                    // aturan bisnis menolak (mis. tidak lengkap): lewati
+                } catch (\Throwable $x) {
+                    $hitung['gagal']++;
+                    $hitung['pesan'] ??= "{$r['kode']}: ".mb_substr($x->getMessage(), 0, 300);
+                    report($x);
                 }
             }
         } finally {
@@ -373,6 +364,30 @@ class EvaluasiStatusService
         }
 
         return $hitung;
+    }
+
+    protected function selaraskanSatu(array $r, array &$hitung): void
+    {
+        $e = $r['evaluasi'];
+        if (! $e && ! $r['lengkap']) {
+            return;
+        }
+        if (! $e) {
+            $e = $this->simpan(EvaluasiPsn::firstOrNew(['tahun_rkp' => $this->tahun(), 'psn_id' => $r['psn_id']]),
+                ['form_diterima_at' => now()->toDateString()], 'Form kembali: isian wajib lengkap');
+            $hitung['dibuat']++;
+        }
+        if ($e->indikasi_status || filled($e->hasil_pengecekan)) {
+            return; // keputusan pemeriksa/PMO tidak diubah otomatis
+        }
+        $siap = $r['data']['tahapan'] === 'KUMULATIF_SELESAI' && self::d1($e, $r['data']) === 'TIDAK' && $r['lengkap'];
+        if ($siap && $e->tindak_lanjut !== 'SIAP_DIANALISIS') {
+            $this->simpan($e, ['tindak_lanjut' => 'SIAP_DIANALISIS'], 'Otomatis: kumulatif selesai dan tidak lagi membutuhkan status PSN');
+            $hitung['siap']++;
+        } elseif (! $siap && $e->tindak_lanjut === 'SIAP_DIANALISIS') {
+            $this->simpan($e, ['tindak_lanjut' => null], 'Otomatis: syarat Siap Dianalisis tanpa pengecekan tidak lagi terpenuhi');
+            $hitung['dikembalikan']++;
+        }
     }
 
     /**
