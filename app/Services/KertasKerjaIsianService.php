@@ -6,6 +6,7 @@ use App\Models\EvaluasiPsn;
 use App\Models\Psn;
 use App\Support\Evaluasi\FormatRingkas;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Aturan dan penyimpanan isian satu sel kertas kerja. Dipakai bersama oleh isian langsung (PATCH sel)
@@ -92,7 +93,11 @@ class KertasKerjaIsianService
                 return 'Isi Catatan Hasil Analisis sebelum menetapkan Indikasi Status.';
             }
         }
-        $this->layanan->simpan($e, $isian, $keterangan, $rincian);
+        try {
+            $this->layanan->simpan($e, $isian, $keterangan, $rincian);
+        } catch (ValidationException $x) {
+            return collect($x->errors())->flatten()->first();
+        }
 
         return null;
     }

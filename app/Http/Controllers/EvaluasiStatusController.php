@@ -317,7 +317,7 @@ class EvaluasiStatusController extends Controller
         return $r->validate([
             'status' => ['nullable', Rule::in(array_keys($c['status']))],
             'rekomendasi' => ['nullable', Rule::in(array_keys($c['rekomendasi']))],
-            'kelengkapan' => ['nullable', Rule::in(['LENGKAP', 'KURANG'])],
+            'kelengkapan' => ['nullable', Rule::in(['LENGKAP', 'KURANG', 'DITERIMA_KURANG'])],
             'sumber' => ['nullable', Rule::in(array_values(config('psn_dashboard.sumber_psn')))],
             'klaster' => ['nullable', 'string', 'max:200'],
             'q' => ['nullable', 'string', 'max:100'],
@@ -329,7 +329,9 @@ class EvaluasiStatusController extends Controller
         return $daftar
             ->when($f['status'] ?? null, fn ($c, $v) => $c->where('status_akhir', $v))
             ->when($f['rekomendasi'] ?? null, fn ($c, $v) => $c->where('rekomendasi', $v))
-            ->when($f['kelengkapan'] ?? null, fn ($c, $v) => $c->where('lengkap', $v === 'LENGKAP'))
+            ->when($f['kelengkapan'] ?? null, fn ($c, $v) => $v === 'DITERIMA_KURANG'
+                ? $c->filter(fn ($b) => ! $b['lengkap'] && $b['evaluasi'])
+                : $c->where('lengkap', $v === 'LENGKAP'))
             ->when($f['sumber'] ?? null, fn ($c, $v) => $c->where('sumber', $v))
             ->when($f['klaster'] ?? null, fn ($c, $v) => $c->where('klaster', $v))
             ->when($f['q'] ?? null, fn ($c, $v) => $c->filter(fn ($b) => str_contains(mb_strtolower($b['nama'].' '.$b['kode']), mb_strtolower($v))));

@@ -11,6 +11,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Evaluasi keberlanjutan status PSN (kertas kerja "Input Form Pengendalian PSN 2026"):
@@ -155,41 +156,13 @@ class EvaluasiStatusService
         $terisi = fn (string $k, array $kolom) => collect($kolom)->every(fn ($c) => filled($capaian[$k][$c] ?? null));
         $kurang = [];
 
-        // Aturan wajib isi (kertas kerja sheet "Aturan Wajib Isi"). Nilai B2 = isian kertas kerja, bila kosong data profil.
-        self::a6($e, $d) || $kurang[] = 'A6 Tahun penetapan PSN';
-        $d['tahun_selesai'] || $kurang[] = 'A7 Target tahun selesai';
-        ($t || ($d['keluar'] ?? false)) || $kurang[] = 'B1 Tahapan';
-        if (in_array($t, ['KONSTRUKSI', 'BEROPERASI_SEBAGIAN', 'KUMULATIF_SELESAI'], true)) {
-            $tiga = ['target_akhir', 'target_kumulatif', 'realisasi_kumulatif'];
-            $empat = ['satuan', ...$tiga];
-            if ($jenis === 'FISIK') {
-                ($terisi('PROGRES_FISIK', $tiga) || $terisi('OUTPUT_UTAMA', $empat)) || $kurang[] = 'B2 Progres fisik/output';
-            } else {
-                $terisi('OUTPUT_UTAMA', $empat) || $kurang[] = 'B2 Progres fisik/output';
-            }
-            $terisi('PEMBIAYAAN', $tiga) || $kurang[] = 'B2 Pembiayaan';
-        }
-        if (in_array($t, ['PENYIAPAN', 'TRANSAKSI'], true)
-            && ! collect($e?->milestone ?? [])->contains(fn ($m) => filled($m->status) && array_key_exists($m->kode, config("psn_dashboard.evaluasi_status.milestone.{$jenis}")))) {
-            $kurang[] = 'B3 Milestone';
-        }
-        if (in_array($t, ['BEROPERASI_SEBAGIAN', 'KUMULATIF_SELESAI'], true) && blank($e?->b4_manfaat)) {
-            $kurang[] = 'B4 Manfaat';
-        }
-        if ($berjalan && ! $e?->c1_tipologi && blank($e?->c1_lainnya) && ! $tanpaIsu) {
-            $kurang[] = 'C1 Tipologi isu';
-        }
-        if (($berjalan || $e?->c1_tipologi) && ! $tanpaIsu
-            && ! collect($isuEfektif)->contains(fn ($i) => filled($i['uraian']) && filled($i['dukungan']))) {
-            $kurang[] = 'C2 Isu dan dukungan yang dibutuhkan';
-        }
         $d1 = self::d1($e, $d);
-        $d1 || $kurang[] = 'D1 Kebutuhan status PSN';
-        if ($d1 === 'MASIH') {
-            $e?->d2_fasilitas || $kurang[] = 'D2 Fasilitas';
-            if ($berjalan && ! ($e?->d3_tahapan && $e?->d3_target && $e?->d3_tahun_selesai)) {
-                $kurang[] = 'D3 Target selanjutnya';
-            }
+        if ($t === 'KUMULATIF_SELESAI') {
+            // PSN kumulatif selesai: wajib hanya D1; bila masih membutuhkan status, D2 kebutuhan dukungan (fasilitas). Isian lain opsional.
+            $d1 || $kurang[] = 'D1 Kebutuhan status PSN';
+            $d1 === 'MASIH' && ! $e?->d2_fasilitas && $kurang[] = 'D2 Kebutuhan dukungan (fasilitas)';
+        } else {
+            $kurang = $this->kurangUmum($d, $e, $t, $berjalan, $jenis, $terisi, $isuEfektif, $tanpaIsu, $d1);
         }
 
         // Indikator.
@@ -216,7 +189,7 @@ class EvaluasiStatusService
 
         $rekomendasi = match (true) {
             $d1 === 'TIDAK', $d['keluar'] ?? false => 'DIKELUARKAN',
-            $t === 'KUMULATIF_SELESAI' && $d1 !== 'MASIH' => 'DIKELUARKAN',
+            $t === 'KUMULATIF_SELESAI' && $d1 === null => 'BELUM_CUKUP_DATA',
             $kurang !== [] => 'BELUM_CUKUP_DATA',
             $sinyal !== [] => 'PERLU_PENDALAMAN',
             default => 'DIPERTAHANKAN',
@@ -232,6 +205,48 @@ class EvaluasiStatusService
 
         return ['data' => $d, 'kurang' => $kurang, 'lengkap' => $kurang === [], 'indikator' => $indikator, 'rekomendasi' => $rekomendasi, 'sinyal' => $sinyal,
             'capaian' => $capaian, 'isu' => $isuEfektif, 'jenis' => $jenis];
+    }
+
+    /** Aturan wajib isi umum (kertas kerja sheet "Aturan Wajib Isi") untuk PSN yang belum kumulatif selesai. Nilai B2 = isian, bila kosong profil. */
+    protected function kurangUmum(array $d, ?EvaluasiPsn $e, ?string $t, bool $berjalan, string $jenis, \Closure $terisi, array $isuEfektif, bool $tanpaIsu, ?string $d1): array
+    {
+        $kurang = [];
+        self::a6($e, $d) || $kurang[] = 'A6 Tahun penetapan PSN';
+        $d['tahun_selesai'] || $kurang[] = 'A7 Target tahun selesai';
+        ($t || ($d['keluar'] ?? false)) || $kurang[] = 'B1 Tahapan';
+        if (in_array($t, ['KONSTRUKSI', 'BEROPERASI_SEBAGIAN'], true)) {
+            $tiga = ['target_akhir', 'target_kumulatif', 'realisasi_kumulatif'];
+            $empat = ['satuan', ...$tiga];
+            if ($jenis === 'FISIK') {
+                ($terisi('PROGRES_FISIK', $tiga) || $terisi('OUTPUT_UTAMA', $empat)) || $kurang[] = 'B2 Progres fisik/output';
+            } else {
+                $terisi('OUTPUT_UTAMA', $empat) || $kurang[] = 'B2 Progres fisik/output';
+            }
+            $terisi('PEMBIAYAAN', $tiga) || $kurang[] = 'B2 Pembiayaan';
+        }
+        if (in_array($t, ['PENYIAPAN', 'TRANSAKSI'], true)
+            && ! collect($e?->milestone ?? [])->contains(fn ($m) => filled($m->status) && array_key_exists($m->kode, config("psn_dashboard.evaluasi_status.milestone.{$jenis}")))) {
+            $kurang[] = 'B3 Milestone';
+        }
+        if ($t === 'BEROPERASI_SEBAGIAN' && blank($e?->b4_manfaat)) {
+            $kurang[] = 'B4 Manfaat';
+        }
+        if ($berjalan && ! $e?->c1_tipologi && blank($e?->c1_lainnya) && ! $tanpaIsu) {
+            $kurang[] = 'C1 Tipologi isu';
+        }
+        if (($berjalan || $e?->c1_tipologi) && ! $tanpaIsu
+            && ! collect($isuEfektif)->contains(fn ($i) => filled($i['uraian']) && filled($i['dukungan']))) {
+            $kurang[] = 'C2 Isu dan dukungan yang dibutuhkan';
+        }
+        $d1 || $kurang[] = 'D1 Kebutuhan status PSN';
+        if ($d1 === 'MASIH') {
+            $e?->d2_fasilitas || $kurang[] = 'D2 Fasilitas';
+            if ($berjalan && ! ($e?->d3_tahapan && $e?->d3_target && $e?->d3_tahun_selesai)) {
+                $kurang[] = 'D3 Target selanjutnya';
+            }
+        }
+
+        return $kurang;
     }
 
     /**
@@ -277,13 +292,23 @@ class EvaluasiStatusService
         return $d['isu_profil'] ?? [];
     }
 
-    /** Simpan isian evaluasi; status akhir dihitung ulang dan setiap perubahannya dicatat di riwayat. */
+    /**
+     * Simpan isian evaluasi; status akhir dihitung ulang dan setiap perubahannya dicatat di riwayat. Setelah tersimpan,
+     * status otomatis PSN diselaraskan (selaraskan()).
+     *
+     * @throws ValidationException bila ditetapkan Siap Dianalisis padahal isian wajib belum lengkap
+     */
     public function simpan(EvaluasiPsn $e, array $isian, ?string $keterangan = null, ?array $rincian = null): EvaluasiPsn
     {
-        return DB::transaction(function () use ($e, $isian, $keterangan, $rincian) {
+        $hasil = DB::transaction(function () use ($e, $isian, $keterangan, $rincian) {
             $e->fill($isian);
             if ($e->isDirty('hasil_pengecekan') && ! array_key_exists('tindak_lanjut', $isian)) {
                 $e->tindak_lanjut = config("psn_dashboard.evaluasi_status.tindak_lanjut_otomatis.{$e->hasil_pengecekan}");
+            }
+            // Siap Dianalisis hanya bila seluruh isian wajib sudah terisi (hasil pengecekan baru bermakna setelah lengkap).
+            if ($e->tindak_lanjut === 'SIAP_DIANALISIS' && $e->isDirty(['tindak_lanjut', 'hasil_pengecekan']) && ! $e->indikasi_status && $e->psn_id
+                && ($r = $this->daftar([$e->psn_id])->first()) && ($kurang = $this->analisis($r['data'], $e)['kurang'])) {
+                throw ValidationException::withMessages(['hasil_pengecekan' => 'Belum dapat Siap Dianalisis: isian wajib belum lengkap ('.implode(', ', $kurang).').']);
             }
             $lama = $e->exists ? $e->getOriginal('status_akhir') : null;
             $e->status_akhir = $e->hitungStatusAkhir();
@@ -298,6 +323,56 @@ class EvaluasiStatusService
 
             return $e;
         });
+        if (! $this->menyelaraskan) {
+            $this->selaraskan([$e->psn_id]);
+            $e->refresh();
+        }
+
+        return $hasil;
+    }
+
+    protected bool $menyelaraskan = false;
+
+    /**
+     * Status otomatis menurut kelengkapan isian wajib (docs/evaluasi-status-psn.md):
+     *  - Form dianggap kembali bila seluruh isian wajib terisi: PSN tanpa catatan evaluasi dibuatkan (Proses Pengecekan).
+     *  - Kumulatif selesai + D1 "Tidak lagi membutuhkan status" + lengkap: langsung Siap Dianalisis tanpa pengecekan.
+     *    Bila syarat itu tidak lagi terpenuhi dan belum ada hasil pengecekan, kembali ke Proses Pengecekan.
+     *
+     * @return array{dibuat:int, siap:int, dikembalikan:int}
+     */
+    public function selaraskan(?array $psnId = null): array
+    {
+        $hitung = ['dibuat' => 0, 'siap' => 0, 'dikembalikan' => 0];
+        $this->menyelaraskan = true;
+        try {
+            foreach ($this->daftar($psnId) as $r) {
+                $e = $r['evaluasi'];
+                if (! $e && ! $r['lengkap']) {
+                    continue;
+                }
+                if (! $e) {
+                    $e = $this->simpan(EvaluasiPsn::firstOrNew(['tahun_rkp' => $this->tahun(), 'psn_id' => $r['psn_id']]),
+                        ['form_diterima_at' => now()->toDateString()], 'Form kembali: isian wajib lengkap');
+                    $hitung['dibuat']++;
+                }
+                if ($e->indikasi_status || filled($e->hasil_pengecekan)) {
+                    continue; // keputusan pemeriksa/PMO tidak diubah otomatis
+                }
+                $siap = $r['data']['tahapan'] === 'KUMULATIF_SELESAI' && self::d1($e, $r['data']) === 'TIDAK' && $r['lengkap'];
+                if ($siap && $e->tindak_lanjut !== 'SIAP_DIANALISIS') {
+                    $this->simpan($e, ['tindak_lanjut' => 'SIAP_DIANALISIS'], 'Otomatis: kumulatif selesai dan tidak lagi membutuhkan status PSN');
+                    $hitung['siap']++;
+                } elseif (! $siap && $e->tindak_lanjut === 'SIAP_DIANALISIS') {
+                    $this->simpan($e, ['tindak_lanjut' => null], 'Otomatis: syarat Siap Dianalisis tanpa pengecekan tidak lagi terpenuhi');
+                    $hitung['dikembalikan']++;
+                }
+            }
+        } finally {
+            $this->menyelaraskan = false;
+        }
+
+        return $hitung;
     }
 
     /**
@@ -366,10 +441,13 @@ class EvaluasiStatusService
             'total' => $daftar->count(),
             'keluar' => $daftar->where('data.keluar', true)->count(),
             'sumber' => $daftar->countBy(fn ($r) => $r['sumber'] ?: 'LAINNYA')->sortKeys()->all(),
-            // Progres Form Pengendalian per sumber PSN (RKP / Permenko): diterima vs belum kembali.
+            // Form dianggap kembali bila seluruh isian wajibnya terisi (cek otomatis), per sumber PSN (RKP / Permenko).
             'form_sumber' => $daftar->groupBy(fn ($r) => $r['sumber'] ?: 'LAINNYA')->sortKeys()
-                ->map(fn ($g) => ['diterima' => $g->where('status_akhir', '<>', 'BELUM_DITERIMA')->count(), 'belum' => $g->where('status_akhir', 'BELUM_DITERIMA')->count()])->all(),
-            'diterima' => $daftar->count() - ($per['BELUM_DITERIMA'] ?? 0),
+                ->map(fn ($g) => ['diterima' => $g->where('lengkap', true)->count(), 'belum' => $g->where('lengkap', false)->count()])->all(),
+            'diterima' => $daftar->where('lengkap', true)->count(),
+            'belum' => $daftar->where('lengkap', false)->count(),
+            // Sudah ada isian/ditandai diterima, tetapi isian wajib belum lengkap.
+            'perlu_dilengkapi' => $daftar->filter(fn ($r) => ! $r['lengkap'] && $r['evaluasi'])->count(),
             'lengkap' => $daftar->where('lengkap', true)->count(),
             'status' => collect(config('psn_dashboard.evaluasi_status.status'))->map(fn ($l, $k) => $per[$k] ?? 0)->all(),
             'dipertahankan_nama' => $nama('DIPERTAHANKAN'),

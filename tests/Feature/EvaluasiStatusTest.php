@@ -38,7 +38,7 @@ class EvaluasiStatusTest extends TestCase
         $cp = $this->buatKegiatan($a, [['periode' => 'BULANAN', 'periode_ke' => 10, 'target_persen' => 60, 'realisasi_persen' => 45, 'pagu_rp' => 100e9,
             'realisasi_anggaran_rp' => 30e9, 'dilaporkan_at' => '2026-10-20']], ['is_critical_path' => true]);
         DB::table('isu')->insert(['psn_id' => $a->id, 'kegiatan_id' => $cp->id, 'uraian' => 'Lahan belum bebas', 'status' => 'TERBUKA', 'kebutuhan_dukungan' => 'Konsinyasi']);
-        // Kumulatif selesai: tanpa D1 sistem mengindikasikan dikeluarkan.
+        // Kumulatif selesai: wajib hanya D1 (tanpa D1 belum cukup data).
         $b = $this->buatPsn(['nama' => 'Jalan Tol Evaluasi B', 'kode_psn' => 'M.2', 'tahun_selesai' => 2025, 'sumber_input' => 2,
             'status_psn_id' => $this->ref('ref_status_psn', '1')], ['08']);
         app(SnapshotService::class)->buat('2026-10', terbit: true);
@@ -56,7 +56,8 @@ class EvaluasiStatusTest extends TestCase
         $this->assertSame(30.0, $baris[$a->id]['indikator']['serapan']);
         $this->assertContains('D1 Kebutuhan status PSN', $baris[$a->id]['kurang']);
         $this->assertSame('BELUM_CUKUP_DATA', $baris[$a->id]['rekomendasi']);
-        $this->assertSame('DIKELUARKAN', $baris[$b->id]['rekomendasi']);
+        $this->assertSame('BELUM_CUKUP_DATA', $baris[$b->id]['rekomendasi']);
+        $this->assertSame(['D1 Kebutuhan status PSN'], $baris[$b->id]['kurang']);
 
         // Operator K/L unit pengampu: tandai form diterima dan isi D1-D3; tidak dapat menetapkan indikasi.
         $this->actingAs($this->buatPengguna('Operator K/L', '07'));
@@ -467,8 +468,8 @@ class EvaluasiStatusTest extends TestCase
         $baris = collect($format->semua(collect([$r])))->first();
         $this->assertSame([2018, 'PROFIL'], [$baris['nilai']['a6'], $baris['asal']['a6']]);
         $this->assertSame(2018, $baris['mentah']['a6']);
-        // B tanpa tahun terbit tetap wajib diisi.
-        $this->assertContains('A6 Tahun penetapan PSN', $layanan->daftar()->keyBy('psn_id')[$b->id]['kurang']);
+        // B kumulatif selesai: A6 opsional, hanya D1 yang wajib.
+        $this->assertNotContains('A6 Tahun penetapan PSN', $layanan->daftar()->keyBy('psn_id')[$b->id]['kurang']);
 
         // Isian A6 menimpa profil; dikosongkan kembali ke profil.
         $this->actingAs($this->buatPengguna('Tim Koordinasi/PMO'));
@@ -520,5 +521,57 @@ class EvaluasiStatusTest extends TestCase
         $this->get(route('evaluasi.show', $a))->assertOk()->assertSee('Ikuti SIRENDA (Masih membutuhkan status PSN)')
             ->assertSee('Isian Kebutuhan Status PSN di SIRENDA')->assertSee('diterima menurut SIRENDA: 2024');
         $this->get(route('evaluasi.index'))->assertOk()->assertSee('dari SIRENDA');
+    }
+
+    public function test_kumulatif_selesai_wajib_d1_dan_status_otomatis(): void
+    {
+        [$a, $b] = $this->siapkan();   // $b: Kumulatif Proyek Selesai, tanpa isian apa pun
+        $layanan = app(EvaluasiStatusService::class);
+        $baris = fn () => $layanan->daftar()->keyBy('psn_id')[$b->id];
+        $this->assertSame('BELUM_DITERIMA', $baris()['status_akhir']);
+        $this->assertFalse($baris()['lengkap']);
+
+        // a. D1 = Tidak lagi membutuhkan status: lengkap, form dianggap kembali, langsung Siap Dianalisis.
+        $layanan->simpan(EvaluasiPsn::firstOrNew(['tahun_rkp' => $layanan->tahun(), 'psn_id' => $b->id]), ['d1_kebutuhan' => 'TIDAK', 'd1_alasan' => 'SELESAI']);
+        $r = $baris();
+        $this->assertSame([[], 'SIAP_DIANALISIS', 'DIKELUARKAN'], [$r['kurang'], $r['status_akhir'], $r['rekomendasi']]);
+        $this->assertStringStartsWith('Otomatis', DB::table('evaluasi_psn_riwayat')->where('evaluasi_psn_id', $r['evaluasi']->id)->orderByDesc('id')->value('keterangan'));
+        $alur = $layanan->alur($layanan->daftar());
+        $this->assertSame(1, $alur['form_sumber'][$r['sumber'] ?: 'LAINNYA']['diterima'] ?? $alur['diterima']);
+
+        // b. D1 = Masih membutuhkan: D2 wajib; Siap Dianalisis otomatis dicabut, kembali ke Proses Pengecekan.
+        $e = EvaluasiPsn::where('psn_id', $b->id)->firstOrFail();
+        $layanan->simpan($e, ['d1_kebutuhan' => 'MASIH', 'd1_alasan' => null]);
+        $r = $baris();
+        $this->assertSame([['D2 Kebutuhan dukungan (fasilitas)'], 'PROSES_PENGECEKAN'], [$r['kurang'], $r['status_akhir']]);
+        $this->assertSame(0, $layanan->alur($layanan->daftar())['diterima'] - ($layanan->daftar()->where('psn_id', $a->id)->first()['lengkap'] ? 1 : 0));
+
+        // Hasil pengecekan "Lengkap dan Benar" ditolak selama D2 kosong.
+        $this->actingAs($this->buatPengguna('Tim Koordinasi/PMO'));
+        $this->put(route('evaluasi.update', $b), ['hasil_pengecekan' => 'LENGKAP_BENAR', 'tindak_lanjut' => ''])->assertSessionHasErrors('hasil_pengecekan');
+        $this->patchJson(route('evaluasi.sel', $b), ['kunci' => 'hasil', 'nilai' => 'LENGKAP_BENAR'])->assertStatus(422);
+        $this->assertSame('PROSES_PENGECEKAN', $baris()['status_akhir']);
+
+        // D2 terisi: lengkap, tetapi harus dicek dulu (tidak otomatis Siap Dianalisis); setelah dicek baru Siap Dianalisis.
+        $layanan->simpan($e->fresh(), ['d2_fasilitas' => ['PERIZINAN']]);
+        $this->assertSame([true, 'PROSES_PENGECEKAN'], [$baris()['lengkap'], $baris()['status_akhir']]);
+        $layanan->simpan($e->fresh(), ['hasil_pengecekan' => 'LENGKAP_BENAR']);
+        $this->assertSame('SIAP_DIANALISIS', $baris()['status_akhir']);
+    }
+
+    public function test_form_kembali_dihitung_dari_isian_wajib_lengkap(): void
+    {
+        [$a] = $this->siapkan();   // $a: belum kumulatif, isian wajib belum lengkap
+        $layanan = app(EvaluasiStatusService::class);
+        $this->actingAs($this->buatPengguna('Tim Koordinasi/PMO'));
+        $this->post(route('evaluasi.terima', $a), ['form_diterima_at' => '2026-11-10']);
+
+        $alur = $layanan->alur($daftar = $layanan->daftar());
+        $this->assertFalse($daftar->firstWhere('psn_id', $a->id)['lengkap']);
+        $this->assertSame(0, $alur['diterima']);          // ditandai diterima tetapi belum lengkap = belum kembali
+        $this->assertSame(1, $alur['perlu_dilengkapi']);
+        $this->get(route('evaluasi.index', ['kelengkapan' => 'DITERIMA_KURANG']))->assertOk()->assertSee($a->nama)
+            ->assertSee('Form kembali (isian wajib lengkap)')->assertSee('Sudah diisi sebagian, perlu dilengkapi');
+        $this->artisan('evaluasi:selaraskan')->expectsOutputToContain('Form kembali dicatat')->assertSuccessful();
     }
 }

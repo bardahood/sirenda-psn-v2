@@ -62,6 +62,12 @@ class Peks3TerapkanService
                 return $laporan;
             });
             DashboardCache::flush();
+            // Data SIRENDA (tahapan, Kebutuhan Status PSN) dapat mengubah kelengkapan & status otomatis evaluasi.
+            try {
+                app(EvaluasiStatusService::class)->selaraskan();
+            } catch (Throwable $e) {
+                report($e);
+            }
 
             $hasil = ['status' => 'BERHASIL', 'durasi_detik' => round(microtime(true) - $mulai, 1),
                 'psn' => DB::table('psn')->whereNull('deleted_at')->count(), 'peringatan' => array_sum(array_map('count', $laporan['peringatan'] ?? []))];

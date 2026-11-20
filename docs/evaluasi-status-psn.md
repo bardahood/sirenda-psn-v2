@@ -33,7 +33,7 @@ Menu: **Evaluasi** (`/evaluasi-status`), dengan tiga halaman: **Pemantauan**, **
 
    | Rekomendasi | Aturan |
    |---|---|
-   | Indikasi dikeluarkan | D1 = tidak lagi membutuhkan status PSN, **atau** tahapan kumulatif selesai dan D1 tidak menyatakan masih membutuhkan |
+   | Indikasi dikeluarkan | D1 = tidak lagi membutuhkan status PSN (isian evaluasi atau Kebutuhan Status PSN di SIRENDA). Kumulatif selesai tanpa D1 = belum cukup data |
    | Data belum cukup | Masih ada isian wajib yang kosong (§3) |
    | Perlu pendalaman | Ada sinyal: deviasi fisik ≤ −10 poin; serapan < 50%; proyeksi selesai mundur ≥ 2 tahun; masih Penyiapan/Transaksi ≥ 3 tahun sejak ditetapkan; ada isu yang menghambat jalur kritis; atau D1 masih membutuhkan tetapi tanpa fasilitas D2 |
    | Indikasi dipertahankan | D1 masih membutuhkan, isian lengkap, tanpa sinyal di atas |
@@ -49,14 +49,27 @@ Menu: **Evaluasi** (`/evaluasi-status`), dengan tiga halaman: **Pemantauan**, **
 | A6 | selalu | tahun penetapan terisi (isian evaluasi, atau tahun terbit profil SIRENDA) |
 | A7 | selalu | `psn.tahun_selesai` terisi |
 | B1 | selalu | status PSN memetakan ke tahapan |
-| B2 progres | tahapan Konstruksi / Beroperasi sebagian / Kumulatif selesai | rencana dan realisasi progres fisik ada di snapshot |
+| B2 progres | tahapan Konstruksi / Beroperasi sebagian | rencana dan realisasi progres fisik ada di snapshot |
 | B2 pembiayaan | idem | pagu dan realisasi anggaran ada di snapshot |
 | B3 | tahapan Penyiapan / Transaksi | minimal 1 KP/RO (milestone) tercatat |
-| B4 | tahapan Beroperasi sebagian / Kumulatif selesai | minimal 1 indikator atau penerima manfaat tercatat |
+| B4 | tahapan Beroperasi sebagian | minimal 1 indikator atau penerima manfaat tercatat |
 | C1, C2 | tahapan Penyiapan s.d. Beroperasi sebagian, kecuali dicentang "Tidak ada isu" | ada isu terbuka, dan minimal satu berisi kebutuhan dukungan |
 | D1 | selalu | dipilih |
 | D2 | D1 = masih membutuhkan | minimal 1 fasilitas |
 | D3 | D1 = masih membutuhkan dan tahapan belum selesai | tahapan target, target, dan proyeksi tahun selesai terisi |
+
+**PSN berstatus Kumulatif Proyek Selesai** memakai aturan khusus: wajib hanya **D1 Kebutuhan status PSN**; bila D1 = masih membutuhkan, **D2 Kebutuhan dukungan (fasilitas)** juga wajib. Butir A–C dan D3 opsional.
+
+### 3.1 Form kembali dan status otomatis (`EvaluasiStatusService::selaraskan`)
+
+| Keadaan | Status |
+|---|---|
+| Isian wajib belum lengkap | Form **belum kembali** (dihitung di kartu alur sebagai belum kembali, walau sudah ditandai diterima/diisi sebagian; filter "Diisi sebagian, perlu dilengkapi"). Status tetap seperti adanya (Form belum diterima, Proses Pengecekan, Butuh Data Tambahan, Perlu Verifikasi ke PJ). |
+| Isian wajib lengkap | Form **kembali**. PSN tanpa catatan evaluasi otomatis dibuatkan (riwayat "Form kembali: isian wajib lengkap", status Proses Pengecekan). |
+| Kumulatif selesai + D1 = tidak lagi membutuhkan + lengkap | **Siap Dianalisis otomatis** tanpa pengecekan (riwayat "Otomatis: ..."). Bila syaratnya tidak lagi terpenuhi (mis. D1 diubah menjadi masih) dan belum ada Hasil Pengecekan, kembali ke Proses Pengecekan. |
+| Selain itu | Harus dicek dulu: Hasil Pengecekan → Tindak Lanjut. **Siap Dianalisis ditolak selama isian wajib belum lengkap.** |
+
+Penyelarasan berjalan setiap kali isian evaluasi disimpan (formulir, sel kertas kerja, unggah Excel), setelah setiap sinkron SIRENDA PEKS3 diterapkan (tahapan dan Kebutuhan Status PSN dapat berubah), dan manual dengan `php artisan evaluasi:selaraskan`. Hasil Pengecekan dan Indikasi Status yang sudah diisi pemeriksa/PMO tidak pernah diubah otomatis.
 
 Kekurangan pada A–C diperbaiki di SIRENDA PEKS3 (sumber data), lalu otomatis terbawa ke dashboard (lihat `docs/integrasi-peks3.md`).
 
