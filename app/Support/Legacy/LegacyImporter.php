@@ -297,7 +297,8 @@ class LegacyImporter
         }
 
         $dirinci = []; // [psn][dana] => baris psn_pendanaan sudah dicatat (beberapa baris sumber sama dijumlahkan)
-        foreach ($this->legacy->table('psn_pendanaan')->whereNull('deleted_at')->orderBy('id')->get() as $r) {
+        // Urut tanpa kolom id: struktur lama psn_pendanaan berkunci (psn_id, pendanaan) tanpa id/nilai.
+        foreach ($this->legacy->table('psn_pendanaan')->whereNull('deleted_at')->orderBy('psn_id')->orderBy('pendanaan')->get() as $r) {
             $psn = $this->psnId($r->psn_id, 'psn_pendanaan');
             $dana = $this->kode('ref_sumber_dana', $r->pendanaan, 'psn_pendanaan');
             if ($psn && $dana) {
@@ -312,7 +313,7 @@ class LegacyImporter
                     isset($dirinci[$psn][$dana])
                         ? $q->update(['nilai_rp' => DB::raw('COALESCE(nilai_rp, 0) + '.$nominal)])
                         : $q->update(['nilai_rp' => $nominal]);
-                    isset($dirinci[$psn][$dana]) && $this->peringatan('pendanaan_ganda', "psn_pendanaan#{$r->id}: sumber {$r->pendanaan} ganda pada psn#{$r->psn_id}, nominal dijumlahkan");
+                    isset($dirinci[$psn][$dana]) && $this->peringatan('pendanaan_ganda', 'psn_pendanaan#'.($r->id ?? '?').": sumber {$r->pendanaan} ganda pada psn#{$r->psn_id}, nominal dijumlahkan");
                 }
                 $dirinci[$psn][$dana] = true;
                 $this->hitung('psn_sumber_dana', $n);
