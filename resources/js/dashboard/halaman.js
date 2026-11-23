@@ -137,7 +137,7 @@ export function halamanDashboard(kamus, kelasPeta, mode = 'pelaksanaan') {
                 kritis: `Terlambat atau risiko ≥ Tinggi, dari ${angka(n.aktif, 0)} PSN`,
                 cakupan: `${angka(n.melapor, 0)} dari ${angka(n.aktif, 0)} PSN melaporkan progres`,
             };
-            const tautan = { aktif: proyek(''), realisasi: proyek(''), serapan: proyek(''), kritis: proyek('kritis=1'), cakupan: proyek('status=tanpa_data') };
+            const tautan = { aktif: proyek('aktif=1'), realisasi: proyek('aktif=1'), serapan: proyek('aktif=1'), kritis: proyek('kritis=1&aktif=1'), cakupan: proyek('status=tanpa_data&aktif=1') };
             return KARTU_PL.map(([kode, judul, warna, ikon, info]) => ({
                 kode, judul, warna, ikon, info, nilai: this.formatKpi(kode, n[kode]), delta: p.delta[kode],
                 status: kode === 'realisasi' && n.realisasi !== null ? n.status : null, keterangan: ket[kode], tautan: tautan[kode],

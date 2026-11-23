@@ -63,9 +63,9 @@ class PortofolioDetailKualitasTest extends TestCase
         $kl = $this->ref('ref_klaster', 'R.6');
         foreach (['', 'prov=32', 'prov=31,35', 'dana=kpbu', 'dana=apbd', "dit={$dit}", "klaster={$kl}", 'kat=pkpn', 'status=terlambat,tanpa_data', "prov=32&dana=apbn&klaster={$kl}"] as $qs) {
             $k1 = collect($this->getJson("/api/v1/dashboard/kpi?{$qs}")->json('data'))->firstWhere('kode', 'K1');
-            // Kartu K1 menghitung seluruh PSN tercatat (tautannya membuka portofolio dengan nonaktif=1); bawaan portofolio = PSN aktif.
-            $this->assertEquals($k1['nilai'], $this->getJson('/api/v1/proyek?'.ltrim("{$qs}&nonaktif=1", '&'))->assertOk()->json('meta.total'), "filter: {$qs}");
-            $this->assertEquals($k1['aktif'], $this->getJson("/api/v1/proyek?{$qs}")->assertOk()->json('meta.total'), "filter: {$qs}");
+            // Bawaan portofolio = seluruh PSN tercatat (sama dengan K1, PSN keluar ber-badge); aktif=1 = PSN aktif saja.
+            $this->assertEquals($k1['nilai'], $this->getJson("/api/v1/proyek?{$qs}")->assertOk()->json('meta.total'), "filter: {$qs}");
+            $this->assertEquals($k1['aktif'], $this->getJson('/api/v1/proyek?'.ltrim("{$qs}&aktif=1", '&'))->assertOk()->json('meta.total'), "filter: {$qs}");
         }
     }
 
@@ -76,18 +76,22 @@ class PortofolioDetailKualitasTest extends TestCase
 
         $this->assertSame(['Beta Jalan Tol'], collect($this->getJson('/api/v1/proyek?q=tol')->json('data'))->pluck('nama')->all());
         $this->assertSame(['Alfa Bendungan'], collect($this->getJson('/api/v1/proyek?q=R.6-A')->json('data'))->pluck('nama')->all());
-        $this->assertSame(['Alfa Bendungan', 'Beta Jalan Tol', 'Charlie Pangan'], collect($this->getJson('/api/v1/proyek?urut=investasi&arah=desc')->json('data'))->pluck('nama')->all());
+        $this->assertSame(['Alfa Bendungan', 'Beta Jalan Tol', 'Charlie Pangan'], collect($this->getJson('/api/v1/proyek?urut=investasi&arah=desc&aktif=1')->json('data'))->pluck('nama')->all());
         // Deviasi naik: Alfa (-30), Beta (+2), Charlie tanpa data di akhir.
-        $this->assertSame(['Alfa Bendungan', 'Beta Jalan Tol', 'Charlie Pangan'], collect($this->getJson('/api/v1/proyek?urut=deviasi')->json('data'))->pluck('nama')->all());
-        $this->assertSame(4, $this->getJson('/api/v1/proyek?nonaktif=1')->json('meta.total'));
+        $this->assertSame(['Alfa Bendungan', 'Beta Jalan Tol', 'Charlie Pangan'], collect($this->getJson('/api/v1/proyek?urut=deviasi&aktif=1')->json('data'))->pluck('nama')->all());
+        // Bawaan: PSN keluar ikut tampil di akhir daftar dengan penanda keluar.
+        $semua = collect($this->getJson('/api/v1/proyek?urut=investasi&arah=desc')->json('data'));
+        $this->assertSame(4, $semua->count());
+        $this->assertSame([false, false, false, true], $semua->pluck('keluar')->all());
         $this->assertSame(['Charlie Pangan'], collect($this->getJson('/api/v1/proyek?tahap=KONSTRUKSI&kat=pkpn')->json('data'))->pluck('nama')->all());
 
         // Bawaan: urutan data SIRENDA PEKS3 (legacy_id); PSN tanpa legacy_id di akhir.
         DB::table('psn')->where('nama', 'Charlie Pangan')->update(['legacy_id' => 5]);
         DB::table('psn')->where('nama', 'Alfa Bendungan')->update(['legacy_id' => 9]);
         DB::table('psn')->where('nama', 'Beta Jalan Tol')->update(['legacy_id' => null]);
-        $this->assertSame(['Charlie Pangan', 'Alfa Bendungan', 'Beta Jalan Tol'], collect($this->getJson('/api/v1/proyek')->json('data'))->pluck('nama')->all());
-        $this->assertSame(['Alfa Bendungan', 'Charlie Pangan', 'Beta Jalan Tol'], collect($this->getJson('/api/v1/proyek?urut=sirenda&arah=desc')->json('data'))->pluck('nama')->all());
+        // PSN keluar (Delta) tetap di akhir daftar, apa pun urutannya.
+        $this->assertSame(['Charlie Pangan', 'Alfa Bendungan', 'Beta Jalan Tol', 'Delta Keluar'], collect($this->getJson('/api/v1/proyek')->json('data'))->pluck('nama')->all());
+        $this->assertSame(['Alfa Bendungan', 'Charlie Pangan', 'Beta Jalan Tol', 'Delta Keluar'], collect($this->getJson('/api/v1/proyek?urut=sirenda&arah=desc')->json('data'))->pluck('nama')->all());
 
         $baris = collect($this->getJson('/api/v1/proyek')->json('data'))->firstWhere('nama', 'Alfa Bendungan');
         $this->assertSame(['DKI JAKARTA', 'JAWA BARAT'], $baris['provinsi']);
@@ -117,7 +121,7 @@ class PortofolioDetailKualitasTest extends TestCase
     public function test_operator_kl_hanya_melihat_proyek_unitnya(): void
     {
         $this->actingAs($this->buatPengguna('Operator K/L', '07'));
-        $this->assertSame(['Alfa Bendungan'], collect($this->getJson('/api/v1/proyek')->json('data'))->pluck('nama')->all());
+        $this->assertSame(['Alfa Bendungan', 'Delta Keluar'], collect($this->getJson('/api/v1/proyek')->json('data'))->pluck('nama')->all());
         $this->get("/proyek/{$this->psn['b']->id}")->assertNotFound();
         $this->getJson("/api/v1/proyek/{$this->psn['b']->id}")->assertNotFound();
         $this->get("/proyek/{$this->psn['a']->id}")->assertOk();

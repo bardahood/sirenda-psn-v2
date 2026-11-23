@@ -95,7 +95,8 @@ class ProyekController extends Controller
         $r->validate([
             'q' => ['nullable', 'string', 'max:100'],
             'kritis' => ['nullable', 'boolean'],
-            'nonaktif' => ['nullable', 'boolean'],
+            'aktif' => ['nullable', 'boolean'],
+            'nonaktif' => ['nullable', 'boolean'], // lama (tautan K1): PSN keluar kini tampil secara bawaan
             'tahap' => ['nullable', Rule::in(['PERENCANAAN', 'TRANSAKSI', 'KONSTRUKSI', 'OPERASI', 'TANPA'])],
             'urut' => ['nullable', Rule::in(array_keys(PortofolioService::URUTAN))],
             'arah' => ['nullable', 'in:asc,desc'],
@@ -105,7 +106,7 @@ class ProyekController extends Controller
         return [
             'q' => $r->query('q'),
             'kritis' => $r->boolean('kritis'),
-            'nonaktif' => $r->boolean('nonaktif'),
+            'aktif' => $r->boolean('aktif'),
             'tahap' => $r->query('tahap'),
             'urut' => $r->query('urut', 'sirenda'),
             'arah' => $r->query('arah', 'asc'),

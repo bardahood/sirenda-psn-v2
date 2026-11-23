@@ -39,7 +39,10 @@ class PortofolioService
     public function __construct(protected DashboardService $dashboard) {}
 
     /**
-     * @param  array{q?: ?string, kritis?: bool, nonaktif?: bool, tahap?: ?string, urut?: ?string, arah?: ?string}  $opsi
+     * Bawaan: seluruh PSN tercatat pada cut-off (sama dengan K1), PSN "Keluar dari PSN" di akhir dengan badge.
+     * aktif = true: hanya PSN aktif.
+     *
+     * @param  array{q?: ?string, kritis?: bool, aktif?: bool, tahap?: ?string, urut?: ?string, arah?: ?string}  $opsi
      */
     public function query(PeriodeCutoff $c, FilterGlobal $f, array $opsi = []): Builder
     {
@@ -55,7 +58,7 @@ class PortofolioService
 
         $f->terapkanSql($q, $this->dashboard->skemaPerDanaId());
 
-        if (empty($opsi['nonaktif'])) {
+        if (! empty($opsi['aktif'])) {
             $q->where('snapshot_psn.is_aktif', true);
         }
         if (! empty($opsi['kritis'])) {
@@ -71,7 +74,8 @@ class PortofolioService
         $kolom = self::URUTAN[$opsi['urut'] ?? 'sirenda'] ?? 'p.legacy_id';
         $arah = ($opsi['arah'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
         // Nilai kosong selalu di akhir, apa pun arah urutannya.
-        $q->orderByRaw("{$kolom} IS NULL")->orderBy(DB::raw($kolom), $arah)->orderBy('p.id');
+        // PSN aktif dulu, PSN keluar di akhir daftar.
+        $q->orderByDesc('snapshot_psn.is_aktif')->orderByRaw("{$kolom} IS NULL")->orderBy(DB::raw($kolom), $arah)->orderBy('p.id');
 
         return $q;
     }
@@ -95,6 +99,7 @@ class PortofolioService
             'klaster' => $r->klaster_nama,
             'tahap' => $r->tahap,
             'status_psn' => $r->status_psn_nama,
+            'keluar' => ! $r->is_aktif,
             'kategori' => $r->kategori,
             'provinsi' => collect($r->provinsi_kode ?? [])->map(fn ($k) => $prov[$k] ?? $k)->values()->all(),
             'investasi_triliun' => $r->nilai_investasi_rp !== null ? round($r->nilai_investasi_rp / 1e12, 2) : null,

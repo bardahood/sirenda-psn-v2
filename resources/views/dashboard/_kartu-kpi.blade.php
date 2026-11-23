@@ -2,7 +2,7 @@
 @php($ikonInfo = '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>')
             <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:col-span-2 {{ $kolom }} layar:col-span-full">
                 @foreach ($kpi as $k => [$judul, $ikon])
-                    <a :href="$store.filter.tautan('/proyek') + ({{ in_array($k, ['K1', 'K4', 'K5']) ? 'true' : 'false' }} ? ($store.filter.qs() ? '&' : '?') + '{{ ['K1' => 'nonaktif=1', 'K4' => 'kritis=1', 'K5' => 'kat=pkpn'][$k] ?? '' }}' : '')"
+                    <a :href="$store.filter.tautan('/proyek') + ({{ in_array($k, ['K1', 'K4', 'K5']) ? 'true' : 'false' }} ? ($store.filter.qs() ? '&' : '?') + '{{ ['K1' => 'urut=sirenda', 'K4' => 'kritis=1&aktif=1', 'K5' => 'kat=pkpn&aktif=1'][$k] ?? '' }}' : '')"
                        class="kartu flex items-center gap-3 !px-4 !py-2.5 transition hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-aksen"
                        aria-labelledby="kpi-{{ $k }}">
                         <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white shadow" :style="{ background: warnaKpi('{{ $k }}') }">

@@ -38,8 +38,8 @@
                     Hanya risiko kritis (K4)
                 </label>
                 <label class="flex items-center gap-2 text-isi">
-                    <input type="checkbox" class="rounded border-slate-300 text-aksen focus:ring-aksen" :checked="o.nonaktif" @change="ubah('nonaktif', $event.target.checked)">
-                    Sertakan PSN keluar
+                    <input type="checkbox" class="rounded border-slate-300 text-aksen focus:ring-aksen" :checked="o.aktif" @change="ubah('aktif', $event.target.checked)">
+                    Sembunyikan PSN keluar
                 </label>
                 <a :href="tautanUnduh('xlsx')" class="tombol-garis py-1.5">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 19h16"/></svg>
@@ -77,6 +77,7 @@
                                 <td class="max-w-[20rem] py-2 pr-3">
                                     <a :href="tautanDetail(r.id)" class="font-medium text-aksen-700 hover:underline" x-text="r.nama"></a>
                                     <span x-show="r.kategori === 'PKPN'" class="ml-1 rounded bg-primer-50 px-1.5 text-label text-primer">PKPN</span>
+                                    <span x-show="r.keluar" class="badge ml-1 bg-slate-100 text-slate-700 ring-slate-400/40" :title="r.status_psn ?? 'Keluar dari PSN'"><span class="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-slate-500"></span>Keluar dari PSN</span>
                                 </td>
                                 <td class="max-w-[12rem] truncate py-2 pr-3" :title="r.klaster" x-text="r.klaster ?? '–'"></td>
                                 <td class="max-w-[10rem] truncate py-2 pr-3" :title="r.provinsi.join(', ')" x-text="r.provinsi.length ? (r.provinsi[0] + (r.provinsi.length > 1 ? ' +' + (r.provinsi.length - 1) : '')) : '–'"></td>

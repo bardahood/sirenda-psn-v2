@@ -15,7 +15,7 @@ export function halamanPortofolio() {
             arah: q.get('arah') || 'asc',
             kritis: q.get('kritis') === '1',
             tahap: q.get('tahap') || '',
-            nonaktif: q.get('nonaktif') === '1',
+            aktif: q.get('aktif') === '1',
             page: +(q.get('page') || 1),
         },
 
@@ -32,7 +32,7 @@ export function halamanPortofolio() {
             if (this.o.arah !== 'asc') p.set('arah', this.o.arah);
             if (this.o.kritis) p.set('kritis', '1');
             if (this.o.tahap) p.set('tahap', this.o.tahap);
-            if (this.o.nonaktif) p.set('nonaktif', '1');
+            if (this.o.aktif) p.set('aktif', '1');
             if (this.o.page > 1) p.set('page', this.o.page);
             return p.toString();
         },
