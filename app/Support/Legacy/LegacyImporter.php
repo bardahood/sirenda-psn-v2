@@ -412,7 +412,10 @@ class LegacyImporter
             $this->targetTahunan('trisula_target', 'trisula_id', $id, $r, $tahun, ['periode' => 'TAHUNAN', 'periode_ke' => 0]);
         }
 
-        foreach ($this->legacy->table('psn_trisula_triwulan')->whereNull('deleted_at')->get() as $r) {
+        // Satu indikator Trisula dapat punya lebih dari satu baris triwulan untuk tahun yang sama (isian ganda di PEKS3):
+        // baris yang paling akhir diperbarui yang dipakai, ganda dicatat di laporan ETL.
+        foreach ($this->legacy->table('psn_trisula_triwulan')->whereNull('deleted_at')
+            ->orderByRaw('COALESCE(updated_at, created_at) IS NULL DESC')->orderByRaw('COALESCE(updated_at, created_at)')->orderBy('id')->get() as $r) {
             if (! ($tid = $this->peta['trisula'][$r->trisula_id] ?? null) || ! ($th = $this->tahun($r->tahun))) {
                 $this->peringatan('trisula_triwulan', "baris#{$r->id} tanpa trisula/tahun valid");
 
@@ -423,8 +426,15 @@ class LegacyImporter
                 if ($this->kosongSemua($t, $re)) {
                     continue;
                 }
-                DB::table('trisula_target')->insert(['trisula_id' => $tid, 'tahun' => $th, 'periode' => 'TRIWULAN', 'periode_ke' => $q,
-                    'target' => $t, 'realisasi' => $re, 'status' => $this->potong($r->status, 255)] + $this->jejak($r, false));
+                $kunci = ['trisula_id' => $tid, 'tahun' => $th, 'periode' => 'TRIWULAN', 'periode_ke' => $q];
+                $isi = ['target' => $t, 'realisasi' => $re, 'status' => $this->potong($r->status, 255)] + $this->jejak($r, false);
+                if (DB::table('trisula_target')->where($kunci)->exists()) {
+                    DB::table('trisula_target')->where($kunci)->update($isi);
+                    $this->peringatan('trisula_ganda', "psn_trisula_triwulan#{$r->id}: triwulan {$q} tahun {$th} indikator trisula#{$r->trisula_id} ganda, dipakai baris terbaru");
+
+                    continue;
+                }
+                DB::table('trisula_target')->insert($kunci + $isi);
                 $this->hitung('trisula_target');
             }
         }
